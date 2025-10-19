@@ -1,0 +1,116 @@
+body {
+  font-family: 'Courier New', monospace;
+  background-color: #0e0e0e;
+  color: #d8ffd8;
+  margin: 0;
+  padding: 20px;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.container {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+#left-panel, #center-panel, #right-panel {
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 15px;
+  width: 30%;
+  min-height: 400px;
+  box-shadow: 0 0 10px #0a0a0a;
+}
+
+h2 {
+  border-bottom: 1px solid #333;
+  padding-bottom: 5px;
+  margin-bottom: 10px;
+  color: #a0f0a0;
+  font-size: 1.1rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  text-align: left;
+  padding: 5px 0;
+}
+
+th {
+  color: #8cff8c;
+  width: 40%;
+}
+
+#log {
+  height: 350px;
+  overflow-y: auto;
+  font-size: 0.9rem;
+}
+
+#current-event {
+  min-height: 200px;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+#action-bar {
+  margin-top: 20px;
+  background: #111;
+  border-top: 1px solid #333;
+  padding: 15px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+}
+
+#choices button {
+  background: #222;
+  border: 1px solid #555;
+  color: #d8ffd8;
+  padding: 10px 15px;
+  margin: 0 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+#choices button:hover {
+  background: #333;
+}
+
+#garden-info {
+  position: fixed;
+  top: 10%;
+  left: 30%;
+  right: 30%;
+  background: #111;
+  border: 1px solid #444;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: left;
+  z-index: 10;
+}
+
+.hidden {
+  display: none;
+}
+
+#toggle-garden {
+  margin-top: 15px;
+  width: 100%;
+  background: #222;
+  border: 1px solid #555;
+  color: #a0f0a0;
+  padding: 8px;
+  border-radius: 5px;
+  cursor: pointer;
+}
