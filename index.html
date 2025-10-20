@@ -1,21 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Roguelike Garden</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div id="moonlight-overlay"></div>
   <div id="game">
     <h1>🌿 Roguelike Garden</h1>
+    <div id="next-event"></div>
 
     <div class="container">
-
-      <!-- LEFT: QUICK STATS -->
       <div id="left-panel">
         <h2>Stats</h2>
-        <table id="stats-table">
+        <table>
           <tr><th>🌞 Day</th><td id="day">1 / 30</td></tr>
           <tr><th>💧 Water</th><td id="water">10</td></tr>
           <tr><th>🌱 Nutrients</th><td id="nutrients">10</td></tr>
@@ -24,34 +24,31 @@
         <button id="toggle-garden">🌸 View Garden Info</button>
       </div>
 
-      <!-- CENTER: CURRENT EVENTS -->
       <div id="center-panel">
         <h2>Current Day</h2>
         <div id="current-event"></div>
       </div>
 
-      <!-- RIGHT: EVENT LOG -->
       <div id="right-panel">
         <h2>Daily Log</h2>
         <div id="log"></div>
-
       </div>
     </div>
-
-    <!-- GARDEN INFO (hidden by default) -->
+	<div id="rested-indicator" style="display:none;">✨ Well Rested</div>
+	<button id="restart-btn" onclick="restart()" style="
+		position:fixed; top:10px; right:10px; background:#222; color:#a0f0a0;
+		border:1px solid #444; border-radius:6px; padding:6px 12px; cursor:pointer;
+	">🔄 Restart</button>
     <div id="garden-info" class="hidden">
       <h2>🌿 Garden Info</h2>
       <p><b>Plant Water:</b> <span id="plant-water">5</span></p>
       <p><b>Plant Nutrients Level:</b> <span id="plant-nutrients">5</span></p>
       <p><b>Plant Health:</b> <span id="plant-health">10</span></p>
-      <p><b>Growth Level:</b> <span id="plant-growth">1</span></p>
-      <p><b>Water Need:</b> <span id="plant-water-need">Low</span></p>
-      <p><b>Nutrient Need:</b> <span id="plant-nutrient-need">Low</span></p>
       <p><b>Mutations:</b> <span id="mutations">None</span></p>
+	  <button id="restart-btn" class="restart">🔄 Restart</button>
       <button onclick="toggleGardenInfo()">Close</button>
     </div>
 
-    <!-- ACTION BUTTONS -->
     <div id="action-bar">
       <div id="choices"></div>
     </div>

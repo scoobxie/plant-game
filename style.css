@@ -4,17 +4,87 @@ body {
   color: #d8ffd8;
   margin: 0;
   padding: 20px;
+  transition: background-color 1s ease, color 1s ease;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* ===== Tranziție zi/noapte ===== */
+body.night {
+  background-color: #0a0d1a;
+  color: #d7e6ff;
+  transition: background-color 1.5s ease, color 1.5s ease;
+}
+
+body.day {
+  background-color: #fafafa;
+  color: #222;
+  transition: background-color 1.5s ease, color 1.5s ease;
+}
+
+/* Overlay subtil pentru noapte */
+#night-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 40, 0.45);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+  z-index: 5;
+}
+
+body.night #night-overlay {
+  opacity: 1;
+}
+
+/* Well Rested indicator */
+#rested-indicator {
+  position: fixed;
+  top: 10px;
+  right: 60px;
+  color: gold;
+  font-weight: bold;
+  animation: restedPulse 1.5s infinite alternate ease-in-out;
+}
+
+@keyframes restedPulse {
+  from { opacity: 0.6; text-shadow: 0 0 4px gold; }
+  to { opacity: 1; text-shadow: 0 0 12px gold; }
 }
 
 h1 {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
+  position: relative;
+  z-index: 1;
+}
+
+#next-event {
+  text-align: center;
+  font-weight: bold;
+  color: #ffb347;
+  animation: blink 1s infinite alternate;
+  margin-bottom: 15px;
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes blink {
+  from { opacity: 1; }
+  to { opacity: 0.3; }
 }
 
 .container {
   display: flex;
   justify-content: space-between;
   gap: 20px;
+  transition: filter 1s ease, background 1s ease;
+  position: relative;
+  z-index: 1;
+}
+
+body.night .container {
+  filter: brightness(0.6);
 }
 
 #left-panel, #center-panel, #right-panel {
@@ -25,6 +95,13 @@ h1 {
   width: 30%;
   min-height: 400px;
   box-shadow: 0 0 10px #0a0a0a;
+  transition: background 1s ease;
+}
+
+body.night #left-panel,
+body.night #center-panel,
+body.night #right-panel {
+  background: #0a0a0a;
 }
 
 h2 {
@@ -70,6 +147,8 @@ th {
   border-radius: 10px;
   display: flex;
   justify-content: center;
+  position: relative;
+  z-index: 1;
 }
 
 #choices button {
@@ -100,9 +179,7 @@ th {
   z-index: 10;
 }
 
-.hidden {
-  display: none;
-}
+.hidden { display: none; }
 
 #toggle-garden {
   margin-top: 15px;
@@ -114,3 +191,37 @@ th {
   border-radius: 5px;
   cursor: pointer;
 }
+
+#toggle-garden:hover { background: #333; }
+
+#restart-btn {
+  position: fixed;
+  top: 10px;
+  right: 15px;
+  background: #222;
+  border: 1px solid #555;
+  color: #a0f0a0;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  z-index: 100;
+  transition: background 0.3s, color 0.3s;
+}
+
+#restart-btn:hover {
+  background: #333;
+  color: #d8ffd8;
+}
+
+.warning-pulse {
+  animation: pulse 1.5s infinite;
+  color: #ffaaaa;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.8; text-shadow: 0 0 4px #ff6666; }
+  50% { opacity: 1; text-shadow: 0 0 10px #ff9999; }
+  100% { opacity: 0.8; text-shadow: 0 0 4px #ff6666; }
+}
+
+
