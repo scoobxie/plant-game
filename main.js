@@ -1,11 +1,13 @@
-// ==============================
-// 🌿 Roguelike Garden - main.js
-// ==============================
-
-// --- Variabile principale ---
-let day = 1, water = 10, nutrients = 10, energy = 2, maxEnergy = 2;
-let mutations = [], log = [];
-let isNight = false, wellRested = false, inBossEvent = false;
+// ===== Variabile de bază =====
+let day = 1,
+  water = 10,
+  nutrients = 10,
+  energy = 2,
+  maxEnergy = 2;
+let mutations = [],
+  log = [],
+  isNight = false,
+  wellRested = false;
 const maxDays = 30;
 
 let plant = {
@@ -13,53 +15,71 @@ let plant = {
   nutrients: 5,
   health: 10,
   growth: 1,
-  dryDays: 0
+  dryDays: 0 // zile consecutive fără apă
 };
 
-// ====== Actualizare UI ======
+// ===== Actualizare UI =====
 function updateUI() {
   document.getElementById("day").textContent = `${day} / ${maxDays}`;
   document.getElementById("water").textContent = water;
   document.getElementById("nutrients").textContent = nutrients;
   document.getElementById("energy").textContent = `${energy} / ${maxEnergy}`;
-  document.getElementById("mutations").textContent = mutations.join(", ") || "None";
+  document.getElementById("mutations").textContent =
+    mutations.join(", ") || "None";
   document.getElementById("plant-water").textContent = plant.water;
   document.getElementById("plant-nutrients").textContent = plant.nutrients;
   document.getElementById("plant-health").textContent = plant.health;
-  document.getElementById("log").innerHTML = log.map(l => `<div>${l}</div>`).join("");
 
-  const logDiv = document.getElementById("log");
-  logDiv.scrollTop = logDiv.scrollHeight;
+  const logBox = document.getElementById("log");
+  logBox.innerHTML = log.map(l => `<div>${l}</div>`).join("");
+  logBox.scrollTop = logBox.scrollHeight; // auto-scroll log
 
   updateNextEvent();
-  updateRestedIndicator();
 }
 
-// ====== Următorul eveniment (boss) ======
-let nextBossDay = 3;
-let nextBossName = "Drought";
-
+// ===== Următorul eveniment =====
 function updateNextEvent() {
-  const daysLeft = nextBossDay - day;
-  const nextEventEl = document.getElementById("next-event");
+  const nextBoss = Math.ceil(day / 3) * 3;
+  const daysLeft = nextBoss - day;
 
-  if (daysLeft > 0) {
-    nextEventEl.textContent = `⚠️ ${nextBossName} in ${daysLeft} day${daysLeft > 1 ? "s" : ""}`;
-  } else if (daysLeft === 0) {
-    nextEventEl.textContent = `⚠️ ${nextBossName} today!`;
-  } else {
-    nextEventEl.textContent = "";
-  }
+  const bossList = ["Drought", "Earthquake"];
+  const eventName = bossList[(nextBoss / 3) % bossList.length] || "Unknown";
 
-  if (isNight) nextEventEl.textContent = "";
+  if (daysLeft >= 0)
+    document.getElementById("next-event").textContent =
+      isNight
+        ? ""
+        : daysLeft > 0
+        ? `⚠️ ${eventName} in ${daysLeft} day${daysLeft > 1 ? "s" : ""}`
+        : `⚠️ ${eventName} today!`;
 }
 
-function addLog(txt) { log.push(txt); saveGame(); updateUI(); }
-function setEvent(txt) { document.getElementById("current-event").innerHTML = txt; }
-function setChoices(html) { document.getElementById("choices").innerHTML = html; }
-function rand(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+function addLog(txt) {
+  log.push(txt);
+  saveGame();
+  updateUI();
+}
 
-// ====== Verificări și stări ======
+function setEvent(txt) {
+  document.getElementById("current-event").innerHTML = txt;
+}
+
+function setChoices(html) {
+  document.getElementById("choices").innerHTML = html;
+}
+
+function rand(a, b) {
+  return Math.floor(Math.random() * (b - a + 1)) + a;
+}
+
+// ===== Stări plantă =====
+function updateNeeds() {
+  // Simplificăm, nu mai avem nevoie de waterNeed/nutrientNeed afișate
+  if (plant.water < 0) plant.water = 0;
+  if (plant.nutrients < 0) plant.nutrients = 0;
+}
+
+// ===== Verifică moartea plantei =====
 function checkPlantDeath() {
   if (plant.water <= 0) {
     plant.dryDays++;
@@ -86,125 +106,111 @@ function checkPlantDeath() {
   return false;
 }
 
-// ====== Pornire joc ======
+// ===== Început de joc =====
 function startGame() {
+  updateNeeds();
   updateUI();
   setEvent(`<b>Day ${day}</b> begins.`);
   normalChoices();
 }
 
-// ====== Acțiuni zilnice ======
+// ===== Alegeri zilnice =====
 function normalChoices() {
-  if (inBossEvent) return;
-
   const time = isNight ? "🌙 Night — limited actions." : "☀️ Daytime — full energy.";
   setEvent(`${time}<br>Choose your action:`);
-
   setChoices(`
-    <button onclick="openPlantTab()">🌿 Plant Care</button>
+    <button onclick="openPlantMenu()">🌿 Tend Plant</button>
     <button onclick="expeditionMenu()">🏕️ Expedition</button>
     <button onclick="sleep()">🛌 Sleep</button>
   `);
 }
 
-// ====== Plant Care Tab ======
-function openPlantTab() {
-  setEvent("Plant care options:");
+// ===== Meniu Plantă =====
+function openPlantMenu() {
+  setEvent("Choose how to tend the plant:");
   setChoices(`
-    <button onclick="waterPlant()">💧 Water (-1 Energy)</button>
-    <button onclick="fertilizePlant()">🌱 Fertilize (-1 Energy)</button>
-    <button onclick="tendPlant()">🩹 Tend (heal plant)</button>
-    <button onclick="normalChoices()">↩️ Back</button>
+    <button onclick="waterPlant()">💧 Water Plant (-1 Energy)</button>
+    <button onclick="fertilizePlant()">🌱 Fertilize Plant (-1 Energy)</button>
+    <button onclick="healPlant()">🌼 Tend Plant (-1 Energy)</button>
+    <button onclick="normalChoices()">Back</button>
   `);
 }
 
-// ====== Folosirea energiei ======
-function useEnergy(cost = 1, forced = false) {
+// ===== Energie =====
+function useEnergy(cost = 1) {
   energy -= cost;
   if (energy < 0) energy = 0;
   updateUI();
 
-  if (energy === 0 && wellRested) {
-    wellRested = false;
-    addLog("☀️ You no longer feel well-rested.");
-  }
-
-  if (energy === 0 && !forced) {
-    setEvent("You're exhausted... It's time to sleep.");
-    setChoices(`<button onclick="sleep(true)">🛌 Sleep</button>`);
+  if (energy <= 0) {
+    addLog("You're exhausted. You'll need to rest.");
   }
 }
 
-// ====== Tranziție către noapte ======
+// ===== Zi/Noapte =====
 function enterNight() {
   isNight = true;
   document.body.classList.add("night");
-  document.body.classList.remove("day");
-  document.getElementById("night-overlay").style.opacity = "1";
-
-  energy = Math.max(1, Math.floor(maxEnergy / 2));
-  addLog("🌙 Night falls. You feel tired and move slower.");
+  energy = Math.ceil(maxEnergy / 2);
+  addLog("🌙 Night falls, energy halved.");
   updateUI();
   normalChoices();
 }
 
-// ====== Somn (trecerea timpului) ======
 function sleep(fromChoice = true) {
-  if (inBossEvent) return;
-
-  // DORMIT NOAPTEA → zi nouă
-  if (isNight) {
-    isNight = false;
-    document.body.classList.remove("night");
-    document.body.classList.add("day");
-    document.getElementById("night-overlay").style.opacity = "0";
-
-    day++;
-    addLog("💤 You rest through the night.");
-
-    if (!wellRested) {
-      wellRested = true;
-      maxEnergy += 1;
-      addLog("✨ You feel well-rested (+1 max energy today).");
-    }
-
-    energy = maxEnergy;
-
-    plant.water = Math.max(0, plant.water - 1);
-    plant.nutrients = Math.max(0, plant.nutrients - 1);
-    plant.growth++;
-
-    if (checkPlantDeath()) return;
-    if (day > maxDays) return endGame();
-
-    if (day === nextBossDay) bossDay();
-    else if (Math.random() < 0.25) mutationEvent();
-    else normalChoices();
-
-    updateUI();
-    return;
-  }
-
-  // DORMIT ZIUA
   if (!isNight) {
-    if (wellRested && fromChoice) {
-      addLog("❌ You can’t get extra benefits from sleeping while well-rested.");
-    }
-
-    isNight = true;
-    document.body.classList.remove("day");
-    document.body.classList.add("night");
-    document.getElementById("night-overlay").style.opacity = "1";
-
-    energy = Math.max(1, Math.floor(maxEnergy / 2));
-    addLog("😴 You nap during the day. Night falls quickly...");
-    updateUI();
-    normalChoices();
+    enterNight();
     return;
   }
+
+  // Trecerea la zi
+  isNight = false;
+  document.body.classList.remove("night");
+
+  day++;
+  addLog("💤 You rest through the night.");
+
+  let originalMax = maxEnergy;
+
+  // Well rested doar dacă a ales să doarmă (nu forțat)
+  if (fromChoice && energy > 0) {
+    wellRested = true;
+    addLog("✨ You feel well-rested (+1 max energy today).");
+    maxEnergy += 1;
+  }
+
+  energy = maxEnergy;
+
+  // Consumul pasiv doar al plantei
+  plant.water = Math.max(0, plant.water - 1);
+  plant.nutrients = Math.max(0, plant.nutrients - 1);
+
+  plant.growth++;
+  updateNeeds();
+
+  if (checkPlantDeath()) return;
+  if (day > maxDays) return endGame();
+
+  // Evenimente
+  if (day % 3 === 0) bossDay();
+  else if (Math.random() < 0.25) mutationEvent(); // mutațiile mai dese
+  else normalChoices();
+
+  // Eliminare buff după zi
+  if (wellRested) {
+    setTimeout(() => {
+      wellRested = false;
+      maxEnergy = originalMax;
+      energy = Math.min(energy, maxEnergy);
+      addLog("☀️ The rested feeling fades.");
+      updateUI();
+    }, 10000);
+  }
+
+  updateUI();
 }
 
-// ====== Acțiuni ======
+// ===== Acțiuni plantă =====
 function waterPlant() {
   if (energy <= 0) return;
   if (water > 0) {
@@ -212,6 +218,7 @@ function waterPlant() {
     plant.water = Math.min(10, plant.water + 2);
     addLog("💧 You watered the plant.");
   } else addLog("❌ Not enough shared water!");
+  updateNeeds();
   useEnergy();
 }
 
@@ -221,55 +228,53 @@ function fertilizePlant() {
     nutrients--;
     plant.nutrients = Math.min(10, plant.nutrients + 2);
     addLog("🌱 You fertilized the plant.");
-  } else addLog("❌ Not enough shared nutrients!");
+  } else addLog("❌ Not enough nutrients!");
+  updateNeeds();
   useEnergy();
 }
 
-function tendPlant() {
+function healPlant() {
   if (energy <= 0) return;
   plant.health = Math.min(10, plant.health + 1);
-  addLog("🩹 You tended to the plant. It looks healthier.");
+  addLog("🌼 You tended the plant. It looks healthier.");
+  updateNeeds();
   useEnergy();
 }
 
-// ====== Boss Events ======
+// ===== Boss Events =====
 function droughtEvent() {
   plant.water = 0;
   water = Math.max(0, water - rand(1, 3));
   addLog("☀️ Drought hit! The plant lost all internal water but you endure.");
+  updateNeeds();
 }
 
 function earthquakeEvent() {
   plant.health = Math.max(0, plant.health - 2);
   addLog("🌋 Earthquake damaged the roots.");
+  updateNeeds();
 }
 
 function bossDay() {
-  inBossEvent = true;
   const bosses = [
     { name: "Drought", effect: droughtEvent },
-    { name: "Earthquake", effect: earthquakeEvent }
+    { name: "Earthquake", effect: earthquakeEvent },
   ];
+
   const b = bosses[rand(0, bosses.length - 1)];
-
-  nextBossDay += 3;
-  nextBossName = bosses[rand(0, bosses.length - 1)].name;
-
   b.effect();
   if (checkPlantDeath()) return;
-
   setEvent(`<b>Boss Event:</b> ${b.name}`);
   setChoices(`<button onclick="afterBoss()">Continue</button>`);
 }
 
 function afterBoss() {
   addLog("You recover from the disaster.");
-  inBossEvent = false;
   updateUI();
   normalChoices();
 }
 
-// ====== Mutations ======
+// ===== Mutations =====
 function mutationEvent() {
   setEvent("🧬 Mutation appears!");
   setChoices(`
@@ -285,23 +290,24 @@ function adoptMutation(m) {
   normalChoices();
 }
 
-// ====== Expeditions ======
+// ===== Expeditions =====
 function expeditionMenu() {
   setEvent("Choose expedition duration:");
   setChoices(`
-    <button onclick="startExpedition(1,1)">1 Day (-1 Energy)</button>
-    <button onclick="startExpedition(2,2)">2 Days (-2 Energy)</button>
-    <button onclick="startExpedition(3,3)">3 Days (-3 Energy)</button>
+    <button onclick="startExpedition(1)">1 Day (-1 Energy)</button>
+    <button onclick="startExpedition(2)">2 Days (-2 Energy)</button>
+    <button onclick="startExpedition(3)">3 Days (-3 Energy)</button>
     <button onclick="normalChoices()">Cancel</button>
   `);
 }
 
-function startExpedition(days, cost) {
-  if (energy < cost) {
-    addLog("❌ Not enough energy for such a long trip.");
+function startExpedition(days) {
+  if (energy < days) {
+    addLog("❌ Not enough energy for this expedition!");
     return;
   }
-  useEnergy(cost);
+
+  useEnergy(days);
   addLog(`🏕️ You leave for ${days} days.`);
 
   for (let i = 0; i < days; i++) {
@@ -309,21 +315,31 @@ function startExpedition(days, cost) {
     plant.water = Math.max(0, plant.water - 1);
     plant.nutrients = Math.max(0, plant.nutrients - 1);
     if (checkPlantDeath()) return;
-    if (day === nextBossDay) bossDay();
+    if (day % 3 === 0) bossDay();
   }
 
-  let wg = 0, ng = 0;
-  if (days === 1) { wg = rand(2, 5); ng = rand(2, 4); }
-  else if (days === 2) { wg = rand(3, 7); ng = rand(3, 6); }
-  else { wg = rand(4, 10); ng = rand(4, 9); }
+  let wg = 0,
+    ng = 0;
+  if (days === 1) {
+    wg = rand(1, 4);
+    ng = rand(1, 3);
+  } else if (days === 2) {
+    wg = rand(2, 6);
+    ng = rand(2, 5);
+  } else {
+    wg = rand(3, 10);
+    ng = rand(3, 9);
+  }
 
-  water += wg; nutrients += ng;
+  water += wg;
+  nutrients += ng;
   addLog(`🧭 Returned with +${wg} water, +${ng} nutrients.`);
+  updateNeeds();
   updateUI();
   normalChoices();
 }
 
-// ====== End / Save ======
+// ===== End / Save =====
 function endGame() {
   setEvent("🌸 The plant bore fruit. You survived 30 days!");
   setChoices(`<button onclick="restart()">Restart</button>`);
@@ -337,7 +353,18 @@ function restart() {
 }
 
 function saveGame() {
-  const s = { day, water, nutrients, energy, maxEnergy, mutations, log, plant, isNight, wellRested, nextBossDay, nextBossName };
+  const s = {
+    day,
+    water,
+    nutrients,
+    energy,
+    maxEnergy,
+    mutations,
+    log,
+    plant,
+    isNight,
+    wellRested,
+  };
   localStorage.setItem("gardenSave", JSON.stringify(s));
 }
 
@@ -351,20 +378,14 @@ function loadGame() {
   }
 }
 
-// ====== Well Rested Indicator ======
-function updateRestedIndicator() {
-  const indicator = document.getElementById("rested-indicator");
-  if (!indicator) return;
-  indicator.style.display = wellRested ? "block" : "none";
-}
-
-// ====== Garden Info ======
 function toggleGardenInfo() {
   document.getElementById("garden-info").classList.toggle("hidden");
 }
-document.getElementById("toggle-garden").addEventListener("click", toggleGardenInfo);
 
-// ====== Start ======
+document
+  .getElementById("toggle-garden")
+  .addEventListener("click", toggleGardenInfo);
+
 loadGame();
 updateUI();
 startGame();
