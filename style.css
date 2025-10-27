@@ -1,227 +1,356 @@
+:root {
+  /* Shared variables */
+  --transition-time: 1s;
+  --border-radius: 10px;
+  --font-main: 'Courier New', monospace;
+
+  /* Day colours */
+  --day-bg: #fffbe6;
+  --day-panel: #d4f1c5;
+  --day-text: #4b4b2f;
+  --day-title: #4b4b2f;
+  --day-accent: #a1c181;
+  --day-border: #c0a080;
+  --day-glow: 0 0 8px rgba(161, 193, 129, 0.3);
+
+  /* Night colours */
+  --night-bg: #0a1f44;
+  --night-panel: #79bcff;
+  --night-text: #000000;
+  --night-title: #d7d9e0;
+  --night-accent: #260c85;
+  --night-border: #3a5f7a;
+  --night-glow: 0 0 10px rgba(208, 240, 192, 0.3);
+
+  /* Accent colours */
+  --accent-yellow: #9b8e20;
+  --accent-red: #a32c21;
+
+  /* Restart button colours */
+  --restart-bg-day: #ffd966;
+  --restart-text-day: #4b4b2f;
+  --restart-bg-night: #5a88b0;
+  --restart-text-night: #d0f0c0;
+  --restart-hover-day: #ffe699;
+  --restart-hover-night: #729ec0;
+
+  /* Buttons colours */
+  --btn-bg-day: #ffd1dc;
+  --btn-text-day: #4b4b2f;
+  --btn-hover-day: #fff2b2;
+  --btn-bg-night: #2b3e6f;
+  --btn-text-night: #f0d0e0; 
+  --btn-hover-night: #4a5f8a;  
+}
+
 body {
-  font-family: 'Courier New', monospace;
-  background-color: #0e0e0e;
-  color: #d8ffd8;
+  font-family: var(--font-main);
   margin: 0;
   padding: 20px;
-  transition: background-color 1s ease, color 1s ease;
   position: relative;
   overflow-x: hidden;
+  transition: background-color var(--transition-time) ease, color var(--transition-time) ease;
+  background-color: var(--day-bg);
+  color: var(--day-text);
 }
 
-/* ===== Tranziție zi/noapte ===== */
+body h1#title { color: var(--day-title); }
+
 body.night {
-  background-color: #0a0d1a;
-  color: #d7e6ff;
-  transition: background-color 1.5s ease, color 1.5s ease;
+  background-color: var(--night-bg);
+  color: var(--night-text);
 }
 
-body.day {
-  background-color: #fafafa;
-  color: #222;
-  transition: background-color 1.5s ease, color 1.5s ease;
-}
+body.night h1#title { color: var(--night-title); }
 
-/* Overlay subtil pentru noapte */
-#night-overlay {
+/* Moonlight Overlay */
+#moonlight-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 40, 0.45);
+  background: radial-gradient(circle at 60% 30%, rgba(150, 200, 255, 0.2), rgba(0, 0, 40, 0.7));
   pointer-events: none;
   opacity: 0;
-  transition: opacity 1.2s ease;
-  z-index: 5;
+  transition: opacity 1.5s ease;
+  z-index: 0;
 }
 
-body.night #night-overlay {
+body.night #moonlight-overlay {
   opacity: 1;
 }
 
-/* Well Rested indicator */
-#rested-indicator {
-  position: fixed;
-  top: 10px;
-  right: 60px;
-  color: gold;
-  font-weight: bold;
-  animation: restedPulse 1.5s infinite alternate ease-in-out;
-}
-
-@keyframes restedPulse {
-  from { opacity: 0.6; text-shadow: 0 0 4px gold; }
-  to { opacity: 1; text-shadow: 0 0 12px gold; }
-}
-
+/* Title & Events */
 h1 {
   text-align: center;
-  margin-bottom: 10px;
-  position: relative;
+  margin: 0 0 10px;
+  text-shadow: 0 0 10px rgba(160, 255, 160, 0.3);
+  font-size: 2rem;
   z-index: 1;
 }
 
 #next-event {
   text-align: center;
   font-weight: bold;
-  color: #ffb347;
+  color: var(--accent-yellow);
   animation: blink 1s infinite alternate;
   margin-bottom: 15px;
-  position: relative;
-  z-index: 1;
 }
 
 @keyframes blink {
   from { opacity: 1; }
-  to { opacity: 0.3; }
+  to { opacity: 0.4; }
 }
 
+/* Game Layout */
 .container {
   display: flex;
   justify-content: space-between;
   gap: 20px;
-  transition: filter 1s ease, background 1s ease;
-  position: relative;
+  /*flex-wrap: wrap;*/
   z-index: 1;
+  transition: filter 1s ease;
 }
 
-body.night .container {
-  filter: brightness(0.6);
-}
-
-#left-panel, #center-panel, #right-panel {
-  background: #111;
-  border: 1px solid #333;
-  border-radius: 8px;
+/* Panels */
+#left-panel, #right-panel {
+  border-radius: var(--border-radius);
   padding: 15px;
-  width: 30%;
+  width: 27%;
   min-height: 400px;
-  box-shadow: 0 0 10px #0a0a0a;
-  transition: background 1s ease;
+  box-shadow: var(--night-glow);
+  transition: all var(--transition-time) ease;
 }
 
+#center-panel {
+  border-radius: var(--border-radius);
+  padding: 15px;
+  width: 38%;
+  background-color: pink;
+  min-height: 400px;
+  box-shadow: var(--night-glow);
+  transition: all var(--transition-time) ease;
+}
+
+/* Night panels */
 body.night #left-panel,
 body.night #center-panel,
 body.night #right-panel {
-  background: #0a0a0a;
+  background: var(--night-panel);
+  border: 1px solid var(--night-border);
+  color: var(--night-text);
+  box-shadow: var(--night-glow);
 }
 
+/* Day panels */
+body.day #left-panel,
+body.day #center-panel,
+body.day #right-panel {
+  background: var(--day-panel);
+  border: 1px solid var(--day-border);
+  color: var(--day-text);
+  box-shadow: var(--day-glow);
+}
+
+@media (max-width: 900px) {
+  #left-panel, #center-panel, #right-panel {
+    width: 100%;
+  }
+}
+
+/* Headings */
 h2 {
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--night-border);
   padding-bottom: 5px;
   margin-bottom: 10px;
-  color: #a0f0a0;
   font-size: 1.1rem;
+  transition: color var(--transition-time);
 }
 
+body.night h2 {
+  color: var(--night-accent);
+}
+
+body.day h2 {
+  color: var(--day-accent);
+}
+
+/* Tables */
 table {
   width: 100%;
   border-collapse: collapse;
+  font-size: 0.95rem;
 }
 
 th, td {
   text-align: left;
-  padding: 5px 0;
+  padding: 4px 0;
+  color: var(--day-text);
+}
+
+body.day th,
+body.day td {
+  color: var(--day-text);
+}
+
+body.night th,
+body.night td {
+  color: var(--night-text);
 }
 
 th {
-  color: #8cff8c;
-  width: 40%;
+  width: 45%;
 }
 
+/* Daily Log */
 #log {
-  height: 350px;
+  height: 180px;
   overflow-y: auto;
-  font-size: 0.9rem;
+  padding: 5px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.02);
 }
 
+#log::-webkit-scrollbar {
+  width: 6px;
+}
+
+#log::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 6px;
+}
+
+/* Current Event */
 #current-event {
-  min-height: 200px;
-  font-size: 1rem;
+  min-height: 150px;
   line-height: 1.4;
+  padding: 5px;
 }
 
-#action-bar {
-  margin-top: 20px;
-  background: #111;
-  border-top: 1px solid #333;
-  padding: 15px;
-  border-radius: 10px;
-  display: flex;
-  justify-content: center;
-  position: relative;
-  z-index: 1;
-}
-
-#choices button {
-  background: #222;
-  border: 1px solid #555;
-  color: #d8ffd8;
-  padding: 10px 15px;
-  margin: 0 5px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-family: inherit;
-}
-
-#choices button:hover {
-  background: #333;
-}
-
-#garden-info {
+/* Rested Indicator */
+#rested-indicator {
   position: fixed;
-  top: 10%;
-  left: 30%;
-  right: 30%;
-  background: #111;
-  border: 1px solid #444;
-  border-radius: 8px;
-  padding: 20px;
-  text-align: left;
+  top: 12px;
+  right: 60px;
+  color: var(--accent-yellow);
+  font-weight: bold;
+  animation: restedPulse 1.5s infinite alternate ease-in-out;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
   z-index: 10;
 }
 
-.hidden { display: none; }
-
-#toggle-garden {
-  margin-top: 15px;
-  width: 100%;
-  background: #222;
-  border: 1px solid #555;
-  color: #a0f0a0;
-  padding: 8px;
-  border-radius: 5px;
-  cursor: pointer;
+@keyframes restedPulse {
+  from { opacity: 0.7; text-shadow: 0 0 5px gold; }
+  to { opacity: 1; text-shadow: 0 0 15px gold; }
 }
 
-#toggle-garden:hover { background: #333; }
+/* Action Bar */
+#action-bar {
+  margin-top: 25px;
+  border-top: 1px solid var(--day-border);
+  border-radius: var(--border-radius);
+  padding: 15px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  background: var(--day-panel);
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  transition: background var(--transition-time);
+}
 
-#restart-btn {
+body.night #action-bar {
+  background: var(--night-panel);
+  border-color: var(--night-border);
+}
+
+/* Buttons */
+button {
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.action-btn,
+.tend-plant-btn,
+.travel-btn {
+  background-color: var(--btn-bg-day);
+  color: var(--btn-text-day);
+  border: 1px solid #555;
+  padding: 10px 15px;
+  border-radius: 5px;
+  box-shadow: 0 0 6px rgba(160, 255, 160, 0.1);
+  transition: background-color 0.3s, color 0.3s, transform 0.2s;
+}
+
+body.night .action-btn,
+body.night .tend-plant-btn,
+body.night .travel-btn {
+  background-color: var(--btn-bg-night);
+  color: var(--btn-text-night);
+}
+
+.action-btn:hover,
+.tend-plant-btn:hover,
+.travel-btn:hover {
+  transform: scale(1.05);
+  background-color: var(--btn-hover-day);
+  color: var(--day-accent);
+}
+
+body.night .action-btn:hover,
+body.night .tend-plant-btn:hover,
+body.night .travel-btn:hover {
+  background-color: var(--btn-hover-night);
+  color: var(--night-accent);
+}
+
+.action-btn:active,
+.tend-plant-btn:active,
+.travel-btn:active {
+  transform: scale(0.95);
+}
+
+/* Restart button */
+button[onclick="restart()"] {
   position: fixed;
   top: 10px;
-  right: 15px;
-  background: #222;
-  border: 1px solid #555;
-  color: #a0f0a0;
-  padding: 8px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  z-index: 100;
-  transition: background 0.3s, color 0.3s;
+  right: 10px;
+  background-color: var(--restart-bg-day);
+  color: var(--restart-text-day);
+  border: none;
+  padding: 8px 16px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgb(255, 145, 0);
+  z-index: 1000;
+  transition: background-color 0.3s, color 0.3s;
 }
 
-#restart-btn:hover {
-  background: #333;
-  color: #d8ffd8;
+body.night button[onclick="restart()"] {
+  background-color: var(--restart-bg-night);
+  color: var(--restart-text-night);
 }
 
+button[onclick="restart()"]:hover {
+  background-color: var(--restart-hover-day);
+}
+
+body.night button[onclick="restart()"]:hover {
+  background-color: var(--restart-hover-night);
+}
+
+/* Hide an element */
+.hidden { display: none; }
+
+/* Warning pulse */
 .warning-pulse {
   animation: pulse 1.5s infinite;
-  color: #ffaaaa;
+  color: var(--accent-red);
 }
 
 @keyframes pulse {
-  0% { opacity: 0.8; text-shadow: 0 0 4px #ff6666; }
+  0% { opacity: 0.8; text-shadow: 0 0 4px var(--accent-red); }
   50% { opacity: 1; text-shadow: 0 0 10px #ff9999; }
-  100% { opacity: 0.8; text-shadow: 0 0 4px #ff6666; }
+  100% { opacity: 0.8; text-shadow: 0 0 4px var(--accent-red); }
 }
-
-

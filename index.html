@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Roguelike Garden</title>
+  <title>Plant Game</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div id="moonlight-overlay"></div>
   <div id="game">
-    <h1>🌿 Roguelike Garden</h1>
+    <h1 id="title">🌿 Plant Game</h1>
     <div id="next-event"></div>
 
     <div class="container">
@@ -21,31 +21,33 @@
           <tr><th>🌱 Nutrients</th><td id="nutrients">10</td></tr>
           <tr><th>⚡ Energy</th><td id="energy">2 / 2</td></tr>
         </table>
-        <button id="toggle-garden">🌸 View Garden Info</button>
+        <h2>Plant Info</h2>
+        <table>
+          <tr><th>🌵 Mutations</th><td id="mutations">None</td></tr>
+          <tr><th>💧 Plant Water</th><td id="plant-water">5</td></tr>
+          <tr><th>🪴 Plant Nutrients</th><td id="plant-water">5</td></tr>
+          <tr><th>🌸 Plant Health</th><td id="plant-health">10</td></tr>
+        </table>
       </div>
-
+      
       <div id="center-panel">
-        <h2>Current Day</h2>
-        <div id="current-event"></div>
+
       </div>
 
       <div id="right-panel">
+        <h2>Current Day</h2>
+        <div id="current-event"></div>
         <h2>Daily Log</h2>
         <div id="log"></div>
       </div>
     </div>
-	<div id="rested-indicator" style="display:none;">✨ Well Rested</div>
-	<button id="restart-btn" onclick="restart()" style="
-		position:fixed; top:10px; right:10px; background:#222; color:#a0f0a0;
-		border:1px solid #444; border-radius:6px; padding:6px 12px; cursor:pointer;
-	">🔄 Restart</button>
+    <div id="rested-indicator" class="hidden">✨ Well Rested</div>
     <div id="garden-info" class="hidden">
       <h2>🌿 Garden Info</h2>
       <p><b>Plant Water:</b> <span id="plant-water">5</span></p>
       <p><b>Plant Nutrients Level:</b> <span id="plant-nutrients">5</span></p>
       <p><b>Plant Health:</b> <span id="plant-health">10</span></p>
       <p><b>Mutations:</b> <span id="mutations">None</span></p>
-	  <button id="restart-btn" class="restart">🔄 Restart</button>
       <button onclick="toggleGardenInfo()">Close</button>
     </div>
 

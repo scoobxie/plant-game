@@ -97,7 +97,6 @@ function checkPlantDeath() {
 
     if (plant.health <= 0) {
         setEvent("💀 Your plant has died.");
-        setChoices(`<button onclick="restart()">Restart</button>`);
         addLog("💀 The plant has perished.");
         return true;
     }
@@ -119,15 +118,15 @@ function normalChoices() {
 
     if (energy <= 0) {
         setEvent(`${time}<br>You're too tired to do anything else.`);
-        setChoices(`<button onclick="sleep()">🛌 Sleep</button>`);
+        setChoices(`<button class="action-btn" onclick="sleep()">🛌 Sleep</button>`);
         return;
     }
 
     setEvent(`${time}<br>Choose your action:`);
     setChoices(`
-        <button onclick="openPlantMenu()">🌿 Tend Plant</button>
-        <button onclick="expeditionMenu()">🏕️ Expedition</button>
-        <button onclick="sleep()">🛌 Sleep</button>
+        <button class="action-btn" onclick="openPlantMenu()">🌿 Tend Plant</button>
+        <button class="action-btn" onclick="expeditionMenu()">🏕️ Expedition</button>
+        <button class="action-btn" onclick="sleep()">🛌 Sleep</button>
     `);
 }
 
@@ -135,10 +134,10 @@ function normalChoices() {
 function openPlantMenu() {
     setEvent("Choose how to tend the plant:");
     setChoices(`
-        <button onclick="waterPlant()">💧 Water Plant (-1 Energy)</button>
-        <button onclick="fertilizePlant()">🌱 Fertilize Plant (-1 Energy)</button>
-        <button onclick="healPlant()">🌼 Tend Plant (-1 Energy)</button>
-        <button onclick="normalChoices()">Back</button>
+        <button class="action-btn" onclick="waterPlant()">💧 Water Plant (-1 Energy)</button>
+        <button class="action-btn" onclick="fertilizePlant()">🌱 Fertilize Plant (-1 Energy)</button>
+        <button class="action-btn" onclick="healPlant()">🌼 Tend Plant (-1 Energy)</button>
+        <button class="action-btn" onclick="normalChoices()">Back</button>
     `);
 }
 
@@ -151,7 +150,7 @@ function useEnergy(cost = 1) {
     if (energy <= 0) {
         addLog("😴 You're exhausted. You should sleep to recover.");
         setEvent("You're too tired to continue. Time to rest.");
-        setChoices(`<button onclick="sleep()">🛌 Sleep</button>`);
+        setChoices(`<button class="action-btn" onclick="sleep()">🛌 Sleep</button>`);
     }
 }
 
@@ -270,7 +269,7 @@ function bossDay() {
     if (checkPlantDeath()) return;
 
     setEvent(`<b>Boss Event:</b> ${b.name}`);
-    setChoices(`<button onclick="afterBoss()">Continue</button>`);
+    setChoices(`<button class="action-btn" onclick="afterBoss()">Continue</button>`);
 }
 
 function afterBoss() {
@@ -283,9 +282,9 @@ function afterBoss() {
 function mutationEvent() {
     setEvent("🧬 Mutation appears!");
     setChoices(`
-        <button onclick="adoptMutation('Deep Roots')">Deep Roots</button>
-        <button onclick="adoptMutation('Waxy Leaves')">Waxy Leaves</button>
-        <button onclick="normalChoices()">Skip</button>
+        <button class="action-btn" onclick="adoptMutation('Deep Roots')">Deep Roots</button>
+        <button class="action-btn" onclick="adoptMutation('Waxy Leaves')">Waxy Leaves</button>
+        <button class="action-btn" onclick="normalChoices()">Skip</button>
     `);
 }
 
@@ -299,10 +298,10 @@ function adoptMutation(m) {
 function expeditionMenu() {
     setEvent("Choose expedition duration:");
     setChoices(`
-        <button onclick="startExpedition(1)">1 Day (-1 Energy)</button>
-        <button onclick="startExpedition(2)">2 Days (-2 Energy)</button>
-        <button onclick="startExpedition(3)">3 Days (-3 Energy)</button>
-        <button onclick="normalChoices()">Cancel</button>
+        <button class="action-btn" onclick="startExpedition(1)">1 Day (-1 Energy)</button>
+        <button class="action-btn" onclick="startExpedition(2)">2 Days (-2 Energy)</button>
+        <button class="action-btn" onclick="startExpedition(3)">3 Days (-3 Energy)</button>
+        <button class="action-btn" onclick="normalChoices()">Cancel</button>
     `);
 }
 
