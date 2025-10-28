@@ -41,7 +41,6 @@ SCHEMA LOGICA
 (3) -> (2), (4)
 
 To fix:
--nutrients bug
 -sleep button -> wake up button 
 
 Extras:
