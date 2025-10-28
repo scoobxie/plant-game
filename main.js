@@ -36,6 +36,12 @@ function updateUI() {
     logBox.scrollTop = logBox.scrollHeight; // auto-scroll log
 
     updateNextEvent();
+
+    // 🔹 actualizează textul butonului Sleep / Wake Up în funcție de isNight
+    const sleepBtn = document.querySelector("button.action-btn[onclick='sleep()']");
+    if (sleepBtn) {
+        sleepBtn.textContent = isNight ? "🌅 Wake Up" : "🛌 Sleep";
+    }
 }
 
 // ===== Următorul eveniment =====
@@ -119,6 +125,7 @@ function normalChoices() {
     if (energy <= 0) {
         setEvent(`${time}<br>You're too tired to do anything else.`);
         setChoices(`<button class="action-btn" onclick="sleep()">🛌 Sleep</button>`);
+        updateUI();
         return;
     }
 
@@ -128,6 +135,7 @@ function normalChoices() {
         <button class="action-btn" onclick="expeditionMenu()">🏕️ Expedition</button>
         <button class="action-btn" onclick="sleep()">🛌 Sleep</button>
     `);
+    updateUI();
 }
 
 // ===== Meniu Plantă =====
@@ -139,6 +147,7 @@ function openPlantMenu() {
         <button class="action-btn" onclick="healPlant()">🌼 Tend Plant (-1 Energy)</button>
         <button class="action-btn" onclick="normalChoices()">Back</button>
     `);
+    updateUI();
 }
 
 // ===== Energie =====
@@ -151,6 +160,7 @@ function useEnergy(cost = 1) {
         addLog("😴 You're exhausted. You should sleep to recover.");
         setEvent("You're too tired to continue. Time to rest.");
         setChoices(`<button class="action-btn" onclick="sleep()">🛌 Sleep</button>`);
+        updateUI();
     }
 }
 
@@ -180,7 +190,7 @@ function sleep(fromChoice = true) {
     if (fromChoice && energy > 0) {
         wellRested = true;
         addLog("✨ You feel well-rested (+1 max energy today).");
-        maxEnergy += 1;
+        maxEnergy = 3;
     }
 
     energy = maxEnergy;
