@@ -10,11 +10,10 @@ function App() {
   const [nutrients, setNutrients] = useState(10);
   const [energy, setEnergy] = useState(2);
   const [maxEnergy, setMaxEnergy] = useState(2);
-  const [mutations, setMutations] = useState([]);
   const [log, setLog] = useState([]);
   const [isNight, setIsNight] = useState(false);
   const [wellRested, setWellRested] = useState(false);
-  const [gameView, setGameView] = useState('normal'); // normal, plant-menu, expedition-menu, boss, mutation
+  const [gameView, setGameView] = useState('normal');
   const [bossEvent, setBossEvent] = useState(null);
   const [plant, setPlant] = useState({
     water: 5,
@@ -23,6 +22,17 @@ function App() {
     growth: 1,
     dryDays: 0
   });
+
+  // Apply night/day class to body
+  useEffect(() => {
+    if (isNight) {
+      document.body.classList.add('night');
+      document.body.classList.remove('day');
+    } else {
+      document.body.classList.add('day');
+      document.body.classList.remove('night');
+    }
+  }, [isNight]);
 
   // Load game on mount
   useEffect(() => {
@@ -34,7 +44,6 @@ function App() {
       setNutrients(data.nutrients);
       setEnergy(data.energy);
       setMaxEnergy(data.maxEnergy);
-      setMutations(data.mutations);
       setLog([...data.log, '💾 Game loaded from save.']);
       setPlant(data.plant);
       setIsNight(data.isNight);
@@ -46,10 +55,10 @@ function App() {
   useEffect(() => {
     const gameState = {
       day, water, nutrients, energy, maxEnergy,
-      mutations, log, plant, isNight, wellRested
+      log, plant, isNight, wellRested
     };
     localStorage.setItem('gardenSave', JSON.stringify(gameState));
-  }, [day, water, nutrients, energy, maxEnergy, mutations, log, plant, isNight, wellRested]);
+  }, [day, water, nutrients, energy, maxEnergy, log, plant, isNight, wellRested]);
 
   // Well-rested timer
   useEffect(() => {
@@ -71,12 +80,14 @@ function App() {
   const rand = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
 
   const checkPlantDeath = () => {
-    if (plant.water <= 0) {
-      const newDryDays = plant.dryDays + 1;
-      setPlant(p => ({ ...p, dryDays: newDryDays }));
+    const currentPlant = plant;
+    
+    if (currentPlant.water <= 0) {
+      const newDryDays = currentPlant.dryDays + 1;
       
       if (newDryDays === 1) {
         addLog('⚠️ The plant is drying out! It may not last another day without water.');
+        setPlant(p => ({ ...p, dryDays: newDryDays }));
         return false;
       }
       if (newDryDays >= 2) {
@@ -84,11 +95,12 @@ function App() {
         addLog('💀 The plant has perished from lack of water.');
         return true;
       }
+      setPlant(p => ({ ...p, dryDays: newDryDays }));
     } else {
       setPlant(p => ({ ...p, dryDays: 0 }));
     }
 
-    if (plant.health <= 0) {
+    if (currentPlant.health <= 0) {
       setGameView('dead');
       addLog('💀 The plant has perished.');
       return true;
@@ -97,7 +109,7 @@ function App() {
     return false;
   };
 
-  const spendEnergy = (cost = 1) => {
+  const consumeEnergy = (cost = 1) => {
     setEnergy(e => {
       const newEnergy = Math.max(0, e - cost);
       if (newEnergy <= 0) {
@@ -116,7 +128,7 @@ function App() {
     } else {
       addLog('❌ Not enough shared water!');
     }
-    spendEnergy();
+    consumeEnergy();
     setGameView('normal');
   };
 
@@ -129,7 +141,7 @@ function App() {
     } else {
       addLog('❌ Not enough nutrients!');
     }
-    spendEnergy();
+    consumeEnergy();
     setGameView('normal');
   };
 
@@ -137,7 +149,7 @@ function App() {
     if (energy <= 0) return;
     setPlant(p => ({ ...p, health: Math.min(10, p.health + 1) }));
     addLog('🌼 You tended the plant. It looks healthier.');
-    spendEnergy();
+    consumeEnergy();
     setGameView('normal');
   };
 
@@ -165,20 +177,40 @@ function App() {
       setMaxEnergy(3);
       setEnergy(3);
     } else {
-      setEnergy(maxEnergy);
+      setEnergy(2); // Reset to base maxEnergy
     }
 
-    // Plant passive consumption
-    setPlant(p => ({
-      ...p,
-      water: Math.max(0, p.water - 1),
-      nutrients: Math.max(0, p.nutrients - 1),
-      growth: p.growth + 1
-    }));
+    const updatedPlant = {
+      ...plant,
+      water: Math.max(0, plant.water - 1),
+      nutrients: Math.max(0, plant.nutrients - 1),
+      growth: plant.growth + 1
+    };
+    setPlant(updatedPlant);
 
-    // Check for death after sleep
     setTimeout(() => {
-      if (checkPlantDeath()) return;
+      // Check death with updated plant
+      if (updatedPlant.water <= 0) {
+        const newDryDays = updatedPlant.dryDays + 1;
+        if (newDryDays >= 2) {
+          setGameView('dead');
+          addLog('💀 The plant has perished from lack of water.');
+          setPlant(p => ({ ...p, dryDays: newDryDays }));
+          return;
+        } else if (newDryDays === 1) {
+          addLog('⚠️ The plant is drying out! It may not last another day without water.');
+          setPlant(p => ({ ...p, dryDays: newDryDays }));
+        }
+      } else {
+        setPlant(p => ({ ...p, dryDays: 0 }));
+      }
+
+      if (updatedPlant.health <= 0) {
+        setGameView('dead');
+        addLog('💀 The plant has perished.');
+        return;
+      }
+
       if (newDay > maxDays) {
         setGameView('victory');
         addLog('🌸 Victory!');
@@ -188,8 +220,6 @@ function App() {
 
       if (newDay % 3 === 0) {
         triggerBossEvent();
-      } else if (Math.random() < 0.25) {
-        setGameView('mutation');
       } else {
         setGameView('normal');
       }
@@ -225,19 +255,13 @@ function App() {
     setGameView('normal');
   };
 
-  const adoptMutation = (mutation) => {
-    setMutations(m => [...m, mutation]);
-    addLog(`🧬 Mutation gained: ${mutation}`);
-    setGameView('normal');
-  };
-
   const startExpedition = (days) => {
     if (energy < days) {
       addLog('❌ Not enough energy for this expedition!');
       return;
     }
 
-    spendEnergy(days);
+    consumeEnergy(days);
     addLog(`🕊️ You leave for ${days} days.`);
 
     let newDay = day;
@@ -283,22 +307,34 @@ function App() {
     window.location.reload();
   };
 
-  // Calculate next event
   const getNextEvent = () => {
     const nextBoss = Math.ceil(day / 3) * 3;
     const daysLeft = nextBoss - day;
     const bossList = ['Drought', 'Earthquake'];
     const eventName = bossList[Math.floor((nextBoss / 3) % bossList.length)] || 'Unknown';
+    
+    const eventDescriptions = {
+      'Drought': 'Removes all plant water and reduces shared water',
+      'Earthquake': 'Damages plant health by 2'
+    };
 
-    if (isNight || daysLeft < 0) return '';
-    if (daysLeft > 0) return `⚠️ ${eventName} in ${daysLeft} day${daysLeft > 1 ? 's' : ''}`;
-    return `⚠️ ${eventName} today!`;
+    if (daysLeft < 0) return '';
+    if (daysLeft > 0) return (
+      <span title={eventDescriptions[eventName]}>
+        ⚠️ {eventName} in {daysLeft} day{daysLeft > 1 ? 's' : ''} ℹ️
+      </span>
+    );
+    return (
+      <span title={eventDescriptions[eventName]}>
+        ⚠️ {eventName} today! ℹ️
+      </span>
+    );
   };
 
   return (
-    <div className={isNight ? 'night' : 'day'}>
+    <>
       <div id="moonlight-overlay"></div>
-      <button onClick={restart}>🔄 RESTART</button>
+      <button onClick={restart} style={{position: 'fixed', top: '10px', right: '10px'}}>🔄 RESTART</button>
       
       {wellRested && <div id="rested-indicator">✨ Well Rested</div>}
       
@@ -307,7 +343,6 @@ function App() {
         <div id="next-event">{getNextEvent()}</div>
 
         <div className="container">
-          {/* Left Panel - Stats */}
           <div id="left-panel">
             <h2>Stats</h2>
             <table>
@@ -321,7 +356,6 @@ function App() {
             <h2>Plant Info</h2>
             <table>
               <tbody>
-                <tr><th>🌵 Mutations</th><td>{mutations.join(', ') || 'None'}</td></tr>
                 <tr><th>💧 Plant Water</th><td>{plant.water}</td></tr>
                 <tr><th>🪴 Plant Nutrients</th><td>{plant.nutrients}</td></tr>
                 <tr><th>🌸 Plant Health</th><td>{plant.health}</td></tr>
@@ -329,10 +363,8 @@ function App() {
             </table>
           </div>
 
-          {/* Center Panel */}
           <div id="center-panel"></div>
 
-          {/* Right Panel - Events & Log */}
           <div id="right-panel">
             <h2>Current Day</h2>
             <div id="current-event">
@@ -349,7 +381,6 @@ function App() {
               {gameView === 'plant-menu' && <p>Choose how to tend the plant:</p>}
               {gameView === 'expedition-menu' && <p>Choose expedition duration:</p>}
               {gameView === 'boss' && <p><b>Boss Event:</b> {bossEvent}</p>}
-              {gameView === 'mutation' && <p>🧬 Mutation appears!</p>}
               {gameView === 'dead' && <p>💀 Your plant has died.</p>}
               {gameView === 'victory' && <p>🌸 The plant bore fruit. You survived 30 days!</p>}
             </div>
@@ -360,7 +391,6 @@ function App() {
           </div>
         </div>
 
-        {/* Action Bar */}
         <div id="action-bar">
           <div id="choices">
             {gameView === 'normal' && energy <= 0 && (
@@ -373,9 +403,11 @@ function App() {
               <>
                 <button className="action-btn" onClick={() => setGameView('plant-menu')}>🌿 Tend Plant</button>
                 <button className="action-btn" onClick={() => setGameView('expedition-menu')}>🕊️ Expedition</button>
-                <button className="action-btn" onClick={sleep}>
-                  {isNight ? '🌅 Wake Up' : '🛌 Sleep'}
-                </button>
+                {(isNight || energy === 1) && (
+                  <button className="action-btn" onClick={sleep}>
+                    {isNight ? '🌅 Wake Up' : '🛌 Sleep'}
+                  </button>
+                )}
               </>
             )}
 
@@ -401,21 +433,13 @@ function App() {
               <button className="action-btn" onClick={afterBoss}>Continue</button>
             )}
 
-            {gameView === 'mutation' && (
-              <>
-                <button className="action-btn" onClick={() => adoptMutation('Deep Roots')}>Deep Roots</button>
-                <button className="action-btn" onClick={() => adoptMutation('Waxy Leaves')}>Waxy Leaves</button>
-                <button className="action-btn" onClick={() => setGameView('normal')}>Skip</button>
-              </>
-            )}
-
             {(gameView === 'dead' || gameView === 'victory') && (
               <button onClick={restart}>Restart</button>
             )}
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
