@@ -1,0 +1,87 @@
+/* --- BASE BODY STYLES --- */
+body {
+  font-family: var(--font-main);
+  margin: 0;
+  padding: 20px;
+  position: relative;
+  overflow-x: hidden;
+  transition: background-color 1.5s ease, color 1.5s ease;
+  background-color: var(--day-bg);
+  color: var(--day-text);
+}
+
+/* --- DAY THEME (Default) --- */
+body.day #left-panel,
+body.day #center-panel,
+body.day #right-panel {
+  background: var(--day-panel);
+  border: 2px solid var(--day-border);
+  color: var(--day-text);
+  box-shadow: var(--day-glow);
+}
+
+body.day h2 { color: var(--day-title); border-color: var(--day-border); }
+
+/* --- NIGHT THEME --- */
+body.night {
+  background-color: var(--night-bg);
+  color: var(--night-text);
+}
+
+body.night #left-panel,
+body.night #center-panel,
+body.night #right-panel {
+  background: var(--night-panel);
+  border: 2px solid var(--night-border);
+  color: var(--night-text);
+  box-shadow: var(--night-glow);
+}
+
+body.night h1#title { color: var(--night-title); text-shadow: 0 0 15px var(--night-accent); }
+body.night h2 { color: var(--night-accent); border-color: var(--night-border); }
+body.night .action-btn { 
+  background-color: var(--btn-bg-night); 
+  color: var(--btn-text-night); 
+  border-color: var(--night-border);
+}
+body.night #action-bar { background: rgba(0,0,0,0.3); border-color: var(--night-border); }
+
+/* --- AFTERNOON THEME --- */
+body.afternoon {
+  background-color: var(--afternoon-bg);
+  color: var(--afternoon-text);
+}
+
+body.afternoon #left-panel,
+body.afternoon #center-panel,
+body.afternoon #right-panel {
+  background: var(--afternoon-panel);
+  border: 2px solid var(--afternoon-border);
+  color: var(--afternoon-text);
+  box-shadow: 0 0 15px rgba(255, 140, 0, 0.4);
+}
+
+body.afternoon h1#title { color: var(--afternoon-title); }
+body.afternoon h2 { color: var(--afternoon-accent); border-color: var(--afternoon-border); }
+
+body.afternoon .action-btn {
+  background-color: #ffcc66;
+  color: #4b3621;
+  border-color: #cc8833;
+}
+body.afternoon #action-bar { background: rgba(255, 255, 255, 0.3); border-color: var(--afternoon-border); }
+
+/* --- MOONLIGHT OVERLAY --- */
+#moonlight-overlay {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at 70% 20%, rgba(200, 230, 255, 0.1), rgba(0, 0, 40, 0.4));
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 2s ease;
+  z-index: 0;
+}
+
+body.night #moonlight-overlay {
+  opacity: 1;
+}

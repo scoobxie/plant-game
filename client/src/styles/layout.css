@@ -1,0 +1,169 @@
+/* --- LAYOUT PRINCIPAL --- */
+.container {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  z-index: 1;
+  transition: filter 1s ease;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Panourile din Stânga, Centru și Dreapta */
+#left-panel, #right-panel {
+  border-radius: var(--border-radius);
+  padding: 15px;
+  width: 27%;
+  min-height: 450px;
+  transition: all var(--transition-time) ease;
+  backdrop-filter: blur(5px);
+}
+
+#center-panel {
+  border-radius: var(--border-radius);
+  padding: 15px;
+  width: 38%;
+  min-height: 450px;
+  transition: all var(--transition-time) ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Titluri */
+h1#title {
+  text-align: center;
+  margin: 10px 0 20px;
+  text-shadow: 0 0 10px rgba(160, 255, 160, 0.3);
+  font-size: 2.5rem;
+  z-index: 1;
+  font-family: 'Courier New', Courier, monospace;
+  letter-spacing: 2px;
+}
+
+h2 {
+  border-bottom: 1px solid var(--day-border);
+  padding-bottom: 5px;
+  margin-bottom: 15px;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Tabele */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1rem;
+  margin-bottom: 15px;
+}
+
+th, td {
+  text-align: left;
+  padding: 8px 5px;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+/* --- ELEMENTE SPECIALE --- */
+
+/* Next Event Pulsing Animation (Asta lipsea!) */
+#next-event {
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.1);
+  color: var(--accent-red);
+  animation: blink 1.5s infinite alternate ease-in-out;
+  border: 1px solid var(--accent-red);
+}
+
+@keyframes blink {
+  from { opacity: 1; box-shadow: 0 0 5px var(--accent-red); transform: scale(1); }
+  to { opacity: 0.6; box-shadow: 0 0 15px var(--accent-red); transform: scale(1.02); }
+}
+
+/* Log Box */
+#log {
+  height: 200px;
+  overflow-y: auto;
+  padding: 10px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(0,0,0,0.1);
+  font-family: monospace;
+  font-size: 0.9rem;
+  margin-bottom: 15px;
+}
+
+#log::-webkit-scrollbar {
+  width: 8px;
+}
+#log::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.2);
+  border-radius: 4px;
+}
+
+/* Action Bar */
+#action-bar {
+  margin-top: 25px;
+  padding: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  background: rgba(255,255,255,0.2);
+  border-radius: var(--border-radius);
+  border: 2px solid rgba(0,0,0,0.1);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+/* Butoane */
+.action-btn {
+  background-color: var(--btn-bg-day);
+  color: var(--btn-text-day);
+  border: 2px solid rgba(0,0,0,0.2);
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  text-transform: uppercase;
+  transition: all 0.2s;
+  font-family: monospace;
+  font-size: 1rem;
+}
+
+.action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  filter: brightness(1.1);
+}
+
+.action-btn:active {
+  transform: translateY(0);
+}
+
+.action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Restart Button */
+.restart-btn {
+  background-color: var(--accent-yellow);
+  color: #4b3621;
+  border: 2px solid #cc8833;
+  padding: 8px 15px;
+  font-weight: bold;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  transition: 0.3s;
+}
+.restart-btn:hover {
+  background-color: #ffdb4d;
+  transform: scale(1.05);
+}

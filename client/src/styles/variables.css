@@ -1,0 +1,42 @@
+:root {
+  --font-main: 'Courier New', Courier, monospace; /* Font Retro */
+  --transition-time: 0.5s;
+  --border-radius: 12px;
+
+  /* DAY */
+  --day-bg: #e0f7fa;
+  --day-text: #2c3e50;
+  --day-title: #1b5e20;
+  --day-panel: rgba(255, 255, 255, 0.85);
+  --day-border: #81c784;
+  --day-glow: 0 8px 16px rgba(0,0,0,0.1);
+  
+  /* NIGHT */
+  --night-bg: #0a101f;
+  --night-text: #dbeafe;
+  --night-title: #93c5fd;
+  --night-panel: rgba(30, 41, 59, 0.9);
+  --night-border: #3b82f6;
+  --night-glow: 0 0 20px rgba(59, 130, 246, 0.3);
+  --night-accent: #60a5fa;
+
+  /* AFTERNOON */
+  --afternoon-bg: #fff3e0;
+  --afternoon-text: #4e342e;
+  --afternoon-title: #e65100;
+  --afternoon-panel: rgba(255, 248, 225, 0.9);
+  --afternoon-border: #ffb74d;
+  --afternoon-accent: #f57c00;
+
+  /* UTILS */
+  --accent-red: #ef4444;
+  --accent-yellow: #fbbf24;
+
+  /* Buttons */
+  --btn-bg-day: #f1f8e9;
+  --btn-text-day: #33691e;
+  --btn-hover-day: #dcedc8;
+  
+  --btn-bg-night: #1e293b;
+  --btn-text-night: #94a3b8;
+}
