@@ -365,6 +365,14 @@ function App() {
   const [plantInfoExpanded, setPlantInfoExpanded] = useState(false);
   const [wellRested, setWellRested] = useState(false);
   
+  // Battle System V2
+  const [battleState, setBattleState] = useState(null);
+  const [plantHeads, setPlantHeads] = useState([]);
+  const maxPlantHeads = 4;
+  const [battleWarning, setBattleWarning] = useState(false);
+  const [battleCompleted, setBattleCompleted] = useState(false);
+  const [selectedHeadIndex, setSelectedHeadIndex] = useState(0); // For swapping between plants in HUD
+  
   // Run Stats pentru Victory Screen
   const [runStats, setRunStats] = useState({
     disastersSurvived: 0,
@@ -472,6 +480,68 @@ function App() {
     setCalendarScrollPosition(day - 1);
   }, [day]);
   
+  // Initialize first plant head when game starts
+  useEffect(() => {
+    if (plantType && plantHeads.length === 0 && viewState === 'game') {
+      const firstHead = {
+        id: `plant_head_0_${Date.now()}`,
+        type: plantType.name.toLowerCase().replace(' ', ''),
+        name: plantType.name,
+        emoji: plantType.emoji,
+        damageType: plantType.damageType,
+        hp: plant.health,
+        maxHP: plantType.maxHealth,
+        water: plant.water,
+        maxWater: plantType.maxWater,
+        nutrients: plant.nutrients,
+        maxNutrients: plantType.maxNutrients,
+        damage: 5 + Math.floor(plantType.maxHealth / 4),
+        turnOrder: Math.floor(Math.random() * 100),
+        isPlant: true,
+        isEnemy: false,
+        isDead: false
+      };
+      setPlantHeads([firstHead]);
+      console.log('🌱 First plant head created:', firstHead.name);
+    }
+  }, [plantType, viewState]);
+  
+  // Add new plant head every 5 days
+  useEffect(() => {
+    if (day % 5 === 0 && day > 1 && plantHeads.length < maxPlantHeads && viewState === 'game') {
+      const addPlantHead = () => {
+        // Get a random plant type (can be duplicate!)
+        const allTypes = Object.values(plantTypes);
+        const randomType = allTypes[Math.floor(Math.random() * allTypes.length)];
+        
+        const newHead = {
+          id: `plant_head_${plantHeads.length}_${Date.now()}`,
+          type: randomType.name.toLowerCase().replace(' ', ''),
+          name: randomType.name,
+          emoji: randomType.emoji,
+          damageType: randomType.damageType,
+          hp: randomType.maxHealth,
+          maxHP: randomType.maxHealth,
+          water: randomType.maxWater,
+          maxWater: randomType.maxWater,
+          nutrients: randomType.maxNutrients,
+          maxNutrients: randomType.maxNutrients,
+          damage: 5 + Math.floor(randomType.maxHealth / 4),
+          turnOrder: Math.floor(Math.random() * 100),
+          isPlant: true,
+          isEnemy: false,
+          isDead: false,
+          // Store original plant type data for management
+          plantTypeData: randomType
+        };
+        setPlantHeads(prev => [...prev, newHead]);
+        showNotification(`🌱 New ${randomType.name} head grew!`, 'success');
+        console.log('🌱 New plant head added:', newHead.name);
+      };
+      addPlantHead();
+    }
+  }, [day]);
+  
   // Notifications and feedback
   const [notification, setNotification] = useState(null);
   const [screenShake, setScreenShake] = useState(false);
@@ -526,6 +596,89 @@ function App() {
   }, [timeOfDay]);
 
   // --- LOGICĂ JOC ---
+
+  // Battle System useRef to prevent double-execution
+  const battleLoopLock = useRef(false);
+  
+  // ==========================================
+  // BATTLE GAME LOOP V2
+  // ==========================================
+  useEffect(() => {
+    if (!battleState || gameView !== 'battle') return;
+    if (battleState.processing) {
+      console.log('⏸️ Processing in progress, skipping useEffect');
+      return;
+    }
+    if (battleLoopLock.current) {
+      console.log('🔒 Battle loop locked, skipping useEffect');
+      return;
+    }
+    
+    const currentP = battleState.turnQueue?.[battleState.currentTurnIndex];
+    if (!currentP) {
+      console.error('❌ No current participant!');
+      return;
+    }
+    
+    console.log('🎮 Game loop tick:', {
+      participant: currentP.name,
+      isPlayer: currentP.isPlant,
+      waitingForPlayer: battleState.waitingForPlayer,
+      processing: battleState.processing
+    });
+    
+    // If enemy turn and not waiting for player, execute AI
+    if (currentP.isEnemy && !battleState.waitingForPlayer && !battleState.processing) {
+      console.log('🤖 Executing enemy AI');
+      battleLoopLock.current = true; // Lock
+      
+      const timer = setTimeout(() => {
+        console.log('🤖 Enemy AI timeout triggered');
+        
+        // Wait for action animation, then do EVERYTHING in one setBattleState
+        setTimeout(() => {
+          setBattleState(prev => {
+            if (!prev) {
+              battleLoopLock.current = false;
+              return null;
+            }
+            
+            console.log('🤖 Executing full enemy turn');
+            
+            // Step 1: Execute enemy action
+            let newState = executeEnemyActionV2({ ...prev, processing: true });
+            
+            // Step 2: Check battle end
+            const endCheck = checkBattleEnd(newState.participants);
+            if (endCheck.ended) {
+              battleLoopLock.current = false;
+              // Don't call endBattle here, do it outside
+              setTimeout(() => endBattle(endCheck.victory), 100);
+              return newState;
+            }
+            
+            // Step 3: Advance turn
+            newState = advanceTurnV2(newState);
+            battleLoopLock.current = false;
+            
+            return newState;
+          });
+        }, 800);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+    
+    // If player turn but not waiting, set waiting flag
+    if (currentP.isPlant && !battleState.waitingForPlayer && !battleState.processing) {
+      console.log('🌱 Setting waitingForPlayer = true');
+      setBattleState(prev => ({
+        ...prev,
+        waitingForPlayer: true
+      }));
+    }
+    
+  }, [battleState?.currentTurnIndex, battleState?.processing, gameView]);
 
   // Sound effects using Web Audio API
   const playSound = (type) => {
@@ -657,12 +810,27 @@ function App() {
       addFloatingNumber('-1 ❤️', 'damage', 'plant-health');
       addFloatingNumber('☔ Overwatered!', 'damage', 'center');
     } else {
-      // Normal watering
-      setPlant(p => ({ ...p, water: Math.min(plantType.maxWater, p.water + 2), dryDays: 0 }));
-      addLog("💧 Plant watered. (Inv -1, Plant +2)");
+      // Normal watering - apply to SELECTED plant only!
+      setPlantHeads(prev => prev.map((head, idx) => {
+        if (idx === selectedHeadIndex) {
+          return {
+            ...head,
+            water: Math.min(head.maxWater, head.water + 2)
+          };
+        }
+        return head;
+      }));
+      
+      // Sync to plant state if it's the selected one
+      const selectedHead = plantHeads[selectedHeadIndex];
+      if (selectedHead) {
+        setPlant(p => ({ ...p, water: Math.min(selectedHead.maxWater, p.water + 2), dryDays: 0 }));
+      }
+      
+      addLog(`💧 ${plantHeads[selectedHeadIndex]?.name || 'Plant'} watered. (Inv -1, Plant +2)`);
       playSound('water');
-      showNotification("+2 Plant Water", "success");
-      addFloatingNumber('+2 💧', 'heal', 'plant-water'); // Planta primește apă
+      showNotification("+2 Water", "success");
+      addFloatingNumber('+2 💧', 'heal', 'plant-water');
     }
     
     setEnergy(prev => {
@@ -725,12 +893,26 @@ function App() {
       addFloatingNumber('-1 ❤️', 'damage', 'plant-health');
       addFloatingNumber('🔥 Nutrient Burn!', 'damage', 'center');
     } else {
-      // Normal feeding
-      setPlant(p => ({ ...p, nutrients: Math.min(plantType.maxNutrients, p.nutrients + 2) }));
-      addLog(`🌱 Plant fertilized. (Inv -${fertilizeCost}, Plant +2)`);
+      // Normal feeding - apply to SELECTED plant only!
+      setPlantHeads(prev => prev.map((head, idx) => {
+        if (idx === selectedHeadIndex && head.maxNutrients > 0) {
+          return {
+            ...head,
+            nutrients: Math.min(head.maxNutrients, head.nutrients + 2)
+          };
+        }
+        return head;
+      }));
+      
+      const selectedHead = plantHeads[selectedHeadIndex];
+      if (selectedHead) {
+        setPlant(p => ({ ...p, nutrients: Math.min(selectedHead.maxNutrients, p.nutrients + 2) }));
+      }
+      
+      addLog(`🌱 ${plantHeads[selectedHeadIndex]?.name || 'Plant'} fertilized. (Inv -${fertilizeCost}, Plant +2)`);
       playSound('success');
-      showNotification("+2 Plant Nutrients", "success");
-      addFloatingNumber('+2 🌱', 'heal', 'plant-nutrients'); // Planta primește nutrienți
+      showNotification("+2 Nutrients", "success");
+      addFloatingNumber('+2 🌱', 'heal', 'plant-nutrients');
     }
     
     setEnergy(prev => {
@@ -759,13 +941,31 @@ function App() {
       setGameView('normal');
       return; 
     }
-    if (plant.health >= plantType.maxHealth) {
-      addLog("❌ Plant is already at full health!");
+    
+    // Check if SELECTED plant is at full health
+    const selectedHead = plantHeads[selectedHeadIndex];
+    if (!selectedHead || selectedHead.hp >= selectedHead.maxHP) {
+      addLog("❌ Selected plant is already at full health!");
       playSound('error');
       showNotification("Plant is already healthy!", "error");
       return;
     }
-    setPlant(p => ({ ...p, health: Math.min(plantType.maxHealth, p.health + 1) }));
+    
+    // Heal SELECTED plant only!
+    setPlantHeads(prev => prev.map((head, idx) => {
+      if (idx === selectedHeadIndex) {
+        return {
+          ...head,
+          hp: Math.min(head.maxHP, head.hp + 1)
+        };
+      }
+      return head;
+    }));
+    
+    if (selectedHead) {
+      setPlant(p => ({ ...p, health: Math.min(selectedHead.maxHP, p.health + 1) }));
+    }
+    
     setEnergy(prev => {
       const newEnergy = prev - healCost;
     setRunStats(s => ({ ...s, healingsDone: s.healingsDone + 1 })); // Track stat
@@ -774,9 +974,9 @@ function App() {
       }
       return newEnergy;
     });
-    addLog(`🚑 Plant tended. Health +1. (-${healCost} energy)`);
+    addLog(`🚑 ${selectedHead.name} tended. Health +1. (-${healCost} energy)`);
     playSound('success');
-    showNotification("+1 Plant Health", "success");
+    showNotification("+1 Health", "success");
     addFloatingNumber('+1 ❤️', 'heal', 'plant-health');
     
     // Dacă e noapte, marchează acțiunea ca făcută și închide meniul
@@ -865,6 +1065,529 @@ function App() {
     }, 2000);
   };
 
+  // ==========================================
+  // BATTLE SYSTEM V2 - Clean Implementation
+  // ==========================================
+  
+  // --- HELPER FUNCTIONS ---
+  
+  const generateEnemy = (currentDay) => {
+    const personalities = {
+      aggressive: { name: 'Aggressive', surrenderChance: 0.1, fleeChance: 0.05, attackMod: 1.2, defenseMod: 0.9 },
+      cowardly: { name: 'Cowardly', surrenderChance: 0.4, fleeChance: 0.3, attackMod: 0.8, defenseMod: 1.1 },
+      greedy: { name: 'Greedy', surrenderChance: 0.15, fleeChance: 0.1, attackMod: 1.0, defenseMod: 1.0 },
+      tactical: { name: 'Tactical', surrenderChance: 0.2, fleeChance: 0.15, attackMod: 1.1, defenseMod: 1.1 }
+    };
+    
+    const firstNames = ['Grim', 'Rusty', 'Shadow', 'Blade', 'Ash', 'Vex', 'Scar', 'Thorn'];
+    const lastNames = ['Raider', 'Marauder', 'Scavenger', 'Bandit', 'Hunter'];
+    const enemyDamageTypes = ['Gun', 'Slash', 'Pierce', 'Fire', 'Blast'];
+    const plantDamageTypes = ['Pierce', 'Bite', 'Beam', 'Poison', 'Fungi', 'Physical'];
+    
+    const personalityKeys = Object.keys(personalities);
+    const personality = personalities[personalityKeys[Math.floor(Math.random() * personalityKeys.length)]];
+    
+    const baseHP = 20 + (currentDay * 2);
+    const baseDamage = 3 + Math.floor(currentDay / 3);
+    
+    return {
+      id: `enemy_${Date.now()}_${Math.random()}`,
+      name: `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`,
+      personality: personality,
+      hp: Math.floor(baseHP * personality.defenseMod),
+      maxHP: Math.floor(baseHP * personality.defenseMod),
+      damage: Math.floor(baseDamage * personality.attackMod),
+      damageType: enemyDamageTypes[Math.floor(Math.random() * enemyDamageTypes.length)],
+      weakness: plantDamageTypes[Math.floor(Math.random() * plantDamageTypes.length)],
+      turnOrder: 50 + Math.floor(Math.random() * 20),
+      isEnemy: true,
+      isPlant: false,
+      isDead: false
+    };
+  };
+  
+  const sortTurnQueue = (participants) => {
+    return [...participants]
+      .filter(p => !p.isDead)
+      .sort((a, b) => b.turnOrder - a.turnOrder);
+  };
+  
+  const calculateBattleDamage = (attacker, target, attackType) => {
+    let damage = attacker.damage;
+    const isWeakness = target.weakness === attackType;
+    
+    console.log('⚔️ Damage calc:', {
+      attacker: attacker.name,
+      baseDamage: attacker.damage,
+      attackType: attackType,
+      target: target.name,
+      targetWeakness: target.weakness,
+      isWeakness: isWeakness
+    });
+    
+    if (isWeakness) {
+      damage = Math.floor(damage * 1.5);
+      console.log('⚡ WEAKNESS! Damage:', attacker.damage, '→', damage);
+    }
+    
+    // Apply poison status if attack type is Poison
+    let appliedPoison = false;
+    if (attackType === 'Poison' && !target.poisoned) {
+      target.poisoned = true;
+      target.poisonDamage = Math.floor(attacker.damage * 0.3); // 30% of base damage per turn
+      appliedPoison = true;
+    }
+    
+    return { damage, isWeakness, appliedPoison };
+  };
+  
+  const checkBattleEnd = (participants) => {
+    const alivePlants = participants.filter(p => p.isPlant && !p.isDead);
+    const aliveEnemies = participants.filter(p => p.isEnemy && !p.isDead);
+    
+    if (alivePlants.length === 0) {
+      return { ended: true, victory: false };
+    }
+    
+    if (aliveEnemies.length === 0) {
+      return { ended: true, victory: true };
+    }
+    
+    return { ended: false };
+  };
+  
+  const calculateBattleRewards = (participants, currentDay) => {
+    const defeatedEnemies = participants.filter(p => p.isEnemy);
+    
+    const waterReward = 3 + Math.floor(defeatedEnemies.length * 1.5) + Math.floor(currentDay / 5);
+    const nutrientReward = 2 + defeatedEnemies.length + Math.floor(currentDay / 5);
+    
+    return { water: waterReward, nutrients: nutrientReward };
+  };
+  
+  // --- MAIN BATTLE FUNCTIONS ---
+  
+  const startBattle = () => {
+    setBattleWarning(false);
+    console.log('🎮 Starting Battle V2');
+    
+    playSound('error');
+    
+    // Generate enemies
+    const enemyCount = Math.min(3, 1 + Math.floor(day / 10));
+    const enemies = Array.from({ length: enemyCount }, () => generateEnemy(day));
+    
+    // Use plantHeads directly - no sync needed! They're already correct.
+    const allParticipants = [...plantHeads.map(h => ({...h})), ...enemies];
+    const turnQueue = sortTurnQueue(allParticipants);
+    
+    const firstParticipant = turnQueue[0];
+    
+    console.log('⚔️ Battle participants:', {
+      plants: allParticipants.filter(p => p.isPlant).map(p => p.name),
+      enemies: enemies.map(e => e.name),
+      firstTurn: firstParticipant.name,
+      isPlayer: firstParticipant.isPlant
+    });
+    
+    addLog(`⚔️ Battle! Facing ${enemyCount} enemies!`);
+    
+    setBattleState({
+      participants: allParticipants,
+      turnQueue: turnQueue,
+      currentTurnIndex: 0,
+      waitingForPlayer: firstParticipant.isPlant,
+      processing: false,
+      selectedTarget: null,
+      dialogState: null,
+      battleLog: ['⚔️ Battle started!'],
+      weaknessHit: false
+    });
+    
+    setGameView('battle');
+  };
+  
+  const handleBattleAction = (actionType, attackType = null) => {
+    if (!battleState || !battleState.waitingForPlayer || battleState.processing) {
+      console.log('⚠️ Cannot act - not player turn or processing');
+      return;
+    }
+    
+    console.log('🌱 Player action:', actionType);
+    
+    setBattleState(prev => {
+      // CRITICAL: Deep copy participants to avoid mutation!
+      const newState = { 
+        ...prev,
+        participants: prev.participants.map(p => ({...p})),
+        turnQueue: prev.turnQueue.map(p => ({...p}))
+      };
+      
+      // CRITICAL: Get currentP from NEW state, not old!
+      const currentP = newState.turnQueue[newState.currentTurnIndex];
+      
+      if (actionType === 'attack') {
+        if (!newState.selectedTarget) return prev;
+        
+        const target = newState.participants.find(p => p.id === newState.selectedTarget);
+        if (!target || target.isDead) return prev;
+        
+        const dmgResult = calculateBattleDamage(currentP, target, attackType);
+        const actualDamage = dmgResult.damage;
+        
+        console.log('💥 BEFORE damage:', target.name, 'HP:', target.hp);
+        target.hp = Math.max(0, target.hp - actualDamage);
+        console.log('💥 AFTER damage:', target.name, 'HP:', target.hp, '(reduced by', actualDamage, ')');
+        
+        target.isDead = target.hp <= 0;
+        
+        // Add damage number animation
+        const damageNumberId = `dmg_${Date.now()}_${Math.random()}`;
+        if (!newState.damageNumbers) newState.damageNumbers = [];
+        newState.damageNumbers.push({
+          id: damageNumberId,
+          value: `-${actualDamage}`,
+          targetId: target.id,
+          isWeakness: dmgResult.isWeakness,
+          timestamp: Date.now()
+        });
+        
+        // Remove damage number after animation
+        setTimeout(() => {
+          setBattleState(s => {
+            if (!s) return null;
+            return {
+              ...s,
+              damageNumbers: (s.damageNumbers || []).filter(d => d.id !== damageNumberId)
+            };
+          });
+        }, 1500);
+        
+        if (dmgResult.isWeakness) {
+          newState.battleLog = [...newState.battleLog, `${currentP.name} attacks ${target.name} for ${actualDamage} damage! ⚡ WEAKNESS!`];
+          newState.weaknessHit = true;
+          setTimeout(() => {
+            setBattleState(s => s ? ({ ...s, weaknessHit: false }) : null);
+          }, 2000);
+          
+          // WEAKNESS BONUS: Move attacker UP in turn order!
+          // Find current position in turnQueue
+          const currentIndex = newState.currentTurnIndex;
+          
+          if (currentIndex > 0) {
+            // Not already first - swap with previous
+            const temp = newState.turnQueue[currentIndex - 1];
+            newState.turnQueue[currentIndex - 1] = newState.turnQueue[currentIndex];
+            newState.turnQueue[currentIndex] = temp;
+            newState.currentTurnIndex = currentIndex - 1;
+            newState.battleLog = [...newState.battleLog, `⚡ ${currentP.name} moves up in turn order!`];
+          } else {
+            // Already first - move another PLANT up if exists
+            const otherPlantIndex = newState.turnQueue.findIndex((p, idx) => 
+              idx > 0 && p.isPlant && !p.isDead && p.id !== currentP.id
+            );
+            if (otherPlantIndex > 0) {
+              const otherPlant = newState.turnQueue[otherPlantIndex];
+              // Swap with previous
+              const temp = newState.turnQueue[otherPlantIndex - 1];
+              newState.turnQueue[otherPlantIndex - 1] = newState.turnQueue[otherPlantIndex];
+              newState.turnQueue[otherPlantIndex] = temp;
+              newState.battleLog = [...newState.battleLog, `⚡ ${otherPlant.name} moves up in turn order!`];
+            }
+          }
+        } else {
+          newState.battleLog = [...newState.battleLog, `${currentP.name} attacks ${target.name} for ${actualDamage} damage!`];
+        }
+        
+        // If poison was applied
+        if (dmgResult.appliedPoison) {
+          newState.battleLog = [...newState.battleLog, `☠️ ${target.name} is poisoned!`];
+        }
+        
+        // If target died, re-sort queue and find current plant's new position
+        if (target.isDead) {
+          console.log('⚰️ Target died, re-sorting queue');
+          newState.turnQueue = sortTurnQueue(newState.participants);
+          newState.currentTurnIndex = newState.turnQueue.findIndex(p => p.id === currentP.id);
+          console.log('📍 Plant new index after death:', newState.currentTurnIndex);
+        }
+      } else if (actionType === 'heal') {
+        currentP.hp = Math.min(currentP.maxHP, currentP.hp + 3);
+        
+        // CRITICAL: Sync change to participants array too!
+        const participantIndex = newState.participants.findIndex(p => p.id === currentP.id);
+        if (participantIndex !== -1) {
+          newState.participants[participantIndex].hp = currentP.hp;
+        }
+        
+        newState.battleLog = [...newState.battleLog, `${currentP.name} heals +3 HP!`];
+        
+        // Add heal number
+        const healNumberId = `heal_${Date.now()}_${Math.random()}`;
+        if (!newState.damageNumbers) newState.damageNumbers = [];
+        newState.damageNumbers.push({
+          id: healNumberId,
+          value: '+3',
+          targetId: currentP.id,
+          isHeal: true,
+          timestamp: Date.now()
+        });
+        setTimeout(() => {
+          setBattleState(s => {
+            if (!s) return null;
+            return { ...s, damageNumbers: (s.damageNumbers || []).filter(d => d.id !== healNumberId) };
+          });
+        }, 1500);
+      } else if (actionType === 'water') {
+        currentP.water = Math.min(currentP.maxWater, currentP.water + 2);
+        
+        // CRITICAL: Sync change to participants array too!
+        const participantIndex = newState.participants.findIndex(p => p.id === currentP.id);
+        if (participantIndex !== -1) {
+          newState.participants[participantIndex].water = currentP.water;
+        }
+        
+        newState.battleLog = [...newState.battleLog, `${currentP.name} restores +2 💧!`];
+      } else if (actionType === 'feed') {
+        currentP.nutrients = Math.min(currentP.maxNutrients, currentP.nutrients + 2);
+        
+        // CRITICAL: Sync change to participants array too!
+        const participantIndex = newState.participants.findIndex(p => p.id === currentP.id);
+        if (participantIndex !== -1) {
+          newState.participants[participantIndex].nutrients = currentP.nutrients;
+        }
+        
+        newState.battleLog = [...newState.battleLog, `${currentP.name} restores +2 🌱!`];
+      }
+      
+      newState.selectedTarget = null;
+      newState.waitingForPlayer = false;
+      newState.processing = true;
+      
+      return newState;
+    });
+    
+    playSound('click');
+    
+    // Check battle end and advance turn
+    setTimeout(() => {
+      setBattleState(prev => {
+        if (!prev) return null;
+        
+        const endCheck = checkBattleEnd(prev.participants);
+        if (endCheck.ended) {
+          endBattle(endCheck.victory);
+          return prev;
+        }
+        
+        // Advance turn
+        return advanceTurnV2(prev);
+      });
+    }, 800);
+  };
+  
+  const handleTargetSelect = (targetId) => {
+    if (!battleState) return;
+    
+    setBattleState(prev => ({
+      ...prev,
+      selectedTarget: targetId
+    }));
+  };
+  
+  const executeEnemyActionV2 = (state) => {
+    console.log('🤖 Enemy action');
+    
+    // CRITICAL: Deep copy participants to avoid mutation!
+    const newState = { 
+      ...state,
+      participants: state.participants.map(p => ({...p})),
+      turnQueue: state.turnQueue.map(p => ({...p}))
+    };
+    const enemy = newState.turnQueue[newState.currentTurnIndex];
+    
+    // Apply poison damage at START of enemy turn
+    if (enemy.poisoned && enemy.poisonDamage) {
+      enemy.hp = Math.max(0, enemy.hp - enemy.poisonDamage);
+      newState.battleLog = [...newState.battleLog, `☠️ ${enemy.name} takes ${enemy.poisonDamage} poison damage!`];
+      
+      // Sync to participants
+      const enemyInParticipants = newState.participants.find(p => p.id === enemy.id);
+      if (enemyInParticipants) {
+        enemyInParticipants.hp = enemy.hp;
+        enemyInParticipants.isDead = enemy.hp <= 0;
+        enemy.isDead = enemy.hp <= 0;
+      }
+      
+      // If enemy died from poison, skip their action
+      if (enemy.isDead) {
+        console.log('☠️ Enemy died from poison!');
+        newState.turnQueue = sortTurnQueue(newState.participants);
+        newState.processing = true;
+        return newState;
+      }
+    }
+    
+    const alivePlants = newState.participants.filter(p => p.isPlant && !p.isDead);
+    if (alivePlants.length === 0) return newState;
+    
+    // Random action
+    const actions = ['attack', 'steal_water', 'steal_nutrients'];
+    const action = actions[Math.floor(Math.random() * actions.length)];
+    const target = alivePlants[Math.floor(Math.random() * alivePlants.length)];
+    
+    playSound('error');
+    
+    if (action === 'attack') {
+      const dmgResult = calculateBattleDamage(enemy, target, enemy.damageType);
+      target.hp = Math.max(0, target.hp - dmgResult.damage);
+      target.isDead = target.hp <= 0;
+      newState.battleLog = [...newState.battleLog, `${enemy.name} attacks ${target.name} for ${dmgResult.damage} damage!`];
+      
+      // Add damage number for enemy attack
+      if (!newState.damageNumbers) newState.damageNumbers = [];
+      newState.damageNumbers.push({
+        id: `dmg_enemy_${Date.now()}_${Math.random()}`,
+        value: `-${dmgResult.damage}`,
+        targetId: target.id,
+        isWeakness: false,
+        timestamp: Date.now()
+      });
+      
+      // If target died, re-sort queue and find enemy's new position
+      if (target.isDead) {
+        console.log('⚰️ Target died, re-sorting queue');
+        newState.turnQueue = sortTurnQueue(newState.participants);
+        newState.currentTurnIndex = newState.turnQueue.findIndex(p => p.id === enemy.id);
+        console.log('📍 Enemy new index after death:', newState.currentTurnIndex);
+      }
+    } else if (action === 'steal_water') {
+      target.water = Math.max(0, target.water - 2);
+      newState.battleLog = [...newState.battleLog, `${enemy.name} steals 2 💧 from ${target.name}!`];
+    } else {
+      target.nutrients = Math.max(0, target.nutrients - 2);
+      newState.battleLog = [...newState.battleLog, `${enemy.name} steals 2 🌱 from ${target.name}!`];
+    }
+    
+    newState.processing = true;
+    
+    return newState;
+  };
+  
+  const advanceTurnV2 = (state) => {
+    console.log('➡️ Advancing turn (SIMPLIFIED)');
+    
+    const newState = { ...state };
+    newState.weaknessHit = false;
+    
+    // SIMPLE INCREMENT - No re-sorting here!
+    // Re-sorting only happens when someone dies
+    newState.currentTurnIndex = (newState.currentTurnIndex + 1) % newState.turnQueue.length;
+    
+    const nextP = newState.turnQueue[newState.currentTurnIndex];
+    
+    console.log('✅ Next turn:', {
+      participant: nextP?.name,
+      index: newState.currentTurnIndex,
+      isPlayer: nextP?.isPlant,
+      queueLength: newState.turnQueue.length
+    });
+    
+    if (nextP.isPlant) {
+      newState.waitingForPlayer = true;
+      newState.processing = false;
+    } else {
+      newState.waitingForPlayer = false;
+      newState.processing = false;
+    }
+    
+    return newState;
+  };
+  
+  const endBattle = (victory) => {
+    if (!battleState) {
+      console.log('⚠️ endBattle called but battleState is null, ignoring');
+      return;
+    }
+    
+    console.log('✅ Battle ended, victory:', victory);
+    
+    if (victory) {
+      const rewards = calculateBattleRewards(battleState.participants, day);
+      
+      // Don't add to stock - battles don't give stock resources
+      // Resources are synced from battle back to plant below
+      
+      playSound('success');
+      addLog(`⚔️ Victory!`);
+      showNotification(`Victory!`, 'success');
+      
+      // Sync plant HP/water/nutrients back to plantHeads
+      const updatedHeads = plantHeads.map(head => {
+        const battleHead = battleState.participants.find(p => p.id === head.id);
+        if (battleHead) {
+          return {
+            ...head,
+            hp: battleHead.hp,
+            water: battleHead.water,
+            nutrients: battleHead.nutrients
+          };
+        }
+        return head;
+      });
+      
+      // Remove dead plants
+      const aliveHeads = updatedHeads.filter(h => h.hp > 0);
+      
+      // Check if ALL plant heads are dead → GAME OVER
+      if (aliveHeads.length === 0) {
+        playSound('error');
+        addLog('💀 All plants died... Game Over!');
+        setGameView('dead');
+        setBattleState(null);
+        return;
+      }
+      
+      // Update plantHeads with only alive plants
+      setPlantHeads(aliveHeads);
+      
+      // If some plants died, show message
+      const deadCount = updatedHeads.length - aliveHeads.length;
+      if (deadCount > 0) {
+        addLog(`💀 ${deadCount} plant${deadCount > 1 ? 's' : ''} died in battle...`);
+        showNotification(`${deadCount} plant${deadCount > 1 ? 's' : ''} lost`, 'error');
+      }
+      
+      // Sync first alive plant head to main plant state (new "main")
+      const firstAlive = aliveHeads[0];
+      if (firstAlive) {
+        setPlant(prev => ({
+          ...prev,
+          health: firstAlive.hp,
+          water: firstAlive.water,
+          nutrients: firstAlive.nutrients
+        }));
+        
+        // Reset selectedHeadIndex if out of bounds
+        if (selectedHeadIndex >= aliveHeads.length) {
+          setSelectedHeadIndex(0);
+        }
+      }
+    } else {
+      playSound('error');
+      addLog('💀 Defeated...');
+      setGameView('dead');
+      setBattleState(null);
+      return;
+    }
+    
+    setBattleState(null);
+    setBattleWarning(false);
+    setBattleCompleted(true);
+    console.log('✅ Battle ended, battleCompleted set to TRUE');
+    setGameView('normal');
+  };
+
   // Acțiune: Somn / Trecerea Timpului
   const sleep = () => {
     if (timeOfDay === 'morning') {
@@ -872,18 +1595,23 @@ function App() {
       showTimeTransition('AFTERNOON', '🌅');
       playSound('success');
       addLog("🌅 Afternoon approaches.");
+      setBattleCompleted(false); // Reset for next afternoon
     } else if (timeOfDay === 'afternoon') {
-      const nightEnergy = 1 + (plantType.nightEnergyBonus || 0); // Mushroom: +2 extra (total 3)
+      // Check if ANY plant has nocturnal bonus
+      const hasNocturnal = plantHeads.some(head => head.plantTypeData?.nightEnergyBonus);
+      const nocturnalBonus = hasNocturnal ? 2 : 0;
+      const baseNightEnergy = 1 + nocturnalBonus;
+      
+      setEnergy(baseNightEnergy);
       setTimeOfDay('night');
-      setEnergy(nightEnergy);
       showTimeTransition('NIGHT', '🌙');
       playSound('success');
+      setBattleCompleted(false); // Reset for next day
       
-      if (plantType.nightEnergyBonus) {
-        addLog(`🌙 Night falls. You recover ${nightEnergy} energy (🍄 Nocturnal bonus!)`);
-        showNotification(`+${nightEnergy} Energy (Nocturnal!)`, "success");
+      if (hasNocturnal) {
+        addLog(`🌙 Night falls. You recover ${baseNightEnergy} energy (🍄 Nocturnal bonus!)`);
       } else {
-        addLog(`🌙 Night falls. You recover ${nightEnergy} energy.`);
+        addLog(`🌙 Night falls. You recover ${baseNightEnergy} energy.`);
       }
     } else {
       startNewDay();
@@ -926,40 +1654,58 @@ function App() {
     // ===== WEATHER EFFECTS =====
     const nextDayWeather = weatherCalendar[newDay] || 'sunny';
     
-    // ☀️ SUNNY: +2 nutrients la plantă
+    // ☀️ SUNNY: +2 nutrients la TOATE plantele
     if (nextDayWeather === 'sunny') {
+      // Apply to ALL plant heads that need nutrients
+      setPlantHeads(prev => prev.map(head => ({
+        ...head,
+        nutrients: head.maxNutrients > 0 ? Math.min(head.maxNutrients, head.nutrients + 2) : head.nutrients
+      })));
+      
       setPlant(p => ({ 
         ...p, 
         nutrients: Math.min(plantType.maxNutrients, p.nutrients + 2) 
       }));
-      addLog(`☀️ Sunny day! Photosynthesis: +2 nutrients!`);
-      showNotification("Sunny! +2 🌱", "success");
+      addLog(`☀️ Sunny day! All plants get +2 nutrients!`);
+      showNotification("Sunny! +2 🌱 to all", "success");
       addFloatingNumber('+2 🌱', 'heal', 'plant-nutrients');
     }
     
-    // 🌧️ RAINY: Umple water bar complet, no overwater damage
+    // 🌧️ RAINY: Umple water bar complet pentru TOATE plantele, no overwater damage
     if (nextDayWeather === 'rainy') {
+      // Fill ALL plant heads
+      setPlantHeads(prev => prev.map(head => ({
+        ...head,
+        water: head.maxWater
+      })));
+      
       setPlant(p => ({ 
         ...p, 
         water: plantType.maxWater,
         overwateredDays: 0 // Clear overwater debuff!
       }));
-      addLog(`🌧️ Rain! Plant water filled to max!`);
-      showNotification("Rain filled water! 💧", "success");
+      addLog(`🌧️ Rain! All plants water filled to max!`);
+      showNotification("Rain filled all water! 💧", "success");
       addFloatingNumber('🌧️ Max Water!', 'heal', 'plant-water');
     }
     
     // ❄️ SNOWY: FREEZE - 0 consumption today (except nutrients can still grow from sunny bonuses)
     // This is handled in sleep() function with a flag
     
-    // ⛈️ THUNDERSTORM: Locked inside (doar Sleep), +2 water la plantă
+    // ⛈️ THUNDERSTORM: Locked inside (doar Sleep), +2 water la TOATE plantele
     if (nextDayWeather === 'thunderstorm') {
+      // Apply to ALL plant heads
+      setPlantHeads(prev => prev.map(head => ({
+        ...head,
+        water: Math.min(head.maxWater, head.water + 2)
+      })));
+      
       setPlant(p => ({ 
         ...p, 
         water: Math.min(plantType.maxWater, p.water + 2)
       }));
-      addLog(`⛈️ Thunderstorm! Heavy rain: +2 water!`);
-      showNotification("Thunderstorm! +2 💧", "success");
+      addLog(`⛈️ Thunderstorm! All plants get +2 water!`);
+      showNotification("Thunderstorm! +2 💧 to all", "success");
       addFloatingNumber('+2 💧', 'heal', 'plant-water');
     }
     
@@ -1017,23 +1763,65 @@ function App() {
       });
     }
     
+    // Check if ANY plant has nocturnal bonus
+    const hasNocturnal = plantHeads.some(head => head.plantTypeData?.nightEnergyBonus);
+    const nocturnalBonus = hasNocturnal ? 2 : 0;
+    
     // Well-rested buff: If you slept early (with energy left), get +1 max energy
     if (energy > 0) {
       setWellRested(true);
-      setMaxEnergy(3);
-      setEnergy(3);
-      addLog("✨ Well rested! Max energy: 3 (can do 3-day expedition)");
-      // Buff lasts the entire day - don't remove it with setTimeout
+      const bonusEnergy = 3 + nocturnalBonus;
+      setMaxEnergy(bonusEnergy);
+      setEnergy(bonusEnergy);
+      if (hasNocturnal) {
+        addLog(`✨ Well rested + Nocturnal! Max energy: ${bonusEnergy}`);
+      } else {
+        addLog("✨ Well rested! Max energy: 3 (can do 3-day expedition)");
+      }
     } else {
       setWellRested(false);
-      setMaxEnergy(2);
-      setEnergy(2);
-      addLog("💤 A restless night. Max energy: 2");
+      const normalEnergy = 2 + nocturnalBonus;
+      setMaxEnergy(normalEnergy);
+      setEnergy(normalEnergy);
+      if (hasNocturnal) {
+        addLog(`💤 Restless night. Max energy: ${normalEnergy} (🍄 Nocturnal bonus!)`);
+      } else {
+        addLog("💤 A restless night. Max energy: 2");
+      }
     }
 
-    // Plant consumption - SEPARATE rates
-    addLog(`🌙 Night passed. Plant consumed ${waterConsumptionRate} water & ${nutrientConsumptionRate} nutrients.`);
+    // Plant consumption - Apply to ALL plant heads!
+    const totalPlantCount = plantHeads.length;
+    const actualWaterPerPlant = currentWeather === 'snowy' ? 0 : waterConsumptionRate;
+    const actualNutrientsPerPlant = currentWeather === 'snowy' ? 0 : nutrientConsumptionRate;
     
+    if (currentWeather === 'snowy') {
+      addLog(`❄️ Snowy day! All plants frozen - no consumption!`);
+      showNotification("Frozen! No consumption", "success");
+    } else {
+      addLog(`🌙 Night passed. Each plant consumed ${actualWaterPerPlant} 💧 & ${actualNutrientsPerPlant} 🌱`);
+    }
+    
+    // Update ALL plant heads with consumption
+    setPlantHeads(prev => prev.map(head => {
+      const newWater = Math.max(0, head.water - actualWaterPerPlant);
+      const newNutrients = Math.max(0, head.nutrients - actualNutrientsPerPlant);
+      let newHP = head.hp;
+      
+      // Health degradation if nutrients are low
+      if (head.nutrients < 3 && head.maxNutrients > 0) {
+        newHP = Math.max(0, newHP - 1);
+      }
+      
+      return {
+        ...head,
+        water: newWater,
+        nutrients: newNutrients,
+        hp: newHP
+      };
+    }));
+    
+    // Also update main plant state for compatibility
     setPlant(prev => {
       // Damaged Roots debuff: +1 nutrient consumption
       const extraNutrientConsumption = prev.damagedRootsDays > 0 ? 1 : 0;
@@ -1160,35 +1948,53 @@ function App() {
           showNotification(`DROUGHT! -${waterLoss} Water`, "disaster");
           addFloatingNumber(`-${waterLoss}`, 'damage', 'water');
       } else if (nextDisasterType === 'Earthquake') {
+          // Apply to ALL plant heads
+          setPlantHeads(prev => prev.map(head => ({
+            ...head,
+            hp: Math.max(0, head.hp - totalDamage)
+          })));
+          
           setPlant(p => ({...p, health: Math.max(0, p.health - totalDamage)}));
-          addLog(`🌋 Earthquake damaged roots for ${totalDamage} damage!`);
-          showNotification(`EARTHQUAKE! -${totalDamage} Health`, "disaster");
-          addFloatingNumber(`-${totalDamage}`, 'damage', 'plant-health');
+          addLog(`🌋 Earthquake damaged all plants for ${totalDamage} damage!`);
+          showNotification(`EARTHQUAKE! -${totalDamage} HP to all`, "disaster");
+          addFloatingNumber(`-${totalDamage} ❤️`, 'damage', 'plant-health');
       } else if (nextDisasterType === 'Flood') {
-          // FLOOD: Saturează planta cu apă DAR dă debuff overwatered + root damage
+          // FLOOD: Saturează TOATE plantele cu apă DAR dă debuff overwatered + root damage
+          setPlantHeads(prev => prev.map(head => ({
+            ...head,
+            water: head.maxWater, // Fill to max!
+            hp: Math.max(0, head.hp - 1) // Root suffocation
+          })));
+          
           setPlant(p => ({
             ...p, 
-            water: 10, // Plină de apă
-            health: Math.max(0, p.health - 1), // Root suffocation instant
-            overwateredDays: 2 // Debuff 2 zile
+            water: plantType.maxWater,
+            health: Math.max(0, p.health - 1),
+            overwateredDays: 2
           }));
-          addLog(`☔ FLOOD submerged the plant! Overwatered debuff applied. Root suffocation: -1 HP.`);
-          showNotification(`FLOOD! Overwatered + Root Damage`, "disaster");
-          addFloatingNumber('+10 💧', 'heal', 'plant-water');
+          addLog(`☔ FLOOD submerged all plants! Root suffocation: -1 HP each.`);
+          showNotification(`FLOOD! All plants damaged`, "disaster");
+          addFloatingNumber('+MAX 💧', 'heal', 'plant-water');
           addFloatingNumber('-1 ❤️', 'damage', 'plant-health');
-          addFloatingNumber('☔ Overwatered!', 'damage', 'center');
+          addFloatingNumber('☔ Flooded!', 'damage', 'center');
       } else if (nextDisasterType === 'Landslide') {
-          // LANDSLIDE: Damage instant + debuff damaged roots (mănâncă mai mulți nutrienți)
-          const landslideDamage = totalDamage + 1; // Puțin mai mult damage
+          // LANDSLIDE: Damage instant to ALL plants
+          const landslideDamage = totalDamage + 1;
+          
+          setPlantHeads(prev => prev.map(head => ({
+            ...head,
+            hp: Math.max(0, head.hp - landslideDamage)
+          })));
+          
           setPlant(p => ({
             ...p,
             health: Math.max(0, p.health - landslideDamage),
-            damagedRootsDays: 3 // Debuff 3 zile (mai lung decât overwatered)
+            damagedRootsDays: 3
           }));
-          addLog(`🪨 LANDSLIDE crushed the roots! -${landslideDamage} HP. Damaged Roots debuff: +1 nutrient consumption for 3 days.`);
-          showNotification(`LANDSLIDE! Root Damage + Debuff`, "disaster");
+          addLog(`🪨 LANDSLIDE crushed all plants! -${landslideDamage} HP each.`);
+          showNotification(`LANDSLIDE! All plants damaged`, "disaster");
           addFloatingNumber(`-${landslideDamage} ❤️`, 'damage', 'plant-health');
-          addFloatingNumber('🪨 Damaged Roots!', 'damage', 'center');
+          addFloatingNumber('🪨 Landslide!', 'damage', 'center');
       }
       
       // Scoate dezastrul curent din listă și setează următorul
@@ -1594,40 +2400,140 @@ function App() {
               </div>
             </div>
             
-            <div className="stat-row">
-              <div className="stat-label">💧 Moisture {plant.water < 3 ? '⚠️' : ''}</div>
-              <div className={`stat-value ${plant.water < 3 ? 'warning' : ''}`}>{plant.water} / {plantType.maxWater}</div>
-            </div>
-            <div className="stat-bar">
-              <div className="stat-bar-fill water-bar" style={{width: `${(plant.water / plantType.maxWater) * 100}%`}}></div>
-            </div>
-            
-            {plantType.maxNutrients > 0 && (
-              <>
-                <div className="stat-row">
-                  <div className="stat-label">🍞 Fed Level {plant.nutrients < 3 ? '⚠️' : ''}</div>
-                  <div className={`stat-value ${plant.nutrients < 3 ? 'warning' : ''}`}>{plant.nutrients} / {plantType.maxNutrients}</div>
+            {/* SINGLE PLANT DISPLAY WITH SWAPPING */}
+            {plantHeads && plantHeads.length > 0 && (() => {
+              // Safety: Ensure selectedHeadIndex is valid
+              const safeIndex = Math.min(selectedHeadIndex, plantHeads.length - 1);
+              const currentHead = plantHeads[safeIndex];
+              
+              if (!currentHead) {
+                console.error('No currentHead found!', {selectedHeadIndex, safeIndex, plantHeadsLength: plantHeads.length});
+                return null;
+              }
+              
+              return (
+                <div style={{
+                  background: 'rgba(81, 207, 102, 0.1)',
+                  border: '2px solid #51cf66',
+                  borderRadius: '8px',
+                  padding: '10px',
+                  marginBottom: '10px',
+                  position: 'relative'
+                }}>
+                  {/* Plant Header with Arrows */}
+                  <div style={{
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'space-between',
+                    marginBottom: '10px'
+                  }}>
+                    {/* Left Arrow */}
+                    {plantHeads.length > 1 && (
+                      <button 
+                        onClick={() => setSelectedHeadIndex((selectedHeadIndex - 1 + plantHeads.length) % plantHeads.length)}
+                        style={{
+                          background: 'rgba(81, 207, 102, 0.2)',
+                          border: '1px solid #51cf66',
+                          borderRadius: '5px',
+                          color: 'white',
+                          fontSize: '1.2rem',
+                          padding: '5px 10px',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.target.style.background = 'rgba(81, 207, 102, 0.4)'}
+                        onMouseLeave={(e) => e.target.style.background = 'rgba(81, 207, 102, 0.2)'}
+                      >
+                        ◀
+                      </button>
+                    )}
+                    
+                    {/* Plant Name & Emoji */}
+                    <div style={{flex: 1, textAlign: 'center'}}>
+                      <div style={{fontSize: '2rem', marginBottom: '5px'}}>{currentHead.emoji}</div>
+                      <div style={{fontWeight: 'bold', color: 'white', fontSize: '1.1rem'}}>
+                        {currentHead.name}
+                      </div>
+                      {plantHeads.length > 1 && (
+                        <div style={{fontSize: '0.8rem', color: '#888', marginTop: '3px'}}>
+                          Plant {selectedHeadIndex + 1}/{plantHeads.length}
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Right Arrow */}
+                    {plantHeads.length > 1 && (
+                      <button 
+                        onClick={() => setSelectedHeadIndex((selectedHeadIndex + 1) % plantHeads.length)}
+                        style={{
+                          background: 'rgba(81, 207, 102, 0.2)',
+                          border: '1px solid #51cf66',
+                          borderRadius: '5px',
+                          color: 'white',
+                          fontSize: '1.2rem',
+                          padding: '5px 10px',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.target.style.background = 'rgba(81, 207, 102, 0.4)'}
+                        onMouseLeave={(e) => e.target.style.background = 'rgba(81, 207, 102, 0.2)'}
+                      >
+                        ▶
+                      </button>
+                    )}
+                  </div>
+                  
+                  {/* HP Bar - Single bar only */}
+                  <div className="stat-row">
+                    <div className="stat-label">❤️ Health {currentHead.hp < 3 ? '⚠️' : ''}</div>
+                    <div className={`stat-value ${currentHead.hp < 3 ? 'warning' : ''}`}>{currentHead.hp} / {currentHead.maxHP}</div>
+                  </div>
+                  <div className="stat-bar">
+                    <div className="stat-bar-fill" style={{width: `${(currentHead.hp / currentHead.maxHP) * 100}%`}}></div>
+                  </div>
+                  
+                  {/* Water Bar */}
+                  <div className="stat-row">
+                    <div className="stat-label">💧 Water {currentHead.water < 3 ? '⚠️' : ''}</div>
+                    <div className={`stat-value ${currentHead.water < 3 ? 'warning' : ''}`}>{currentHead.water} / {currentHead.maxWater}</div>
+                  </div>
+                  <div className="stat-bar">
+                    <div className="stat-bar-fill water-bar" style={{width: `${(currentHead.water / currentHead.maxWater) * 100}%`}}></div>
+                  </div>
+                  
+                  {/* Nutrients Bar (if applicable) */}
+                  {currentHead.maxNutrients > 0 && (
+                    <>
+                      <div className="stat-row">
+                        <div className="stat-label">🌱 Nutrients {currentHead.nutrients < 3 ? '⚠️' : ''}</div>
+                        <div className={`stat-value ${currentHead.nutrients < 3 ? 'warning' : ''}`}>{currentHead.nutrients} / {currentHead.maxNutrients}</div>
+                      </div>
+                      <div className="stat-bar">
+                        <div className="stat-bar-fill nutrient-bar" style={{width: `${(currentHead.nutrients / currentHead.maxNutrients) * 100}%`}}></div>
+                      </div>
+                    </>
+                  )}
+                  
+                  {/* Carnivorous Indicator */}
+                  {currentHead.maxNutrients === 0 && (
+                    <div style={{
+                      background: 'rgba(255, 107, 107, 0.2)',
+                      border: '1px solid #ff6b6b',
+                      borderRadius: '5px',
+                      padding: '8px',
+                      marginTop: '8px',
+                      textAlign: 'center',
+                      color: '#ff6b6b',
+                      fontSize: '0.9rem'
+                    }}>
+                      🦟 Carnivorous - Catches own food!
+                    </div>
+                  )}
                 </div>
-                <div className="stat-bar">
-                  <div className="stat-bar-fill nutrient-bar" style={{width: `${(plant.nutrients / plantType.maxNutrients) * 100}%`}}></div>
-                </div>
-              </>
-            )}
+              );
+            })()}
             
-            {plantType.maxNutrients === 0 && (
-              <div className="carnivorous-indicator">
-                🦟 Carnivorous - Catches own food!
-              </div>
-            )}
-            
-            <div className="stat-row">
-              <div className="stat-label">❤️ Health {plant.health < 4 ? '⚠️' : ''}</div>
-              <div className={`stat-value ${plant.health < 4 ? 'warning' : ''}`}>{plant.health} / {plantType.maxHealth}</div>
-            </div>
-            <div className="stat-bar">
-              <div className="stat-bar-fill health-bar" style={{width: `${(plant.health / plantType.maxHealth) * 100}%`}}></div>
-            </div>
-            
+            {/* Consumption Info Panel */}
             <div className="consumption-info">
               <div className="consumption-label">🌙 Nightly Consumption:</div>
               
@@ -1695,10 +2601,18 @@ function App() {
           </div>
         </div>
 
-        {/* CENTER STAGE (Plant) */}
+        {/* CENTER STAGE (Plant) - Shows SELECTED plant */}
         <div className="center-stage">
           <div className={`plant-display ${plant.health < 5 ? 'low-health' : ''}`}>
-            {gameView === 'dead' ? '🥀' : (plant.water < 3 ? '🍂' : plantType.emoji)}
+            {(() => {
+              if (gameView === 'dead') return '🥀';
+              const selectedHead = plantHeads[selectedHeadIndex];
+              if (!selectedHead) return plantType.emoji;
+              
+              // Show wilted if low water
+              if (selectedHead.water < 3) return '🍂';
+              return selectedHead.emoji;
+            })()}
           </div>
           <div className="time-of-day-label">
             {timeOfDay.toUpperCase()}
@@ -1839,14 +2753,66 @@ function App() {
             {/* MAIN MENU - AFTERNOON */}
             {gameView === 'normal' && timeOfDay === 'afternoon' && (
               <div className="action-menu-container">
-                <div className="action-menu-item disabled">
-                  <div className="action-menu-title">🌾 Weed Combat</div>
-                  <div className="action-menu-subtitle">Coming Soon</div>
+                {/* DEBUG DISPLAY */}
+                <div style={{
+                  position: 'fixed',
+                  top: '10px',
+                  right: '10px',
+                  background: 'rgba(0,0,0,0.8)',
+                  color: 'white',
+                  padding: '10px',
+                  borderRadius: '5px',
+                  fontSize: '12px',
+                  zIndex: 10000
+                }}>
+                  <div>DEBUG:</div>
+                  <div>battleCompleted: {battleCompleted ? 'TRUE' : 'FALSE'}</div>
+                  <div>battleWarning: {battleWarning ? 'TRUE' : 'FALSE'}</div>
+                  <div>gameView: {gameView}</div>
+                  <div>timeOfDay: {timeOfDay}</div>
+                  <div>weather: {currentWeather}</div>
                 </div>
-                <div className="action-menu-item" onClick={sleep}>
-                  <div className="action-menu-title">🌙 To Night</div>
-                  <div className="action-menu-subtitle">Advance to nighttime</div>
-                </div>
+                
+                {/* After battle completed - show continue */}
+                {battleCompleted && (
+                  <div className="action-menu-item" onClick={sleep}>
+                    <div className="action-menu-title">🌙 Continue to Night</div>
+                    <div className="action-menu-subtitle">✅ Battle complete!</div>
+                  </div>
+                )}
+                
+                {/* Battle triggers on Sunny, Overcast, or Snowy - only if not completed */}
+                {!battleCompleted && (currentWeather === 'sunny' || currentWeather === 'overcast' || currentWeather === 'snowy') && !battleWarning && (
+                  <div className="action-menu-item" onClick={() => setBattleWarning(true)}>
+                    <div className="action-menu-title">⚔️ DEFEND!</div>
+                    <div className="action-menu-subtitle">⚠️ Attackers approaching!</div>
+                  </div>
+                )}
+                {!battleCompleted && battleWarning && (
+                  <div className="action-menu-item danger" onClick={startBattle}>
+                    <div className="action-menu-title">⚔️ START BATTLE!</div>
+                    <div className="action-menu-subtitle">Fight for survival!</div>
+                  </div>
+                )}
+                {/* No battles on rainy/thunderstorm - can skip */}
+                {!battleCompleted && (currentWeather === 'rainy' || currentWeather === 'thunderstorm') && (
+                  <div className="action-menu-item" onClick={sleep}>
+                    <div className="action-menu-title">🌙 To Night</div>
+                    <div className="action-menu-subtitle">Safe from attackers</div>
+                  </div>
+                )}
+                {!battleCompleted && !battleWarning && (currentWeather === 'sunny' || currentWeather === 'overcast' || currentWeather === 'snowy') && (
+                  <div className="action-menu-item disabled">
+                    <div className="action-menu-title">🌙 To Night</div>
+                    <div className="action-menu-subtitle">Must defend first!</div>
+                  </div>
+                )}
+                {!battleCompleted && battleWarning && (
+                  <div className="action-menu-item disabled">
+                    <div className="action-menu-title">❌ Can't Skip</div>
+                    <div className="action-menu-subtitle">Must fight!</div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -1971,6 +2937,207 @@ function App() {
                   </div>
                 </div>
               </>
+            )}
+
+            {/* BATTLE UI */}
+            {battleState && gameView === 'battle' && (
+              <div className="battle-screen">
+                <div className="battle-background"></div>
+                
+                {/* Turn Order Panel - LEFT SIDE */}
+                <div className="turn-order-panel">
+                  <div className="turn-order-title">⚔️ Turn Order</div>
+                  <div className="turn-order-list">
+                    {battleState.turnQueue?.map((p, idx) => (
+                      <div 
+                        key={p.id}
+                        className={`turn-order-item ${idx === battleState.currentTurnIndex ? 'current-turn' : ''} ${p.isDead ? 'dead' : ''}`}
+                      >
+                        <div className="turn-order-icon">{p.emoji || '👤'}</div>
+                        <div className="turn-order-name">{p.name}</div>
+                        <div className="turn-order-hp">{p.hp}/{p.maxHP}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Enemies Display - TOP CENTER */}
+                <div className="battle-enemies">
+                  {battleState.participants?.filter(p => p.isEnemy && !p.isDead).map(enemy => (
+                    <div 
+                      key={enemy.id}
+                      className={`battle-enemy ${battleState.selectedTarget === enemy.id ? 'targeted' : ''}`}
+                      onClick={() => handleTargetSelect(enemy.id)}
+                    >
+                      <div className="enemy-sprite">👤</div>
+                      <div className="enemy-name">{enemy.name}</div>
+                      <div className="hp-bar-container">
+                        <div 
+                          className="hp-bar-fill"
+                          style={{ width: `${(enemy.hp / enemy.maxHP) * 100}%` }}
+                        ></div>
+                        <div className="hp-bar-text">{enemy.hp}/{enemy.maxHP}</div>
+                      </div>
+                      <div className="weakness-indicator">Weak: {enemy.weakness}</div>
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Plants Display - BOTTOM */}
+                <div className="battle-plants">
+                  {battleState.participants?.filter(p => p.isPlant && !p.isDead).map(plant => (
+                    <div 
+                      key={plant.id}
+                      className={`battle-plant ${plant.id === battleState.turnQueue?.[battleState.currentTurnIndex]?.id ? 'current-turn-plant' : ''}`}
+                    >
+                      <div className="plant-sprite">{plant.emoji}</div>
+                      <div className="plant-name">{plant.name}</div>
+                      
+                      <div className="stat-bar-container">
+                        <div className="stat-label">❤️ HP</div>
+                        <div className="stat-bar">
+                          <div className="stat-bar-fill hp" style={{ width: `${(plant.hp / plant.maxHP) * 100}%` }}></div>
+                          <div className="stat-bar-text">{plant.hp}/{plant.maxHP}</div>
+                        </div>
+                      </div>
+                      
+                      <div className="stat-bar-container">
+                        <div className="stat-label">💧 Water</div>
+                        <div className="stat-bar">
+                          <div className="stat-bar-fill water" style={{ width: `${(plant.water / plant.maxWater) * 100}%` }}></div>
+                          <div className="stat-bar-text">{plant.water}/{plant.maxWater}</div>
+                        </div>
+                      </div>
+                      
+                      {plant.maxNutrients > 0 && (
+                        <div className="stat-bar-container">
+                          <div className="stat-label">🌱 Nutrients</div>
+                          <div className="stat-bar">
+                            <div className="stat-bar-fill nutrients" style={{ width: `${(plant.nutrients / plant.maxNutrients) * 100}%` }}></div>
+                            <div className="stat-bar-text">{plant.nutrients}/{plant.maxNutrients}</div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Action Menu - BOTTOM RIGHT - Only when waitingForPlayer */}
+                {battleState.waitingForPlayer && !battleState.processing && (
+                  <div className="battle-action-menu">
+                    <div className="battle-action-title">
+                      {battleState.turnQueue?.[battleState.currentTurnIndex]?.name}'s Turn
+                    </div>
+                    
+                    <div className="battle-actions">
+                      {/* ATTACK SECTION */}
+                      <div className="action-section-title">⚔️ ATTACK</div>
+                      
+                      <button 
+                        className="battle-action-btn attack"
+                        onClick={() => handleBattleAction('attack', battleState.turnQueue?.[battleState.currentTurnIndex]?.damageType)}
+                        disabled={!battleState.selectedTarget}
+                      >
+                        <div className="action-icon">⚔️</div>
+                        <div className="action-name">{battleState.turnQueue?.[battleState.currentTurnIndex]?.damageType} Attack</div>
+                        <div className="action-desc">{!battleState.selectedTarget ? 'Select target!' : 'Special damage'}</div>
+                      </button>
+                      
+                      <button 
+                        className="battle-action-btn attack"
+                        onClick={() => handleBattleAction('attack', 'Physical')}
+                        disabled={!battleState.selectedTarget}
+                      >
+                        <div className="action-icon">🌿</div>
+                        <div className="action-name">Root Attack</div>
+                        <div className="action-desc">{!battleState.selectedTarget ? 'Select target!' : 'Physical damage'}</div>
+                      </button>
+                      
+                      {/* SUPPORT SECTION */}
+                      <div className="action-section-title">💚 SUPPORT</div>
+                      
+                      <button 
+                        className="battle-action-btn heal"
+                        onClick={() => handleBattleAction('heal')}
+                        disabled={battleState.turnQueue?.[battleState.currentTurnIndex]?.hp >= battleState.turnQueue?.[battleState.currentTurnIndex]?.maxHP}
+                      >
+                        <div className="action-icon">🚑</div>
+                        <div className="action-name">Heal</div>
+                        <div className="action-desc">Restore +3 HP</div>
+                      </button>
+                      
+                      <button 
+                        className="battle-action-btn restore"
+                        onClick={() => handleBattleAction('water')}
+                        disabled={battleState.turnQueue?.[battleState.currentTurnIndex]?.water >= battleState.turnQueue?.[battleState.currentTurnIndex]?.maxWater}
+                      >
+                        <div className="action-icon">💧</div>
+                        <div className="action-name">Water</div>
+                        <div className="action-desc">Restore +2 💧</div>
+                      </button>
+                      
+                      {battleState.turnQueue?.[battleState.currentTurnIndex]?.maxNutrients > 0 && (
+                        <button 
+                          className="battle-action-btn restore"
+                          onClick={() => handleBattleAction('feed')}
+                          disabled={battleState.turnQueue?.[battleState.currentTurnIndex]?.nutrients >= battleState.turnQueue?.[battleState.currentTurnIndex]?.maxNutrients}
+                        >
+                          <div className="action-icon">🌱</div>
+                          <div className="action-name">Feed</div>
+                          <div className="action-desc">Restore +2 🌱</div>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Battle Log - BOTTOM LEFT */}
+                <div className="battle-log-panel">
+                  <div className="battle-log-title">📜 Battle Log</div>
+                  <div className="battle-log-content">
+                    {battleState.battleLog?.slice(-5).map((entry, idx) => (
+                      <div key={idx} className="battle-log-entry">{entry}</div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Weakness Popup */}
+                {battleState.weaknessHit && (
+                  <div className="weakness-popup">
+                    <div className="weakness-text">WEAKNESS!</div>
+                  </div>
+                )}
+                
+                {/* Floating Damage Numbers */}
+                {battleState.damageNumbers?.map(dmgNum => {
+                  // Find participant position to place number
+                  const participant = battleState.participants.find(p => p.id === dmgNum.targetId);
+                  if (!participant) return null;
+                  
+                  const isEnemy = participant.isEnemy;
+                  const participantIndex = battleState.participants.filter(p => p.isEnemy === isEnemy && !p.isDead).findIndex(p => p.id === dmgNum.targetId);
+                  
+                  // Calculate position (rough estimate)
+                  const baseLeft = isEnemy ? 50 : 50; // Center
+                  const offsetX = participantIndex * 250; // Space between participants
+                  const topPos = isEnemy ? 200 : window.innerHeight - 300;
+                  
+                  return (
+                    <div 
+                      key={dmgNum.id}
+                      className={`battle-damage-number ${dmgNum.isWeakness ? 'weakness' : ''} ${dmgNum.isHeal ? 'heal' : 'damage'}`}
+                      style={{
+                        position: 'fixed',
+                        left: `calc(${baseLeft}% + ${offsetX}px - 100px)`,
+                        top: `${topPos}px`,
+                        zIndex: 10002
+                      }}
+                    >
+                      {dmgNum.value}
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </>
         )}

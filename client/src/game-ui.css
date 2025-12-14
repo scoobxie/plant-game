@@ -2605,3 +2605,748 @@ body.night {
     transform: translateY(0);
   }
 }
+
+/* ==========================================
+   BATTLE SYSTEM CSS
+   ========================================== */
+
+.battle-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.battle-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  z-index: -1;
+}
+
+/* Turn Order Panel - LEFT SIDE */
+.turn-order-panel {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid #4a9eff;
+  border-radius: 10px;
+  padding: 15px;
+  max-width: 200px;
+  box-shadow: 0 0 20px rgba(74, 158, 255, 0.3);
+}
+
+.turn-order-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #4a9eff;
+  text-align: center;
+  margin-bottom: 10px;
+  text-shadow: 0 0 10px rgba(74, 158, 255, 0.5);
+}
+
+.turn-order-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.turn-order-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+  transition: all 0.3s ease;
+}
+
+.turn-order-item.current-turn {
+  background: rgba(74, 158, 255, 0.3);
+  border: 2px solid #4a9eff;
+  box-shadow: 0 0 15px rgba(74, 158, 255, 0.5);
+  transform: scale(1.05);
+}
+
+.turn-order-item.dead {
+  opacity: 0.3;
+  text-decoration: line-through;
+}
+
+.turn-order-icon {
+  font-size: 1.5rem;
+}
+
+.turn-order-name {
+  flex: 1;
+  font-size: 0.9rem;
+  color: white;
+  font-weight: bold;
+}
+
+.turn-order-hp {
+  font-size: 0.8rem;
+  color: #ff6b6b;
+  font-weight: bold;
+}
+
+/* Enemies Display - TOP CENTER */
+.battle-enemies {
+  position: absolute;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 30px;
+  z-index: 10;
+}
+
+.battle-enemy {
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid #ff6b6b;
+  border-radius: 10px;
+  padding: 20px;
+  min-width: 200px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 20px rgba(255, 107, 107, 0.3);
+}
+
+.battle-enemy:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 30px rgba(255, 107, 107, 0.5);
+  border-color: #ff4757;
+}
+
+.battle-enemy.targeted {
+  border-color: #ffd700;
+  box-shadow: 0 0 40px rgba(255, 215, 0, 0.6);
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.enemy-sprite {
+  font-size: 4rem;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.enemy-name {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.hp-bar-container {
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 10px;
+  height: 25px;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.hp-bar-fill {
+  background: linear-gradient(90deg, #ff6b6b 0%, #ff4757 100%);
+  height: 100%;
+  transition: width 0.5s ease;
+  box-shadow: inset 0 2px 10px rgba(255, 255, 255, 0.2);
+}
+
+.hp-bar-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-weight: bold;
+  font-size: 0.9rem;
+  text-shadow: 1px 1px 2px black;
+}
+
+.weakness-indicator {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #ffd700;
+  font-weight: bold;
+  text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+}
+
+/* Plants Display - BOTTOM */
+.battle-plants {
+  position: absolute;
+  bottom: 180px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 20px;
+}
+
+.battle-plant {
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid #51cf66;
+  border-radius: 10px;
+  padding: 15px;
+  min-width: 180px;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 20px rgba(81, 207, 102, 0.3);
+}
+
+.battle-plant.current-turn-plant {
+  border-color: #ffd700;
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+  transform: scale(1.05);
+}
+
+.plant-sprite {
+  font-size: 3rem;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.plant-name {
+  font-size: 1rem;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.stat-bar-container {
+  margin-bottom: 8px;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: #aaa;
+  margin-bottom: 3px;
+}
+
+.stat-bar {
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 5px;
+  height: 18px;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-bar-fill {
+  height: 100%;
+  transition: width 0.5s ease;
+}
+
+.stat-bar-fill.hp {
+  background: linear-gradient(90deg, #ff6b6b 0%, #ff4757 100%);
+}
+
+.stat-bar-fill.water {
+  background: linear-gradient(90deg, #4a9eff 0%, #3b82f6 100%);
+}
+
+.stat-bar-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-weight: bold;
+  font-size: 0.75rem;
+  text-shadow: 1px 1px 2px black;
+}
+
+/* Action Menu - BOTTOM RIGHT */
+.battle-action-menu {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.9);
+  border: 2px solid #4a9eff;
+  border-radius: 10px;
+  padding: 15px;
+  min-width: 250px;
+  box-shadow: 0 0 30px rgba(74, 158, 255, 0.4);
+}
+
+.battle-action-title {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #4a9eff;
+  text-align: center;
+  margin-bottom: 15px;
+  text-shadow: 0 0 10px rgba(74, 158, 255, 0.5);
+}
+
+.battle-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.battle-action-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid #555;
+  border-radius: 8px;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: white;
+  font-size: 0.95rem;
+}
+
+.battle-action-btn:hover:not(:disabled) {
+  transform: translateX(5px);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+}
+
+.battle-action-btn.attack {
+  border-color: #ff6b6b;
+}
+
+.battle-action-btn.attack:hover:not(:disabled) {
+  background: rgba(255, 107, 107, 0.2);
+  border-color: #ff4757;
+  box-shadow: 0 0 20px rgba(255, 107, 107, 0.4);
+}
+
+.battle-action-btn.heal {
+  border-color: #51cf66;
+}
+
+.battle-action-btn.heal:hover:not(:disabled) {
+  background: rgba(81, 207, 102, 0.2);
+  border-color: #37b24d;
+  box-shadow: 0 0 20px rgba(81, 207, 102, 0.4);
+}
+
+.battle-action-btn.restore {
+  border-color: #4a9eff;
+}
+
+.battle-action-btn.restore:hover:not(:disabled) {
+  background: rgba(74, 158, 255, 0.2);
+  border-color: #3b82f6;
+  box-shadow: 0 0 20px rgba(74, 158, 255, 0.4);
+}
+
+.battle-action-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.action-icon {
+  font-size: 1.5rem;
+}
+
+.action-name {
+  flex: 1;
+  font-weight: bold;
+}
+
+/* Battle Log - BOTTOM LEFT */
+.battle-log-panel {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  background: rgba(0, 0, 0, 0.9);
+  border: 2px solid #aaa;
+  border-radius: 10px;
+  padding: 15px;
+  max-width: 350px;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.battle-log-title {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #aaa;
+  margin-bottom: 10px;
+}
+
+.battle-log-content {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.battle-log-entry {
+  font-size: 0.85rem;
+  color: white;
+  padding: 5px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+/* Weakness Popup */
+.weakness-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10000;
+  animation: weaknessAppear 1.5s ease-out;
+}
+
+.weakness-text {
+  font-size: 5rem;
+  font-weight: bold;
+  color: #ffd700;
+  text-shadow: 0 0 30px rgba(255, 215, 0, 0.8),
+               0 0 60px rgba(255, 215, 0, 0.6);
+  animation: weaknessPulse 0.5s ease-in-out infinite;
+}
+
+@keyframes weaknessAppear {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+}
+
+@keyframes weaknessPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+/* Battle Warning in Afternoon Menu */
+.action-menu-item.danger {
+  border-color: #ff4757 !important;
+  animation: dangerPulse 1s infinite;
+}
+
+@keyframes dangerPulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(255, 71, 87, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(255, 71, 87, 0.8);
+  }
+}
+
+
+/* Battle Log Scrollbar Styling */
+.battle-log-panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.battle-log-panel::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+}
+
+.battle-log-panel::-webkit-scrollbar-thumb {
+  background: rgba(170, 170, 170, 0.5);
+  border-radius: 10px;
+}
+
+.battle-log-panel::-webkit-scrollbar-thumb:hover {
+  background: rgba(170, 170, 170, 0.8);
+}
+
+/* Nutrients Bar Color */
+.stat-bar-fill.nutrients {
+  background: linear-gradient(90deg, #51cf66 0%, #37b24d 100%);
+}
+
+/* Action Section Titles */
+.action-section-title {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #4a9eff;
+  margin-top: 10px;
+  margin-bottom: 5px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid rgba(74, 158, 255, 0.3);
+  text-shadow: 0 0 5px rgba(74, 158, 255, 0.5);
+}
+
+.action-section-title:first-child {
+  margin-top: 0;
+}
+
+/* Action Description Text */
+.action-desc {
+  font-size: 0.75rem;
+  color: #aaa;
+  font-weight: normal;
+  margin-top: 2px;
+}
+
+.battle-action-btn {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.battle-action-btn .action-icon {
+  align-self: center;
+  margin-bottom: 5px;
+}
+
+.battle-action-btn .action-name {
+  align-self: flex-start;
+  width: 100%;
+}
+
+/* ==========================================
+   BATTLE TRANSITIONS & ANIMATIONS
+   ========================================== */
+
+/* Fade in battle screen */
+.battle-screen {
+  animation: battleFadeIn 0.5s ease-out;
+}
+
+@keyframes battleFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Enemy attack animation */
+.battle-enemy.attacking {
+  animation: enemyAttack 0.5s ease-out;
+}
+
+@keyframes enemyAttack {
+  0%, 100% { transform: translateY(0); }
+  25% { transform: translateY(-10px); }
+  50% { transform: translateY(5px); }
+  75% { transform: translateY(-5px); }
+}
+
+/* Plant hurt animation */
+.battle-plant.hurt {
+  animation: plantHurt 0.5s ease-out;
+}
+
+@keyframes plantHurt {
+  0%, 100% { transform: translateX(0); filter: brightness(1); }
+  25% { transform: translateX(-10px); filter: brightness(0.7); }
+  50% { transform: translateX(10px); filter: brightness(0.7); }
+  75% { transform: translateX(-5px); filter: brightness(0.9); }
+}
+
+/* Weakness hit - make it MUCH more visible */
+.weakness-popup {
+  position: fixed;
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10001;
+  animation: weaknessExplode 2s ease-out;
+  pointer-events: none;
+}
+
+.weakness-text {
+  font-size: 8rem;
+  font-weight: 900;
+  color: #ffd700;
+  text-shadow: 
+    0 0 20px rgba(255, 215, 0, 1),
+    0 0 40px rgba(255, 215, 0, 0.8),
+    0 0 60px rgba(255, 215, 0, 0.6),
+    0 0 80px rgba(255, 215, 0, 0.4),
+    5px 5px 10px rgba(0, 0, 0, 0.8);
+  animation: weaknessTextPulse 0.3s ease-in-out infinite;
+  letter-spacing: 10px;
+}
+
+@keyframes weaknessExplode {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3) rotate(-10deg);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.3) rotate(5deg);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1) rotate(-2deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8) rotate(0deg);
+  }
+}
+
+@keyframes weaknessTextPulse {
+  0%, 100% { 
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% { 
+    transform: scale(1.05);
+    filter: brightness(1.3);
+  }
+}
+
+/* HP Bar damage animation */
+.hp-bar-fill {
+  transition: width 0.8s ease-out;
+}
+
+.stat-bar-fill {
+  transition: width 0.6s ease-out;
+}
+
+/* Battle entry transition */
+.battle-enemies {
+  animation: enemiesEnter 0.8s ease-out;
+}
+
+@keyframes enemiesEnter {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.battle-plants {
+  animation: plantsEnter 0.8s ease-out 0.2s backwards;
+}
+
+@keyframes plantsEnter {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.turn-order-panel {
+  animation: panelSlideIn 0.6s ease-out 0.3s backwards;
+}
+
+@keyframes panelSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+}
+
+.battle-action-menu {
+  animation: menuSlideUp 0.5s ease-out 0.4s backwards;
+}
+
+@keyframes menuSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.battle-log-panel {
+  animation: logFadeIn 0.5s ease-out 0.5s backwards;
+}
+
+@keyframes logFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Plant Heads Indicator */
+.plant-heads-indicator {
+  background: rgba(81, 207, 102, 0.2);
+  border: 1px solid #51cf66;
+  border-radius: 5px;
+  padding: 8px;
+  margin: 10px 0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #51cf66;
+}
+
+/* Battle Damage Numbers */
+.battle-damage-number {
+  font-size: 3rem;
+  font-weight: 900;
+  pointer-events: none;
+  animation: damageFloat 1.5s ease-out forwards;
+  text-shadow: 
+    2px 2px 4px rgba(0, 0, 0, 0.8),
+    0 0 10px rgba(0, 0, 0, 0.6);
+}
+
+.battle-damage-number.damage {
+  color: #ff4757;
+}
+
+.battle-damage-number.heal {
+  color: #51cf66;
+}
+
+.battle-damage-number.weakness {
+  color: #ffd700;
+  font-size: 4rem;
+  text-shadow: 
+    0 0 20px rgba(255, 215, 0, 0.8),
+    0 0 40px rgba(255, 215, 0, 0.6),
+    2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+@keyframes damageFloat {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.5);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(-20px) scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-80px) scale(0.8);
+  }
+}
