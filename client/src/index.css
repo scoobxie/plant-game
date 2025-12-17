@@ -1,0 +1,3352 @@
+/* ===================================
+   SISTEM DE MENIU MODERN PENTRU JOC
+   =================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap');
+
+/* ===================================
+   NUMERE FLOATING (Feedback Visual)
+   =================================== */
+
+.floating-number {
+  position: fixed;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 900;
+  font-size: 2.5rem;
+  pointer-events: none;
+  z-index: 9999;
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 0, 0, 0.5);
+  animation: floatUp 2s ease-out forwards;
+}
+
+/* Tipuri de numere */
+.floating-heal {
+  color: #00ff00;
+  text-shadow: 0 0 10px rgba(0, 255, 0, 0.8), 0 0 20px rgba(0, 255, 0, 0.5);
+}
+
+.floating-damage {
+  color: #ff0000;
+  text-shadow: 0 0 10px rgba(255, 0, 0, 0.8), 0 0 20px rgba(255, 0, 0, 0.5);
+}
+
+.floating-success {
+  color: #ffd700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.8), 0 0 20px rgba(255, 215, 0, 0.5);
+}
+
+/* Poziții */
+.floating-center {
+  left: 50%;
+  top: 50%;
+  transform: translateX(-50%);
+}
+
+.floating-plant-water {
+  left: 50%;
+  top: 40%;
+  transform: translateX(-50%);
+}
+
+.floating-plant-nutrients {
+  left: 52%;
+  top: 42%;
+  transform: translateX(-50%);
+}
+
+.floating-plant-health {
+  left: 50%;
+  top: 38%;
+  transform: translateX(-50%);
+}
+
+.floating-water {
+  left: 15%;
+  top: 30%;
+}
+
+.floating-nutrients {
+  left: 15%;
+  top: 35%;
+}
+
+/* Animație float up cu fade */
+@keyframes floatUp {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-50px) scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-120px) scale(0.8);
+  }
+}
+
+/* ===================================
+   MINI-MENIU HAMBURGER
+   =================================== */
+
+.mini-menu {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 10000; /* Peste tot, inclusiv day counter */
+}
+
+.hamburger-btn {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 900;
+  font-size: 1.5rem;
+  padding: 10px 15px;
+  border: 2px solid var(--p3-blue);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(0, 51, 102, 0.95), rgba(0, 102, 204, 0.95));
+  color: var(--p3-yellow);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  z-index: 1001; /* Peste overlay (900) */
+}
+
+.hamburger-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 15px rgba(0, 102, 204, 0.6);
+}
+
+.hamburger-btn:active {
+  transform: scale(0.95);
+}
+
+.menu-dropdown {
+  position: absolute;
+  top: 55px;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(20, 20, 40, 0.95));
+  border: 2px solid var(--p3-blue);
+  border-radius: 10px;
+  padding: 10px;
+  min-width: 150px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  animation: slideDownMenu 0.3s ease-out;
+  z-index: 10000; /* Peste tot */
+}
+
+@keyframes slideDownMenu {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.menu-item {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 10px 15px;
+  border: 2px solid var(--p3-blue);
+  border-radius: 6px;
+  background: linear-gradient(135deg, #0066cc, #003366);
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-align: left;
+}
+
+.menu-item:hover {
+  transform: translateX(5px);
+  box-shadow: 0 4px 10px rgba(0, 102, 204, 0.5);
+}
+
+.menu-item:active {
+  transform: translateX(0);
+}
+
+.restart-btn-menu {
+  background: linear-gradient(135deg, #ff6b6b, #cc0000) !important;
+  border-color: #ff6b6b !important;
+}
+
+.restart-btn-menu:hover {
+  box-shadow: 0 4px 10px rgba(255, 107, 107, 0.5) !important;
+}
+
+/* BUTOANE VECHI (păstrate pentru compatibilitate) */
+
+.restart-btn {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 10px 20px;
+  border: 2px solid var(--p3-blue);
+  border-radius: 8px;
+  background: linear-gradient(135deg, #0066cc, #003366);
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.restart-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0, 102, 204, 0.5);
+}
+
+.restart-btn:active {
+  transform: translateY(0);
+}
+
+/* CRITIC: Resetează stilurile vechi ale jocului */
+html, body {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  overflow-x: hidden !important;
+}
+
+#root {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+#game {
+  display: block !important;
+  position: relative !important;
+  width: 100% !important;
+  height: 100vh !important;
+  overflow: visible !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.container {
+  display: none !important;
+}
+
+#left-panel, #center-panel, #right-panel, #action-bar {
+  display: none !important;
+}
+
+/* ===================================
+   TEME PENTRU TIMPUL ZILEI (Better Colors)
+   =================================== */
+
+body {
+  transition: background-color 0.5s ease, background-image 0.5s ease;
+}
+
+/* MORNING - Soft warm tones */
+body.day {
+  background: linear-gradient(135deg, #87ceeb 0%, #e0f6ff 50%, #fffacd 100%) !important;
+}
+
+/* AFTERNOON - Warmer golden hour */
+body.afternoon {
+  background: linear-gradient(135deg, #ffa500 0%, #ff8c69 50%, #ffb347 100%) !important;
+}
+
+/* NIGHT - Deep blues with stars */
+body.night {
+  background: linear-gradient(135deg, #0a0e27 0%, #1a1a3e 50%, #0f0c29 100%) !important;
+}
+
+#moonlight-overlay {
+  display: none !important;
+}
+
+:root {
+  --p3-blue: #0066cc;
+  --p3-dark-blue: #003366;
+  --p3-light-blue: #4da6ff;
+  --p3-yellow: #ffd700;
+  --p3-white: #ffffff;
+  --p3-black: #0a0a0a;
+  --p3-gray: #333333;
+  --p3-light-gray: #cccccc;
+}
+
+/* ===================================
+   FAZĂ LUNARĂ DISPLAY
+   =================================== */
+
+.moon-display {
+  position: fixed;
+  top: 60px;
+  right: 15px;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(20, 20, 40, 0.9));
+  padding: 12px 18px;
+  border-radius: 12px;
+  border: 2px solid var(--p3-blue);
+  box-shadow: 0 0 20px rgba(0, 102, 204, 0.5), inset 0 0 20px rgba(0, 102, 204, 0.2);
+  z-index: 999;
+  animation: moonFloat 3s ease-in-out infinite;
+  backdrop-filter: blur(10px);
+}
+
+.moon-display-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.moon-emoji {
+  font-size: 2.5rem;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  animation: moonGlow 2s ease-in-out infinite;
+}
+
+.moon-name {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: var(--p3-light-blue);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 0 0 5px rgba(77, 166, 255, 0.8);
+}
+
+@keyframes moonFloat {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+/* ===================================
+   CONTOR ZI - Colț Stânga Sus
+   =================================== */
+
+.day-counter-corner {
+  position: fixed;
+  top: 115px;
+  left: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(20, 20, 40, 0.9));
+  border: 3px solid var(--p3-yellow);
+  border-radius: 15px;
+  padding: 10px 15px;
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+  backdrop-filter: blur(10px);
+  z-index: 1001; /* Peste overlay (900) */
+}
+
+.season-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 3px;
+}
+
+.season-emoji {
+  font-size: 1.3rem;
+}
+
+.season-name {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--p3-yellow);
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.day-counter-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.day-counter-number {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 900;
+  font-size: 3rem;
+  color: var(--p3-yellow);
+  text-shadow: 0 0 20px rgba(255, 215, 0, 1);
+  line-height: 1;
+}
+
+.day-counter-separator {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  font-size: 2rem;
+  color: var(--p3-light-blue);
+  line-height: 1;
+  margin: 0 -3px;
+}
+
+.day-counter-max {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  font-size: 1.8rem;
+  color: var(--p3-light-blue);
+  line-height: 1;
+}
+
+/* ===================================
+   FAZĂ LUNARĂ - Colț Dreapta Sus
+   =================================== */
+
+.moon-phase-corner {
+  position: fixed;
+  top: 115px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(20, 20, 40, 0.9));
+  border: 2px solid var(--p3-blue);
+  border-radius: 12px;
+  padding: 8px 12px;
+  box-shadow: 0 0 15px rgba(0, 102, 204, 0.5);
+  backdrop-filter: blur(10px);
+  z-index: 1001; /* Peste overlay (900) */
+}
+
+.moon-phase-emoji {
+  font-size: 1.5rem;
+}
+
+.moon-phase-name {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 600;
+  font-size: 0.7rem;
+  color: var(--p3-light-blue);
+  text-align: center;
+  line-height: 1.1;
+}
+
+.moon-phase-emoji {
+  font-size: 3rem;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.6));
+}
+
+.moon-phase-name {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--p3-light-blue);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 0 0 5px rgba(77, 166, 255, 0.8);
+}
+
+/* ===================================
+   CALENDAR NOU - De la Zero
+   =================================== */
+
+.calendar-container-new {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 1200px;
+  height: 100px;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(20, 20, 40, 0.9));
+  border: 2px solid var(--p3-blue);
+  border-radius: 15px;
+  box-shadow: 0 0 20px rgba(0, 102, 204, 0.5);
+  backdrop-filter: blur(10px);
+  z-index: 1001; /* Peste overlay (900) */
+}
+
+/* Săgeată mobilă - se mișcă la ziua curentă */
+.calendar-arrow-new {
+  position: absolute;
+  top: -15px;
+  left: 40px;
+  font-size: 2rem;
+  color: var(--p3-yellow);
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+  z-index: 999;
+  pointer-events: none;
+  transition: left 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Track scrollabil după ziua 8 */
+.calendar-track-new {
+  display: flex;
+  gap: 10px;
+  padding: 0;
+  height: 100%;
+  position: relative;
+  left: 0;
+  overflow-x: visible;
+  align-items: center;
+  transition: transform 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  will-change: transform;
+}
+
+/* Cutii zi */
+.calendar-day-new {
+  width: 110px;
+  min-width: 110px;
+  max-width: 110px;
+  height: 80px;
+  box-sizing: border-box;
+  background: linear-gradient(135deg, rgba(0, 51, 102, 0.8), rgba(0, 102, 204, 0.8));
+  border: 2px solid var(--p3-blue);
+  border-radius: 10px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+  opacity: 0;
+  animation: calendarDayFadeIn 0.5s ease-out forwards;
+}
+
+/* Ziua curentă */
+.calendar-day-new.current-day {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 165, 0, 0.3));
+  border: 3px solid var(--p3-yellow);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.8), inset 0 0 20px rgba(255, 215, 0, 0.3);
+  transform: scale(1.05);
+  animation: currentDayPulse 2s ease-in-out infinite;
+  opacity: 1 !important;
+}
+
+/* Zi cu dezastru */
+.calendar-day-new.disaster-day {
+  border-color: #ff0000;
+  box-shadow: 0 0 15px rgba(255, 0, 0, 0.6);
+}
+
+/* ANIMAȚII */
+@keyframes calendarDayFadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes currentDayPulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.8), inset 0 0 20px rgba(255, 215, 0, 0.3); }
+  50% { box-shadow: 0 0 30px rgba(255, 215, 0, 1), inset 0 0 30px rgba(255, 215, 0, 0.5); }
+}
+
+/* Staggered animation pentru cutii */
+.calendar-day-new:nth-child(1) { animation-delay: 0.05s; }
+.calendar-day-new:nth-child(2) { animation-delay: 0.1s; }
+.calendar-day-new:nth-child(3) { animation-delay: 0.15s; }
+.calendar-day-new:nth-child(4) { animation-delay: 0.2s; }
+.calendar-day-new:nth-child(5) { animation-delay: 0.25s; }
+.calendar-day-new:nth-child(6) { animation-delay: 0.3s; }
+.calendar-day-new:nth-child(7) { animation-delay: 0.35s; }
+.calendar-day-new:nth-child(8) { animation-delay: 0.4s; }
+.calendar-day-new:nth-child(9) { animation-delay: 0.45s; }
+.calendar-day-new:nth-child(10) { animation-delay: 0.5s; }
+
+.calendar-day-number {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: var(--p3-light-blue);
+  text-transform: uppercase;
+}
+
+.calendar-moon {
+  font-size: 1.8rem;
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
+  transition: all 0.5s ease;
+}
+
+.current-day .calendar-moon {
+  animation: iconGlow 2s ease-in-out infinite;
+  font-size: 2rem;
+}
+
+@keyframes iconGlow {
+  0%, 100% { 
+    filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.5));
+    transform: scale(1);
+  }
+  50% { 
+    filter: drop-shadow(0 0 15px rgba(255, 215, 0, 1));
+    transform: scale(1.1);
+  }
+}
+
+.calendar-disaster {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  font-size: 0.65rem;
+  color: #ff6b6b;
+  text-align: center;
+  line-height: 1.1;
+}
+
+/* ===================================
+   SISTEM MENIU ACȚIUNI
+   =================================== */
+
+.action-menu-container {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 998;
+  padding: 15px;
+  overflow: visible;
+}
+
+/* Click here indicator */
+.click-here-indicator {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 900;
+  font-size: 1.2rem;
+  text-align: center;
+  animation: bounce 1s ease-in-out infinite;
+  letter-spacing: 2px;
+  margin-bottom: 5px;
+  padding: 8px 16px;
+  border-radius: 10px;
+  transition: all 0.5s ease-in-out;
+  border: 2px solid;
+}
+
+/* Default/Sunny - Yellow */
+.click-here-indicator.weather-sunny {
+  color: var(--p3-yellow);
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.8), 0 0 20px rgba(255, 215, 0, 0.5);
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.2));
+  border-color: var(--p3-yellow);
+}
+
+/* Overcast - Dark orange/brown for contrast */
+.click-here-indicator.weather-overcast {
+  color: #FF6B35;
+  text-shadow: 0 0 10px rgba(255, 107, 53, 0.8), 0 0 20px rgba(255, 107, 53, 0.5);
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.3), rgba(220, 80, 30, 0.3));
+  border-color: #FF6B35;
+}
+
+/* Rainy - Bright cyan for contrast */
+.click-here-indicator.weather-rainy {
+  color: #00FFFF;
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.8), 0 0 20px rgba(0, 255, 255, 0.5);
+  background: linear-gradient(135deg, rgba(0, 255, 255, 0.2), rgba(0, 200, 200, 0.2));
+  border-color: #00FFFF;
+}
+
+/* Snowy - Dark blue for contrast on white */
+.click-here-indicator.weather-snowy {
+  color: #1E90FF;
+  text-shadow: 0 0 10px rgba(30, 144, 255, 0.8), 0 0 20px rgba(30, 144, 255, 0.5);
+  background: linear-gradient(135deg, rgba(30, 144, 255, 0.3), rgba(0, 100, 200, 0.3));
+  border-color: #1E90FF;
+}
+
+/* Thunderstorm - Bright yellow for dark background */
+.click-here-indicator.weather-thunderstorm {
+  color: #FFD700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 1), 0 0 20px rgba(255, 215, 0, 0.8);
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 165, 0, 0.3));
+  border-color: #FFD700;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.action-menu-item {
+  background: linear-gradient(135deg, rgba(0, 51, 102, 0.95), rgba(0, 102, 204, 0.95));
+  border: 2px solid var(--p3-blue);
+  border-radius: 10px;
+  padding: 12px 20px;
+  min-width: 260px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3), 0 0 8px 1px rgba(77, 166, 255, 0.5);
+  /* Removed slideInRight - causes jumping. Keep only subtle pulse */
+  animation: buttonPulseContained 2s ease-in-out infinite;
+}
+
+@keyframes buttonPulseContained {
+  0%, 100% {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3), 0 0 8px 1px rgba(77, 166, 255, 0.5);
+  }
+  50% {
+    box-shadow: 0 5px 18px rgba(0, 0, 0, 0.4), 0 0 12px 2px rgba(77, 166, 255, 0.7);
+  }
+}
+
+.action-menu-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.action-menu-item:hover::before {
+  left: 100%;
+}
+
+.action-menu-item:hover {
+  transform: translateX(-10px) scale(1.05);
+  border-color: var(--p3-yellow);
+  box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+}
+
+.action-menu-item:active {
+  transform: translateX(-10px) scale(0.98);
+}
+
+.action-menu-item.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: grayscale(0.8);
+}
+
+.action-menu-item.disabled:hover {
+  transform: none;
+  border-color: var(--p3-blue);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.action-menu-title {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 900;
+  font-size: 1.2rem;
+  color: var(--p3-white);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 5px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.action-menu-subtitle {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 300;
+  font-size: 0.85rem;
+  color: var(--p3-light-blue);
+  letter-spacing: 0.5px;
+}
+
+.action-menu-cost {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--p3-yellow);
+  text-shadow: 0 0 5px rgba(255, 215, 0, 0.8);
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* ===================================
+   PANOU STATISTICI (Partea Stângă)
+   =================================== */
+
+.stats-panel {
+  position: fixed;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(20, 20, 40, 0.9));
+  border: 2px solid var(--p3-blue);
+  border-radius: 12px;
+  padding: 15px;
+  min-width: 260px;
+  max-width: 280px;
+  box-shadow: 0 0 20px rgba(0, 102, 204, 0.5);
+  backdrop-filter: blur(10px);
+  z-index: 997;
+}
+
+.inventory-panel {
+  top: 240px;
+  left: 15px;
+  /* Animation set globally in PAGE LOAD FIX section */
+}
+
+.plant-panel {
+  top: 240px;
+  right: 15px;
+  /* Animation set globally in PAGE LOAD FIX section */
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.consumption-info {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 2px solid var(--p3-blue);
+  text-align: center;
+}
+
+.consumption-label {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: var(--p3-yellow);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 5px;
+}
+
+.consumption-value {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--p3-light-blue);
+  text-shadow: 0 0 5px rgba(77, 166, 255, 0.8);
+}
+
+/* ===================================
+   DEBUFF INDICATOR
+   =================================== */
+
+.debuff-indicator {
+  margin-top: 15px;
+  padding: 10px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: debuffPulse 2s ease-in-out infinite;
+}
+
+.overwatered-debuff {
+  background: linear-gradient(135deg, rgba(0, 100, 200, 0.3), rgba(0, 150, 255, 0.3));
+  border: 2px solid rgba(0, 150, 255, 0.6);
+  box-shadow: 0 0 15px rgba(0, 150, 255, 0.4);
+}
+
+.damaged-roots-debuff {
+  background: linear-gradient(135deg, rgba(139, 69, 19, 0.3), rgba(160, 82, 45, 0.3));
+  border: 2px solid rgba(139, 69, 19, 0.6);
+  box-shadow: 0 0 15px rgba(139, 69, 19, 0.4);
+}
+
+.damaged-roots-debuff .debuff-icon {
+  filter: drop-shadow(0 0 10px rgba(139, 69, 19, 0.8));
+}
+
+.damaged-roots-debuff .debuff-name {
+  color: #D2691E;
+}
+
+.debuff-icon {
+  font-size: 2rem;
+  filter: drop-shadow(0 0 10px rgba(0, 150, 255, 0.8));
+}
+
+.debuff-text {
+  flex: 1;
+}
+
+.debuff-name {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--p3-light-blue);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.debuff-duration {
+  font-family: 'Roboto', sans-serif;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 2px;
+}
+
+@keyframes debuffPulse {
+  0%, 100% { 
+    box-shadow: 0 0 15px rgba(0, 150, 255, 0.4);
+  }
+  50% { 
+    box-shadow: 0 0 25px rgba(0, 150, 255, 0.7);
+  }
+}
+
+.stats-panel-section {
+  margin-bottom: 15px;
+}
+
+.stats-panel-section:last-child {
+  margin-bottom: 0;
+}
+
+.stats-panel-title {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 900;
+  font-size: 0.9rem;
+  color: var(--p3-yellow);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 10px;
+  text-shadow: 0 0 5px rgba(255, 215, 0, 0.8);
+  border-bottom: 2px solid var(--p3-blue);
+  padding-bottom: 6px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(77, 166, 255, 0.2);
+}
+
+.stat-row:last-child {
+  border-bottom: none;
+}
+
+.stat-label {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 400;
+  font-size: 0.85rem;
+  color: var(--p3-light-blue);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stat-value {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--p3-white);
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+}
+
+.stat-value.warning {
+  color: #ff6b6b;
+  animation: warningPulse 1s ease-in-out infinite;
+}
+
+@keyframes warningPulse {
+  0%, 100% { 
+    opacity: 1; 
+    text-shadow: 0 0 5px rgba(255, 107, 107, 0.5);
+  }
+  50% { 
+    opacity: 0.6; 
+    text-shadow: 0 0 15px rgba(255, 107, 107, 0.8);
+  }
+}
+
+.stat-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--p3-blue);
+  margin-top: 5px;
+}
+
+.stat-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--p3-blue), var(--p3-light-blue));
+  transition: width 0.5s ease-out;
+  box-shadow: 0 0 10px rgba(77, 166, 255, 0.8);
+}
+
+/* Culori specifice pentru fiecare bară */
+.water-bar {
+  background: linear-gradient(90deg, #0066cc, #00bfff) !important;
+  box-shadow: 0 0 10px rgba(0, 191, 255, 0.8) !important;
+}
+
+.nutrient-bar {
+  background: linear-gradient(90deg, #228B22, #32CD32) !important;
+  box-shadow: 0 0 10px rgba(50, 205, 50, 0.8) !important;
+}
+
+.health-bar {
+  background: linear-gradient(90deg, #DC143C, #FF6B6B) !important;
+  box-shadow: 0 0 10px rgba(255, 107, 107, 0.8) !important;
+}
+
+/* Animații pentru nivele periculoase */
+.water-bar[style*="width: 0%"],
+.water-bar[style*="width: 10%"],
+.water-bar[style*="width: 20%"] {
+  animation: barDanger 1s ease-in-out infinite;
+}
+
+.nutrient-bar[style*="width: 0%"],
+.nutrient-bar[style*="width: 10%"],
+.nutrient-bar[style*="width: 20%"] {
+  animation: barDanger 1s ease-in-out infinite;
+}
+
+.health-bar[style*="width: 0%"],
+.health-bar[style*="width: 10%"],
+.health-bar[style*="width: 20%"],
+.health-bar[style*="width: 30%"] {
+  animation: barDanger 1s ease-in-out infinite;
+}
+
+@keyframes barDanger {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ===================================
+   SCENĂ CENTRALĂ (Personaj + Plantă)
+   =================================== */
+
+.center-stage {
+  position: fixed;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  z-index: 996;
+  animation: fadeIn 1s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+.character-display {
+  font-size: 3rem;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5));
+  animation: characterIdle 3s ease-in-out infinite;
+}
+
+@keyframes characterIdle {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-15px); }
+}
+
+.plant-display {
+  font-size: 8rem;
+  filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.5));
+  transition: all 0.5s ease-out;
+  animation: plantBreath 4s ease-in-out infinite;
+}
+
+@keyframes plantBreath {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.plant-display.low-health {
+  filter: drop-shadow(0 0 20px rgba(255, 0, 0, 0.8));
+  animation: plantShiver 0.5s ease-in-out infinite;
+}
+
+@keyframes plantShiver {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.time-of-day-label {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 900;
+  font-size: 1.5rem;
+  color: var(--p3-yellow);
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.8), 0 0 20px rgba(255, 215, 0, 0.5);
+  margin-top: 15px;
+  animation: textGlow 2s ease-in-out infinite;
+}
+
+@keyframes textGlow {
+  0%, 100% { text-shadow: 0 0 10px rgba(255, 215, 0, 0.8); }
+  50% { text-shadow: 0 0 20px rgba(255, 215, 0, 1), 0 0 30px rgba(255, 215, 0, 0.8); }
+}
+
+/* ===================================
+   SISTEM JURNAL (Stânga Jos)
+   =================================== */
+
+.log-panel {
+  position: fixed;
+  bottom: 30px;
+  left: 15px;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(20, 20, 40, 0.9));
+  border: 2px solid var(--p3-blue);
+  border-radius: 12px;
+  padding: 12px;
+  width: 380px;
+  max-height: 180px;
+  overflow-y: auto;
+  box-shadow: 0 0 20px rgba(0, 102, 204, 0.5);
+  backdrop-filter: blur(10px);
+  z-index: 997;
+}
+
+.log-panel-title {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 900;
+  font-size: 0.85rem;
+  color: var(--p3-yellow);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+  text-shadow: 0 0 5px rgba(255, 215, 0, 0.8);
+}
+
+.log-entry {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 300;
+  font-size: 0.8rem;
+  color: var(--p3-light-gray);
+  padding: 4px 0;
+  border-bottom: 1px dashed rgba(77, 166, 255, 0.2);
+  animation: logSlideIn 0.3s ease-out;
+}
+
+.log-entry:last-child {
+  border-bottom: none;
+}
+
+@keyframes logSlideIn {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Custom Scrollbar */
+.log-panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.log-panel::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+}
+
+.log-panel::-webkit-scrollbar-thumb {
+  background: var(--p3-blue);
+  border-radius: 4px;
+}
+
+.log-panel::-webkit-scrollbar-thumb:hover {
+  background: var(--p3-light-blue);
+}
+
+/* ===================================
+   CARD TRANZIȚIE TIMP (Acoperire Ecran Complet)
+   =================================== */
+
+.time-transition {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(8px);
+  z-index: 99999 !important;
+  animation: fadeInOut 1.2s ease-in-out;
+  pointer-events: none;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.time-transition-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  background: linear-gradient(135deg, rgba(0, 51, 102, 0.95), rgba(0, 102, 204, 0.95));
+  border: 3px solid var(--p3-light-blue);
+  border-radius: 20px;
+  padding: 40px 60px;
+  box-shadow: 0 0 50px rgba(77, 166, 255, 0.8), 0 0 100px rgba(77, 166, 255, 0.4);
+  animation: slideDownBounce 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes slideDownBounce {
+  0% { 
+    transform: translateY(-100vh);
+    opacity: 0;
+  }
+  60% { 
+    transform: translateY(0);
+    opacity: 1;
+  }
+  75% {
+    transform: translateY(-20px);
+  }
+  85% {
+    transform: translateY(0);
+  }
+  100% { 
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.time-emoji {
+  font-size: 6rem;
+  text-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+  filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.6));
+}
+
+.time-label {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 900;
+  font-size: 3rem;
+  color: var(--p3-yellow);
+  text-transform: uppercase;
+  letter-spacing: 5px;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.5);
+}
+
+/* ===================================
+   AVERTISMENT DEZASTRU
+   =================================== */
+
+.disaster-warning {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, rgba(139, 0, 0, 0.95), rgba(255, 0, 0, 0.95));
+  border: 3px solid #ff0000;
+  border-radius: 10px;
+  padding: 15px 30px;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 900;
+  font-size: 1.2rem;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  box-shadow: 0 0 30px rgba(255, 0, 0, 0.8);
+  animation: disasterPulse 1s ease-in-out infinite;
+  z-index: 1000;
+}
+
+@keyframes disasterPulse {
+  0%, 100% { 
+    transform: translateX(-50%) scale(1); 
+    box-shadow: 0 0 30px rgba(255, 0, 0, 0.8);
+  }
+  50% { 
+    transform: translateX(-50%) scale(1.05); 
+    box-shadow: 0 0 50px rgba(255, 0, 0, 1);
+  }
+}
+
+/* ===================================
+   SUPRAPUNERI ECRAN COMPLET (Expediție, Dezastru, Moarte)
+   =================================== */
+
+.full-screen-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(10px);
+  z-index: 99999 !important;
+  animation: overlayFadeIn 0.3s ease-out;
+}
+
+@keyframes overlayFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.full-screen-overlay.expedition-overlay {
+  background: rgba(0, 50, 100, 0.85);
+}
+
+.full-screen-overlay.disaster-overlay {
+  background: rgba(100, 0, 0, 0.85);
+}
+
+.overlay-card {
+  background: linear-gradient(135deg, rgba(0, 51, 102, 0.95), rgba(0, 102, 204, 0.95));
+  border: 3px solid var(--p3-light-blue);
+  border-radius: 20px;
+  padding: 50px 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  box-shadow: 0 0 50px rgba(77, 166, 255, 0.8), 0 0 100px rgba(77, 166, 255, 0.4);
+  animation: overlayCardFadeIn 0.4s ease-out;
+  text-align: center;
+}
+
+@keyframes overlayCardFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.overlay-icon {
+  filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8));
+}
+
+.overlay-title {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 900;
+  font-size: 3rem;
+  color: var(--p3-yellow);
+  text-transform: uppercase;
+  letter-spacing: 5px;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+}
+
+.overlay-subtitle {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 400;
+  font-size: 1.3rem;
+  color: var(--p3-light-blue);
+  letter-spacing: 2px;
+}
+
+.overlay-button {
+  margin-top: 20px;
+  padding: 15px 40px;
+  background: linear-gradient(135deg, var(--p3-blue), var(--p3-light-blue));
+  border: 2px solid var(--p3-light-blue);
+  border-radius: 10px;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.overlay-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 8px 25px rgba(77, 166, 255, 0.6);
+}
+
+.overlay-button:active {
+  transform: scale(0.95);
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+/* ===================================
+   MODAL OVERLAY (for submenus)
+   =================================== */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(5px);
+  z-index: 900; /* Sub panels (care sunt 997-1001) */
+  animation: fadeInOverlay 0.3s ease-out;
+}
+
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.submenu-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(20, 20, 40, 0.95));
+  border: 3px solid var(--p3-blue);
+  border-radius: 20px;
+  padding: 30px 40px;
+  min-width: 400px;
+  box-shadow: 0 0 40px rgba(0, 102, 204, 0.8);
+  z-index: 1002;
+  animation: popInClean 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  opacity: 0;
+  overflow: hidden;
+}
+
+@keyframes popInClean {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.submenu-title {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 900;
+  font-size: 1.8rem;
+  color: var(--p3-yellow);
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  text-align: center;
+  margin-bottom: 25px;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+}
+
+.submenu-options {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Reduc glow-ul pentru butoanele din submeniu */
+.submenu-options .action-menu-item {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3), 0 0 8px 2px rgba(77, 166, 255, 0.4);
+  /* Removed slideInRight - causes jumping. Keep only pulse */
+  animation: buttonPulseMild 2s ease-in-out infinite;
+}
+
+@keyframes buttonPulseMild {
+  0%, 100% {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3), 0 0 8px 2px rgba(77, 166, 255, 0.4);
+  }
+  50% {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3), 0 0 15px 4px rgba(77, 166, 255, 0.6);
+  }
+}
+
+/* Plant Type Info */
+.plant-type-info {
+  text-align: center;
+  margin-bottom: 15px;
+  padding: 8px;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 165, 0, 0.1));
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 8px;
+}
+
+.plant-damage-type {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--p3-yellow);
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+}
+
+.carnivorous-indicator {
+  text-align: center;
+  padding: 10px;
+  margin: 10px 0;
+  background: linear-gradient(135deg, rgba(255, 0, 0, 0.1), rgba(139, 0, 0, 0.1));
+  border: 2px solid rgba(255, 0, 0, 0.4);
+  border-radius: 8px;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #ff4444;
+  text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+  animation: carnivorousPulse 2s ease-in-out infinite;
+}
+
+@keyframes carnivorousPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Consumption Info - Detailed Display */
+.consumption-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 5px 0;
+}
+
+.consumption-item {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--p3-light-blue);
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(0, 102, 204, 0.1);
+  border: 1px solid rgba(0, 102, 204, 0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.consumption-item.debuff-highlight {
+  background: rgba(255, 165, 0, 0.2);
+  border: 2px solid rgba(255, 165, 0, 0.6);
+  animation: debuffHighlight 1.5s ease-in-out infinite;
+  box-shadow: 0 0 10px rgba(255, 165, 0, 0.4);
+}
+
+.consumption-item.damage-item {
+  background: rgba(255, 0, 0, 0.2);
+  border: 2px solid rgba(255, 0, 0, 0.6);
+  color: #ff4444;
+  animation: damageHighlight 1.5s ease-in-out infinite;
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.4);
+}
+
+.debuff-tag {
+  font-size: 0.8rem;
+  margin-left: 3px;
+  animation: bounce 1s ease-in-out infinite;
+}
+
+@keyframes debuffHighlight {
+  0%, 100% { 
+    opacity: 1; 
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 0.8; 
+    transform: scale(1.05);
+  }
+}
+
+@keyframes damageHighlight {
+  0%, 100% { 
+    opacity: 1; 
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 0.8; 
+    transform: scale(1.05);
+  }
+}
+
+/* Plant Abilities Display */
+.plant-abilities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0;
+  justify-content: center;
+}
+
+.ability-badge {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 12px;
+  display: inline-block;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  animation: badgePulse 2s ease-in-out infinite;
+}
+
+.ability-badge.immunity {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 165, 0, 0.3));
+  border: 2px solid rgba(255, 215, 0, 0.6);
+  color: var(--p3-yellow);
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+}
+
+.ability-badge.buff {
+  background: linear-gradient(135deg, rgba(0, 255, 127, 0.2), rgba(50, 205, 50, 0.2));
+  border: 2px solid rgba(0, 255, 127, 0.5);
+  color: #00ff7f;
+  text-shadow: 0 0 8px rgba(0, 255, 127, 0.5);
+}
+
+.ability-badge.debuff {
+  background: linear-gradient(135deg, rgba(255, 69, 0, 0.2), rgba(220, 20, 60, 0.2));
+  border: 2px solid rgba(255, 69, 0, 0.5);
+  color: #ff6347;
+  text-shadow: 0 0 8px rgba(255, 69, 0, 0.5);
+}
+
+@keyframes badgePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+/* Moon Phase Corner - Clickable */
+.moon-phase-corner.clickable {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 100;
+}
+
+.moon-phase-corner.clickable:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+}
+
+.moon-expand-hint {
+  font-size: 0.65rem;
+  color: rgba(255, 215, 0, 0.7);
+  margin-bottom: 3px;
+  animation: hintPulse 2s ease-in-out infinite;
+  text-align: center;
+}
+
+@keyframes hintPulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* Moon Calendar Overlay */
+.moon-calendar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  z-index: 10000;
+  animation: fadeIn 0.2s ease;
+  padding: 20px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.moon-calendar-panel {
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  border: 3px solid var(--p3-yellow);
+  border-radius: 20px;
+  padding: 25px;
+  width: 650px;
+  max-width: 90vw;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);
+  animation: slideInRight 0.25s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.moon-calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid var(--p3-yellow);
+  gap: 15px;
+}
+
+.moon-calendar-header h2 {
+  font-family: 'Bangers', cursive;
+  font-size: 1.8rem;
+  color: var(--p3-yellow);
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+  margin: 0;
+  flex: 1;
+}
+
+.close-btn {
+  background: rgba(255, 0, 0, 0.2);
+  border: 2px solid #ff4444;
+  color: #ff4444;
+  font-size: 1.3rem;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
+  line-height: 1;
+}
+
+.close-btn:hover {
+  background: rgba(255, 0, 0, 0.4);
+  transform: scale(1.1);
+}
+
+/* Moon Calendar Grid - 7 PER ROW */
+.moon-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 12px;
+  padding: 10px;
+}
+
+.moon-calendar-day {
+  background: linear-gradient(135deg, rgba(0, 51, 102, 0.3), rgba(0, 102, 204, 0.3));
+  border: 2px solid rgba(77, 166, 255, 0.5);
+  border-radius: 12px;
+  padding: 12px 8px;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.moon-calendar-day:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(77, 166, 255, 0.5);
+  border-color: var(--p3-blue);
+}
+
+.moon-calendar-day.current {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.2));
+  border: 3px solid var(--p3-yellow);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+  animation: currentDayGlow 2s ease-in-out infinite;
+}
+
+@keyframes currentDayGlow {
+  0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.6); }
+  50% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.9); }
+}
+
+.moon-calendar-day-num {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: var(--p3-light-blue);
+  margin-bottom: 6px;
+}
+
+.moon-calendar-moon {
+  font-size: 2rem;
+  margin: 8px 0;
+}
+
+.moon-calendar-phase {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: var(--p3-yellow);
+  text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+  line-height: 1.2;
+}
+
+/* Plant Info Button */
+.plant-info-btn {
+  background: linear-gradient(135deg, rgba(0, 102, 204, 0.3), rgba(0, 51, 102, 0.3));
+  border: 2px solid var(--p3-blue);
+  color: var(--p3-light-blue);
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 5px;
+}
+
+.plant-info-btn:hover {
+  background: linear-gradient(135deg, rgba(0, 102, 204, 0.5), rgba(0, 51, 102, 0.5));
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 102, 204, 0.4);
+}
+
+.plant-type-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+/* Consumption Inline */
+.consumption-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 5px;
+}
+
+.consumption-row {
+  /* Deprecated - nu mai e folosit */
+  display: none;
+}
+
+/* Time of Day Coloring pentru Calendar (current day only) */
+.calendar-day-new.time-morning {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 165, 0, 0.3)) !important;
+  border-color: var(--p3-yellow) !important;
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.5) !important;
+}
+
+.calendar-day-new.time-afternoon {
+  background: linear-gradient(135deg, rgba(255, 140, 0, 0.3), rgba(255, 69, 0, 0.3)) !important;
+  border-color: #ff8c00 !important;
+  box-shadow: 0 0 15px rgba(255, 140, 0, 0.5) !important;
+}
+
+.calendar-day-new.time-night {
+  background: linear-gradient(135deg, rgba(75, 0, 130, 0.3), rgba(25, 25, 112, 0.3)) !important;
+  border-color: #8b00ff !important;
+  box-shadow: 0 0 15px rgba(138, 43, 226, 0.5) !important;
+}
+
+/* Weather-Based Backgrounds cu Time of Day Variations */
+/* Toate au smooth transitions */
+
+/* SUNNY - Clasic */
+#game.weather-sunny.time-morning {
+  background: linear-gradient(to bottom, #87CEEB 0%, #B0E0E6 100%);
+  animation: backgroundFade 1.5s ease-in-out;
+}
+
+#game.weather-sunny.time-afternoon {
+  background: linear-gradient(to bottom, #FF8C42 0%, #FF7F50 100%);
+  animation: backgroundFade 1.5s ease-in-out;
+}
+
+#game.weather-sunny.time-night {
+  background: linear-gradient(to bottom, #2B4C7E 0%, #1C3A5F 100%);
+  animation: backgroundFade 1.5s ease-in-out;
+}
+
+/* OVERCAST - Întunecat dar afternoon rămâne portocaliu închis */
+#game.weather-overcast.time-morning {
+  background: linear-gradient(to bottom, #778899 0%, #A9A9A9 100%);
+  animation: backgroundFade 1.5s ease-in-out;
+}
+
+#game.weather-overcast.time-afternoon {
+  background: linear-gradient(to bottom, #CD853F 0%, #A0522D 100%);
+  animation: backgroundFade 1.5s ease-in-out;
+}
+
+#game.weather-overcast.time-night {
+  background: linear-gradient(to bottom, #34495E 0%, #2C3E50 100%);
+  animation: backgroundFade 1.5s ease-in-out;
+}
+
+/* RAINY - Albastru dar afternoon portocaliu pal */
+#game.weather-rainy.time-morning {
+  background: linear-gradient(to bottom, #5F9EA0 0%, #708090 100%);
+  animation: backgroundFade 1.5s ease-in-out;
+}
+
+#game.weather-rainy.time-afternoon {
+  background: linear-gradient(to bottom, #BC8F8F 0%, #8B7355 100%);
+  animation: backgroundFade 1.5s ease-in-out;
+}
+
+#game.weather-rainy.time-night {
+  background: linear-gradient(to bottom, #2C5F77 0%, #1E4A5F 100%);
+  animation: backgroundFade 1.5s ease-in-out;
+}
+
+/* SNOWY - Rece dar afternoon portocaliu deschis */
+#game.weather-snowy.time-morning {
+  background: linear-gradient(to bottom, #E0FFFF 0%, #B0C4DE 100%);
+  animation: backgroundFade 1.5s ease-in-out;
+}
+
+#game.weather-snowy.time-afternoon {
+  background: linear-gradient(to bottom, #FFB6C1 0%, #DDA0DD 100%);
+  animation: backgroundFade 1.5s ease-in-out;
+}
+
+#game.weather-snowy.time-night {
+  background: linear-gradient(to bottom, #4682B4 0%, #5F7A8C 100%);
+  animation: backgroundFade 1.5s ease-in-out;
+}
+
+/* THUNDERSTORM - Întunecat dar afternoon portocaliu foarte închis */
+#game.weather-thunderstorm.time-morning {
+  background: linear-gradient(to bottom, #2F4F4F 0%, #465A5C 100%);
+  animation: backgroundFade 1.5s ease-in-out;
+}
+
+#game.weather-thunderstorm.time-afternoon {
+  background: linear-gradient(to bottom, #8B4513 0%, #654321 100%);
+  animation: backgroundFade 1.5s ease-in-out;
+}
+
+#game.weather-thunderstorm.time-night {
+  background: linear-gradient(to bottom, #1C2833 0%, #2C3E50 100%);
+  animation: backgroundFade 1.5s ease-in-out;
+}
+
+@keyframes backgroundFade {
+  from {
+    opacity: 0.7;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Notification System - ASCUNS */
+.notification {
+  display: none !important;
+}
+
+/* ========================================
+   WEATHER OVERLAYS
+   ======================================== */
+
+.weather-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 500; /* Sub UI dar peste background */
+  overflow: hidden;
+}
+
+/* RAIN */
+.rain-drop {
+  position: absolute;
+  top: -10px;
+  width: 2px;
+  height: 20px;
+  background: linear-gradient(to bottom, transparent, rgba(174, 194, 224, 0.8));
+  animation: rainFall linear infinite;
+}
+
+.rain-drop.heavy {
+  width: 3px;
+  height: 25px;
+  background: linear-gradient(to bottom, transparent, rgba(174, 194, 224, 0.9));
+}
+
+@keyframes rainFall {
+  from {
+    transform: translateY(-10px);
+  }
+  to {
+    transform: translateY(100vh);
+  }
+}
+
+/* SNOW */
+.snowflake {
+  position: absolute;
+  top: -20px;
+  color: white;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+  animation: snowFall linear infinite;
+  opacity: 0.8;
+}
+
+@keyframes snowFall {
+  0% {
+    transform: translateY(-20px) translateX(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(50vh) translateX(50px) rotate(180deg);
+  }
+  100% {
+    transform: translateY(100vh) translateX(0) rotate(360deg);
+  }
+}
+
+/* THUNDERSTORM */
+.thunderstorm-rain .rain-drop {
+  background: linear-gradient(to bottom, transparent, rgba(100, 120, 150, 0.9));
+}
+
+.lightning-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 501;
+  animation: lightning 8s infinite;
+}
+
+@keyframes lightning {
+  0%, 10%, 20%, 100% {
+    background: transparent;
+  }
+  5% {
+    background: rgba(255, 255, 255, 0.3);
+  }
+  10.5% {
+    background: rgba(255, 255, 255, 0.5);
+  }
+  11% {
+    background: rgba(255, 255, 255, 0.2);
+  }
+  50%, 60% {
+    background: transparent;
+  }
+  55% {
+    background: rgba(255, 255, 255, 0.4);
+  }
+  55.5% {
+    background: rgba(255, 255, 255, 0.6);
+  }
+}
+
+/* ========================================
+   VICTORY SCREEN
+   ======================================== */
+
+.victory-overlay {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(50, 205, 50, 0.2)) !important;
+}
+
+.victory-card {
+  max-width: 700px;
+  padding: 40px !important;
+}
+
+.victory-stats {
+  margin: 30px 0;
+  padding: 25px;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.5), rgba(20, 20, 40, 0.5));
+  border: 2px solid var(--p3-yellow);
+  border-radius: 15px;
+}
+
+.victory-stat-title {
+  font-family: 'Bangers', cursive;
+  font-size: 1.8rem;
+  color: var(--p3-yellow);
+  text-align: center;
+  margin-bottom: 20px;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+}
+
+.victory-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.victory-stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 15px;
+  background: rgba(0, 51, 102, 0.3);
+  border: 2px solid var(--p3-blue);
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.victory-stat-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 102, 204, 0.5);
+}
+
+.victory-stat-item .stat-icon {
+  font-size: 2rem;
+}
+
+.victory-stat-item .stat-label {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--p3-light-blue);
+  text-align: center;
+}
+
+.victory-stat-item .stat-value {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 900;
+  font-size: 1.8rem;
+  color: var(--p3-yellow);
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+}
+
+.victory-button {
+  background: linear-gradient(135deg, rgba(50, 205, 50, 0.3), rgba(34, 139, 34, 0.3)) !important;
+  border-color: #32cd32 !important;
+  font-size: 1.3rem !important;
+}
+
+.victory-button:hover {
+  background: linear-gradient(135deg, rgba(50, 205, 50, 0.5), rgba(34, 139, 34, 0.5)) !important;
+  box-shadow: 0 8px 20px rgba(50, 205, 50, 0.6) !important;
+}
+
+/* ========================================
+   WEATHER VISUAL EFFECTS
+   ======================================== */
+
+/* Weather Effect Banner (above consumption) */
+.weather-effect-banner {
+  margin: 8px 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  text-align: center;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  animation: weatherPulse 2s ease-in-out infinite;
+}
+
+.weather-effect {
+  display: inline-block;
+}
+
+.weather-effect.frozen {
+  color: #00ffff;
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+  background: linear-gradient(135deg, rgba(0, 191, 255, 0.2), rgba(135, 206, 250, 0.2));
+  border: 2px solid #00bfff;
+}
+
+.weather-effect.rain-bonus {
+  color: #4682b4;
+  text-shadow: 0 0 10px rgba(70, 130, 180, 0.8);
+  background: linear-gradient(135deg, rgba(70, 130, 180, 0.2), rgba(95, 158, 160, 0.2));
+  border: 2px solid #4682b4;
+}
+
+.weather-effect.sunny-bonus {
+  color: #ffd700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.2));
+  border: 2px solid #ffd700;
+}
+
+@keyframes weatherPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.02);
+  }
+}
+
+/* Frozen Stats Effect */
+.frozen-stat {
+  position: relative;
+  color: #00ffff !important;
+  text-shadow: 0 0 15px rgba(0, 255, 255, 1) !important;
+  animation: frozenShimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes frozenShimmer {
+  0%, 100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.5);
+  }
+}
+
+.frozen-tag {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  background: linear-gradient(135deg, rgba(0, 191, 255, 0.3), rgba(135, 206, 250, 0.3));
+  border: 1px solid #00bfff;
+  border-radius: 4px;
+  animation: iceCrystal 2s ease-in-out infinite;
+}
+
+@keyframes iceCrystal {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(0, 255, 255, 1);
+  }
+}
+
+/* Weather Status Panel */
+.weather-status-panel {
+  margin-top: 15px;
+  padding: 12px;
+  background: linear-gradient(135deg, rgba(0, 51, 102, 0.3), rgba(0, 102, 204, 0.3));
+  border: 2px solid var(--p3-blue);
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0, 102, 204, 0.4);
+}
+
+.weather-status-title {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--p3-light-blue);
+  text-align: center;
+  margin-bottom: 8px;
+  text-shadow: 0 0 10px rgba(174, 194, 224, 0.6);
+}
+
+.weather-effects-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.weather-effect-item {
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-align: center;
+  border: 2px solid;
+  transition: all 0.3s ease;
+}
+
+.weather-effect-item:hover {
+  transform: translateX(3px);
+}
+
+.weather-effect-item.sunny {
+  color: #ffd700;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 165, 0, 0.15));
+  border-color: #ffd700;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.weather-effect-item.overcast {
+  color: #a9a9a9;
+  background: linear-gradient(135deg, rgba(169, 169, 169, 0.15), rgba(119, 136, 153, 0.15));
+  border-color: #778899;
+  box-shadow: 0 0 10px rgba(169, 169, 169, 0.3);
+}
+
+.weather-effect-item.rainy {
+  color: #4682b4;
+  background: linear-gradient(135deg, rgba(70, 130, 180, 0.15), rgba(95, 158, 160, 0.15));
+  border-color: #5f9ea0;
+  box-shadow: 0 0 10px rgba(70, 130, 180, 0.3);
+}
+
+.weather-effect-item.snowy {
+  color: #00ffff;
+  background: linear-gradient(135deg, rgba(0, 255, 255, 0.15), rgba(176, 196, 222, 0.15));
+  border-color: #00bfff;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+  animation: snowGlow 2s ease-in-out infinite;
+}
+
+@keyframes snowGlow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+  }
+}
+
+.weather-effect-item.thunderstorm {
+  color: #ff6347;
+  background: linear-gradient(135deg, rgba(47, 79, 79, 0.15), rgba(28, 40, 51, 0.15));
+  border-color: #2f4f4f;
+  box-shadow: 0 0 10px rgba(255, 99, 71, 0.3);
+  animation: thunderFlash 3s ease-in-out infinite;
+}
+
+@keyframes thunderFlash {
+  0%, 90%, 100% {
+    opacity: 1;
+  }
+  93%, 97% {
+    opacity: 0.5;
+  }
+  95% {
+    opacity: 1;
+    box-shadow: 0 0 25px rgba(255, 255, 255, 0.8);
+  }
+}
+
+/* ========================================
+   PLANT INFO COMPACT BUTTON & MODAL
+   ======================================== */
+
+/* Compact Info Button */
+.plant-info-btn-compact {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  font-size: 1.2rem;
+  padding: 6px 10px;
+  background: linear-gradient(135deg, rgba(0, 102, 204, 0.3), rgba(0, 153, 255, 0.3));
+  border: 2px solid var(--p3-blue);
+  border-radius: 8px;
+  color: var(--p3-light-blue);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 10px rgba(0, 102, 204, 0.4);
+}
+
+.plant-info-btn-compact:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 20px rgba(0, 102, 204, 0.8);
+  background: linear-gradient(135deg, rgba(0, 102, 204, 0.5), rgba(0, 153, 255, 0.5));
+}
+
+.plant-info-btn-compact:active {
+  transform: scale(0.95);
+}
+
+/* Plant Info Modal */
+.plant-info-modal {
+  position: fixed;
+  top: 50%;
+  right: 20px;
+  transform: translateY(-50%);
+  width: 320px;
+  max-height: 80vh;
+  overflow-y: auto;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(20, 20, 40, 0.95));
+  border: 3px solid var(--p3-blue);
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 0 40px rgba(0, 102, 204, 0.8);
+  z-index: 1003;
+  animation: slideInRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  backdrop-filter: blur(10px);
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+}
+
+.plant-info-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid var(--p3-blue);
+  position: relative;
+}
+
+.plant-info-title {
+  font-family: 'Bangers', cursive;
+  font-size: 1.8rem;
+  color: var(--p3-yellow);
+  text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+  text-align: center;
+}
+
+.plant-damage-type-modal {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--p3-light-blue);
+  text-align: center;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, rgba(0, 51, 102, 0.4), rgba(0, 102, 204, 0.4));
+  border: 2px solid var(--p3-blue);
+  border-radius: 8px;
+  margin: 0 auto;
+  width: fit-content;
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 900;
+  font-size: 1.5rem;
+  width: 35px;
+  height: 35px;
+  padding: 0;
+  background: linear-gradient(135deg, rgba(204, 0, 0, 0.8), rgba(153, 0, 0, 0.8));
+  border: 2px solid #ff0000;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
+}
+
+.modal-close-btn:hover {
+  transform: rotate(90deg) scale(1.1);
+  box-shadow: 0 0 25px rgba(255, 0, 0, 0.8);
+}
+
+.modal-close-btn:active {
+  transform: rotate(90deg) scale(0.9);
+}
+
+.plant-abilities-modal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Scrollbar styling for modal */
+.plant-info-modal::-webkit-scrollbar {
+  width: 8px;
+}
+
+.plant-info-modal::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+}
+
+.plant-info-modal::-webkit-scrollbar-thumb {
+  background: var(--p3-blue);
+  border-radius: 10px;
+}
+
+.plant-info-modal::-webkit-scrollbar-thumb:hover {
+  background: var(--p3-light-blue);
+}
+
+/* Inline Info Button (next to plant name) */
+.plant-info-btn-inline {
+  font-size: 1rem;
+  padding: 4px 8px;
+  margin-left: 10px;
+  background: linear-gradient(135deg, rgba(0, 102, 204, 0.3), rgba(0, 153, 255, 0.3));
+  border: 2px solid var(--p3-blue);
+  border-radius: 6px;
+  color: var(--p3-light-blue);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 8px rgba(0, 102, 204, 0.3);
+  vertical-align: middle;
+}
+
+.plant-info-btn-inline:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 15px rgba(0, 102, 204, 0.7);
+  background: linear-gradient(135deg, rgba(0, 102, 204, 0.5), rgba(0, 153, 255, 0.5));
+}
+
+.plant-info-btn-inline:active {
+  transform: scale(0.95);
+}
+
+/* Make title flexbox for inline button alignment */
+.stats-panel-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* ========================================
+   PRELOAD ANIMATION FIX
+   Prevent all animations until page loads
+   ======================================== */
+
+/* Apply to body initially */
+.preload * {
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+  transition-duration: 0s !important;
+}
+
+/* ========================================
+   PAGE LOAD FIX - Prevent flash of unstyled content
+   ======================================== */
+
+/* Start with opacity 0 and fade in */
+.stats-panel,
+.inventory-panel {
+  animation: fadeInPanel 0.5s ease-out 0.1s forwards;
+  opacity: 0;
+}
+
+@keyframes fadeInPanel {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Calendar and corners - slide in smoothly */
+.calendar-container-new {
+  animation: slideInCalendar 0.4s ease-out 0.15s forwards;
+  opacity: 0;
+}
+
+.day-counter-corner,
+.moon-phase-corner {
+  animation: slideInSmooth 0.4s ease-out 0.15s forwards;
+  opacity: 0;
+}
+
+/* Calendar specific - preserve centering */
+@keyframes slideInCalendar {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes slideInSmooth {
+  from {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==========================================
+   BATTLE SYSTEM CSS
+   ========================================== */
+
+.battle-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.battle-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  z-index: -1;
+}
+
+/* Turn Order Panel - LEFT SIDE */
+.turn-order-panel {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid #4a9eff;
+  border-radius: 10px;
+  padding: 15px;
+  max-width: 200px;
+  box-shadow: 0 0 20px rgba(74, 158, 255, 0.3);
+}
+
+.turn-order-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #4a9eff;
+  text-align: center;
+  margin-bottom: 10px;
+  text-shadow: 0 0 10px rgba(74, 158, 255, 0.5);
+}
+
+.turn-order-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.turn-order-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+  transition: all 0.3s ease;
+}
+
+.turn-order-item.current-turn {
+  background: rgba(74, 158, 255, 0.3);
+  border: 2px solid #4a9eff;
+  box-shadow: 0 0 15px rgba(74, 158, 255, 0.5);
+  transform: scale(1.05);
+}
+
+.turn-order-item.dead {
+  opacity: 0.3;
+  text-decoration: line-through;
+}
+
+.turn-order-icon {
+  font-size: 1.5rem;
+}
+
+.turn-order-name {
+  flex: 1;
+  font-size: 0.9rem;
+  color: white;
+  font-weight: bold;
+}
+
+.turn-order-hp {
+  font-size: 0.8rem;
+  color: #ff6b6b;
+  font-weight: bold;
+}
+
+/* Enemies Display - TOP CENTER */
+.battle-enemies {
+  position: absolute;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 30px;
+  z-index: 10;
+}
+
+.battle-enemy {
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid #ff6b6b;
+  border-radius: 10px;
+  padding: 20px;
+  min-width: 200px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 20px rgba(255, 107, 107, 0.3);
+}
+
+.battle-enemy:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 30px rgba(255, 107, 107, 0.5);
+  border-color: #ff4757;
+}
+
+.battle-enemy.targeted {
+  border-color: #ffd700;
+  box-shadow: 0 0 40px rgba(255, 215, 0, 0.6);
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.enemy-sprite {
+  font-size: 4rem;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.enemy-name {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.hp-bar-container {
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 10px;
+  height: 25px;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.hp-bar-fill {
+  background: linear-gradient(90deg, #ff6b6b 0%, #ff4757 100%);
+  height: 100%;
+  transition: width 0.5s ease;
+  box-shadow: inset 0 2px 10px rgba(255, 255, 255, 0.2);
+}
+
+.hp-bar-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-weight: bold;
+  font-size: 0.9rem;
+  text-shadow: 1px 1px 2px black;
+}
+
+.weakness-indicator {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #ffd700;
+  font-weight: bold;
+  text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+}
+
+/* Plants Display - BOTTOM */
+.battle-plants {
+  position: absolute;
+  bottom: 180px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 20px;
+}
+
+.battle-plant {
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid #51cf66;
+  border-radius: 10px;
+  padding: 15px;
+  min-width: 180px;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 20px rgba(81, 207, 102, 0.3);
+}
+
+.battle-plant.current-turn-plant {
+  border-color: #ffd700;
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+  transform: scale(1.05);
+}
+
+.plant-sprite {
+  font-size: 3rem;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.plant-name {
+  font-size: 1rem;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.stat-bar-container {
+  margin-bottom: 8px;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: #aaa;
+  margin-bottom: 3px;
+}
+
+.stat-bar {
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 5px;
+  height: 18px;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-bar-fill {
+  height: 100%;
+  transition: width 0.5s ease;
+}
+
+.stat-bar-fill.hp {
+  background: linear-gradient(90deg, #ff6b6b 0%, #ff4757 100%);
+}
+
+.stat-bar-fill.water {
+  background: linear-gradient(90deg, #4a9eff 0%, #3b82f6 100%);
+}
+
+.stat-bar-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-weight: bold;
+  font-size: 0.75rem;
+  text-shadow: 1px 1px 2px black;
+}
+
+/* Action Menu - BOTTOM RIGHT */
+.battle-action-menu {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.9);
+  border: 2px solid #4a9eff;
+  border-radius: 10px;
+  padding: 15px;
+  min-width: 250px;
+  box-shadow: 0 0 30px rgba(74, 158, 255, 0.4);
+}
+
+.battle-action-title {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #4a9eff;
+  text-align: center;
+  margin-bottom: 15px;
+  text-shadow: 0 0 10px rgba(74, 158, 255, 0.5);
+}
+
+.battle-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.battle-action-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid #555;
+  border-radius: 8px;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: white;
+  font-size: 0.95rem;
+}
+
+.battle-action-btn:hover:not(:disabled) {
+  transform: translateX(5px);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+}
+
+.battle-action-btn.attack {
+  border-color: #ff6b6b;
+}
+
+.battle-action-btn.attack:hover:not(:disabled) {
+  background: rgba(255, 107, 107, 0.2);
+  border-color: #ff4757;
+  box-shadow: 0 0 20px rgba(255, 107, 107, 0.4);
+}
+
+.battle-action-btn.heal {
+  border-color: #51cf66;
+}
+
+.battle-action-btn.heal:hover:not(:disabled) {
+  background: rgba(81, 207, 102, 0.2);
+  border-color: #37b24d;
+  box-shadow: 0 0 20px rgba(81, 207, 102, 0.4);
+}
+
+.battle-action-btn.restore {
+  border-color: #4a9eff;
+}
+
+.battle-action-btn.restore:hover:not(:disabled) {
+  background: rgba(74, 158, 255, 0.2);
+  border-color: #3b82f6;
+  box-shadow: 0 0 20px rgba(74, 158, 255, 0.4);
+}
+
+.battle-action-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.action-icon {
+  font-size: 1.5rem;
+}
+
+.action-name {
+  flex: 1;
+  font-weight: bold;
+}
+
+/* Battle Log - BOTTOM LEFT */
+.battle-log-panel {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  background: rgba(0, 0, 0, 0.9);
+  border: 2px solid #aaa;
+  border-radius: 10px;
+  padding: 15px;
+  max-width: 350px;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.battle-log-title {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #aaa;
+  margin-bottom: 10px;
+}
+
+.battle-log-content {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.battle-log-entry {
+  font-size: 0.85rem;
+  color: white;
+  padding: 5px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+/* Weakness Popup */
+.weakness-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10000;
+  animation: weaknessAppear 1.5s ease-out;
+}
+
+.weakness-text {
+  font-size: 5rem;
+  font-weight: bold;
+  color: #ffd700;
+  text-shadow: 0 0 30px rgba(255, 215, 0, 0.8),
+               0 0 60px rgba(255, 215, 0, 0.6);
+  animation: weaknessPulse 0.5s ease-in-out infinite;
+}
+
+@keyframes weaknessAppear {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+}
+
+@keyframes weaknessPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+/* Battle Warning in Afternoon Menu */
+.action-menu-item.danger {
+  border-color: #ff4757 !important;
+  animation: dangerPulse 1s infinite;
+}
+
+@keyframes dangerPulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(255, 71, 87, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(255, 71, 87, 0.8);
+  }
+}
+
+
+/* Battle Log Scrollbar Styling */
+.battle-log-panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.battle-log-panel::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+}
+
+.battle-log-panel::-webkit-scrollbar-thumb {
+  background: rgba(170, 170, 170, 0.5);
+  border-radius: 10px;
+}
+
+.battle-log-panel::-webkit-scrollbar-thumb:hover {
+  background: rgba(170, 170, 170, 0.8);
+}
+
+/* Nutrients Bar Color */
+.stat-bar-fill.nutrients {
+  background: linear-gradient(90deg, #51cf66 0%, #37b24d 100%);
+}
+
+/* Action Section Titles */
+.action-section-title {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #4a9eff;
+  margin-top: 10px;
+  margin-bottom: 5px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid rgba(74, 158, 255, 0.3);
+  text-shadow: 0 0 5px rgba(74, 158, 255, 0.5);
+}
+
+.action-section-title:first-child {
+  margin-top: 0;
+}
+
+/* Action Description Text */
+.action-desc {
+  font-size: 0.75rem;
+  color: #aaa;
+  font-weight: normal;
+  margin-top: 2px;
+}
+
+.battle-action-btn {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.battle-action-btn .action-icon {
+  align-self: center;
+  margin-bottom: 5px;
+}
+
+.battle-action-btn .action-name {
+  align-self: flex-start;
+  width: 100%;
+}
+
+/* ==========================================
+   BATTLE TRANSITIONS & ANIMATIONS
+   ========================================== */
+
+/* Fade in battle screen */
+.battle-screen {
+  animation: battleFadeIn 0.5s ease-out;
+}
+
+@keyframes battleFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Enemy attack animation */
+.battle-enemy.attacking {
+  animation: enemyAttack 0.5s ease-out;
+}
+
+@keyframes enemyAttack {
+  0%, 100% { transform: translateY(0); }
+  25% { transform: translateY(-10px); }
+  50% { transform: translateY(5px); }
+  75% { transform: translateY(-5px); }
+}
+
+/* Plant hurt animation */
+.battle-plant.hurt {
+  animation: plantHurt 0.5s ease-out;
+}
+
+@keyframes plantHurt {
+  0%, 100% { transform: translateX(0); filter: brightness(1); }
+  25% { transform: translateX(-10px); filter: brightness(0.7); }
+  50% { transform: translateX(10px); filter: brightness(0.7); }
+  75% { transform: translateX(-5px); filter: brightness(0.9); }
+}
+
+/* Weakness hit - make it MUCH more visible */
+.weakness-popup {
+  position: fixed;
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10001;
+  animation: weaknessExplode 2s ease-out;
+  pointer-events: none;
+}
+
+.weakness-text {
+  font-size: 8rem;
+  font-weight: 900;
+  color: #ffd700;
+  text-shadow: 
+    0 0 20px rgba(255, 215, 0, 1),
+    0 0 40px rgba(255, 215, 0, 0.8),
+    0 0 60px rgba(255, 215, 0, 0.6),
+    0 0 80px rgba(255, 215, 0, 0.4),
+    5px 5px 10px rgba(0, 0, 0, 0.8);
+  animation: weaknessTextPulse 0.3s ease-in-out infinite;
+  letter-spacing: 10px;
+}
+
+@keyframes weaknessExplode {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3) rotate(-10deg);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.3) rotate(5deg);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1) rotate(-2deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8) rotate(0deg);
+  }
+}
+
+@keyframes weaknessTextPulse {
+  0%, 100% { 
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% { 
+    transform: scale(1.05);
+    filter: brightness(1.3);
+  }
+}
+
+/* HP Bar damage animation */
+.hp-bar-fill {
+  transition: width 0.8s ease-out;
+}
+
+.stat-bar-fill {
+  transition: width 0.6s ease-out;
+}
+
+/* Battle entry transition */
+.battle-enemies {
+  animation: enemiesEnter 0.8s ease-out;
+}
+
+@keyframes enemiesEnter {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.battle-plants {
+  animation: plantsEnter 0.8s ease-out 0.2s backwards;
+}
+
+@keyframes plantsEnter {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.turn-order-panel {
+  animation: panelSlideIn 0.6s ease-out 0.3s backwards;
+}
+
+@keyframes panelSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+}
+
+.battle-action-menu {
+  animation: menuSlideUp 0.5s ease-out 0.4s backwards;
+}
+
+@keyframes menuSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.battle-log-panel {
+  animation: logFadeIn 0.5s ease-out 0.5s backwards;
+}
+
+@keyframes logFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Plant Heads Indicator */
+.plant-heads-indicator {
+  background: rgba(81, 207, 102, 0.2);
+  border: 1px solid #51cf66;
+  border-radius: 5px;
+  padding: 8px;
+  margin: 10px 0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #51cf66;
+}
+
+/* Battle Damage Numbers */
+.battle-damage-number {
+  font-size: 3rem;
+  font-weight: 900;
+  pointer-events: none;
+  animation: damageFloat 1.5s ease-out forwards;
+  text-shadow: 
+    2px 2px 4px rgba(0, 0, 0, 0.8),
+    0 0 10px rgba(0, 0, 0, 0.6);
+}
+
+.battle-damage-number.damage {
+  color: #ff4757;
+}
+
+.battle-damage-number.heal {
+  color: #51cf66;
+}
+
+.battle-damage-number.weakness {
+  color: #ffd700;
+  font-size: 4rem;
+  text-shadow: 
+    0 0 20px rgba(255, 215, 0, 0.8),
+    0 0 40px rgba(255, 215, 0, 0.6),
+    2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+@keyframes damageFloat {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.5);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(-20px) scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-80px) scale(0.8);
+  }
+}
