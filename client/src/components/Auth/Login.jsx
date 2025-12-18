@@ -57,17 +57,29 @@ export default function Login({ switchToRegister, onLoginSuccess, onBack }) {
   // 2. FORGOT PASSWORD FLOW
   // ==========================================
 
-  // STEP 1: SEND EMAIL
+  // STEP 1: SEND EMAIL (With 60s Spam Protection)
   const handleSendCode = (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
-    // Generate random 6-digit code locally
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    setGeneratedCode(code); // Save it locally to check later
+    // 1. CHECK COOLDOWN (Prevent Spam)
+    const lastSent = localStorage.getItem('lastEmailSentTime');
+    const now = Date.now();
+    const cooldownTime = 60000; // 60 seconds in milliseconds
 
-    // Send via EmailJS
+    if (lastSent && (now - lastSent < cooldownTime)) {
+        const secondsLeft = Math.ceil((cooldownTime - (now - lastSent)) / 1000);
+        setError(`Please wait ${secondsLeft} seconds before sending again.`);
+        setIsLoading(false);
+        return; // Stop here! Don't send email.
+    }
+
+    // 2. Generate random 6-digit code locally
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    setGeneratedCode(code); 
+
+    // 3. Send via EmailJS
     emailjs.send(
       import.meta.env.VITE_SERVICE_ID,
       import.meta.env.VITE_TEMPLATE_ID,
@@ -79,6 +91,10 @@ export default function Login({ switchToRegister, onLoginSuccess, onBack }) {
     )
     .then(() => {
        console.log("✅ Email sent successfully!");
+       
+       // SAVE TIME TO LOCAL STORAGE
+       localStorage.setItem('lastEmailSentTime', Date.now());
+
        setSuccessMsg("Code sent! Check your inbox.");
        setTimeout(() => {
            setSuccessMsg('');
@@ -112,14 +128,14 @@ export default function Login({ switchToRegister, onLoginSuccess, onBack }) {
     }
   };
 
-  // STEP 3: CHANGE PASSWORD (FIXED: Uses correct route)
+  // STEP 3: CHANGE PASSWORD & AUTO-LOGIN
   const handleChangePassword = async (e) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
     try {
-        // IMPORTANT FIX: Use the 'force' route we created
+        // 1. Reset the password
         const res = await fetch(`${apiUrl}/api/reset-password-force`, { 
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -130,11 +146,31 @@ export default function Login({ switchToRegister, onLoginSuccess, onBack }) {
         });
         
         if (res.ok) {
-          setSuccessMsg("Success! Logging you in...");
-          setTimeout(() => {
-             setSuccessMsg('');
+          setSuccessMsg("Success! Entering garden...");
+          
+          // 2. IMMEDIATE AUTO-LOGIN
+          const loginRes = await fetch(`${apiUrl}/api/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: resetEmail, password: newPassword })
+          });
+
+          const loginData = await loginRes.json();
+          
+          if (loginRes.ok) {
+             // Save the "Key" (Token)
+             localStorage.setItem('token', loginData.token);
+             localStorage.setItem('user', JSON.stringify(loginData.user));
+             
+             // Enter the game immediately
+             setTimeout(() => {
+                 onLoginSuccess(loginData.user);
+             }, 1500);
+          } else {
+             // Fallback if auto-login fails
              setView('login');
-          }, 2000); 
+          }
+
         } else {
           setError("Failed to update password.");
         }
