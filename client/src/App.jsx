@@ -2383,7 +2383,7 @@ function App() {
   }}></div>
 
   {/* Planta și Fata: Vor sta în fața geamului */}
-  <div style={{ display: 'flex', alignItems: 'flex-end', zIndex: 10, marginTop: '25%', marginTop: '25%' }}>
+  <div style={{ display: 'flex', alignItems: 'flex-end', zIndex: 10, marginTop: '25%'}}>
      <img src={plantType.image} style={{ width: '300px', height: 'auto', imageRendering: 'pixelated' }} />
      <img src="/assets/girl.png" style={{ width: '300px', height: 'auto', imageRendering: 'pixelated' }} />
   </div>
