@@ -5,12 +5,15 @@ import Register from './components/Auth/Register';
 
 function App() {
   const maxDays = 30;
+  
+  const [authScreen, setAuthScreen] = useState('title'); // Options: 'title', 'login', 'register'
+  const [charPos, setCharPos] = useState('center'); // 🟢 This creates the missing variable
 
   // --- PLANT TYPES SYSTEM ---
   const plantTypes = {
     cactus: {
       name: 'Cactus',
-      emoji: '🌵',
+      image: '/assets/mutations/cactus mutation.png',
       damageType: 'Pierce',
       maxWater: 5,
       maxNutrients: 15,
@@ -30,7 +33,7 @@ function App() {
     },
     venusFlytrap: {
       name: 'Venus Flytrap',
-      emoji: '🪴',
+      image: '/assets/mutations/venus fly trap mutation.png',
       damageType: 'Bite',
       maxWater: 10,
       maxNutrients: 0,
@@ -48,7 +51,7 @@ function App() {
     },
     sunflower: {
       name: 'Sunflower',
-      emoji: '🌻',
+      image: '/assets/mutations/sunflower mutation.png',
       damageType: 'Beam',
       maxWater: 12,
       maxNutrients: 12,
@@ -66,7 +69,7 @@ function App() {
     },
     rose: {
       name: 'Rose',
-      emoji: '🌹',
+      image: '/assets/mutations/rose mutation.png',
       damageType: 'Pierce',
       maxWater: 10,
       maxNutrients: 15,
@@ -85,7 +88,7 @@ function App() {
     },
     ivy: {
       name: 'Ivy',
-      emoji: '🌿',
+      image: '/assets/mutations/ivy mutation.png',
       damageType: 'Poison',
       maxWater: 8,
       maxNutrients: 10,
@@ -104,7 +107,7 @@ function App() {
     },
     mushroom: {
       name: 'Mushroom',
-      emoji: '🍄',
+      image: '/assets/mutations/mushroom mutation.png',
       damageType: 'Fungi',
       maxWater: 20, // MARE! (nu 15)
       maxNutrients: 5,
@@ -121,7 +124,7 @@ function App() {
     },
     appleTree: {
       name: 'Apple Tree',
-      emoji: '🍎',
+      image: '/assets/mutations/apple tree mutation.png',
       damageType: 'Gravity',
       maxWater: 20,
       maxNutrients: 20,
@@ -154,7 +157,7 @@ function App() {
 
   // --- 1. STATE: AUTENTIFICARE ---
   const [user, setUser] = useState(null);
-  const [viewState, setViewState] = useState('login'); // 'login', 'register', 'game'
+  const [viewState, setViewState] = useState('title'); 
 
   // --- SISTEM FAZĂ LUNARĂ (ciclu de 30 zile) ---
   const moonPhases = [
@@ -304,7 +307,6 @@ function App() {
     water: plantType.startWater,      
     nutrients: plantType.startNutrients,  
     health: plantType.maxHealth,    
-    growth: 1,
     dryDays: 0,
     overwateredDays: 0,  // Debuff pentru overwatering
     damagedRootsDays: 0  // Debuff pentru Landslide
@@ -487,7 +489,6 @@ function App() {
         id: `plant_head_0_${Date.now()}`,
         type: plantType.name.toLowerCase().replace(' ', ''),
         name: plantType.name,
-        emoji: plantType.emoji,
         damageType: plantType.damageType,
         hp: plant.health,
         maxHP: plantType.maxHealth,
@@ -518,7 +519,6 @@ function App() {
           id: `plant_head_${plantHeads.length}_${Date.now()}`,
           type: randomType.name.toLowerCase().replace(' ', ''),
           name: randomType.name,
-          emoji: randomType.emoji,
           damageType: randomType.damageType,
           hp: randomType.maxHealth,
           maxHP: randomType.maxHealth,
@@ -550,10 +550,12 @@ function App() {
 
   // --- EFECTE (Load & Save & Styles) ---
 
-  // Verificăm dacă userul e logat la pornire
+// Verificăm dacă userul e logat la pornire
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const savedUser = localStorage.getItem('user');
+    // 🟢 NEW: Checks localStorage OR sessionStorage
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    const savedUser = localStorage.getItem('user') || sessionStorage.getItem('user');
+    
     if (token && savedUser) {
       setUser(JSON.parse(savedUser));
       setViewState('game');
@@ -1904,7 +1906,7 @@ function App() {
         water: newWater,
         nutrients: newNutrients,
         health: newHealth,
-        growth: prev.growth + 1,
+
         dryDays: newDryDays,
         overwateredDays: newOverwateredDays,
         damagedRootsDays: newDamagedRootsDays
@@ -2046,7 +2048,40 @@ function App() {
     return false;
   };
 
-  // --- RENDERIZARE ---
+// --- RENDERIZARE ---
+
+// 🟢 TITLE SCREEN WITH TWO BUTTONS
+  if (viewState === 'title') {
+    return (
+      <div className="auth-wrapper">
+        <h1 className="game-title">
+          <img src="/assets/plant wide open mouth.png" alt="" className="title-icon left-icon" />
+          PLANT GAME
+          <img src="/assets/plant wide open mouth.png" alt="" className="title-icon right-icon" />
+        </h1>
+        
+        <div className="game-subtitle">Pixel Garden Adventure</div>
+
+        {/* 🆕 BUTTON GROUP */}
+        <div className="title-menu">
+          
+          {/* Button 1: Play / Login */}
+          <button className="press-start-btn" onClick={() => setViewState('login')}>
+            ▶ RESUME GAME
+          </button>
+          
+          {/* Button 2: Register */}
+          <button className="new-game-btn" onClick={() => setViewState('register')}>
+            ★ NEW GARDENER
+          </button>
+
+        </div>
+
+        <div className="version-tag">v1.0</div>
+      </div>
+    );
+  }
+  // 🟢 END NEW BLOCK
 
   if (viewState === 'login') {
     return (
@@ -2054,6 +2089,8 @@ function App() {
         <Login 
           switchToRegister={() => setViewState('register')} 
           onLoginSuccess={(u) => { setUser(u); setViewState('game'); }} 
+          // 🟢 ADD THIS: Allow going back to Title
+          onBack={() => setViewState('title')} 
         />
       </div>
     );
@@ -2140,52 +2177,32 @@ function App() {
         </>
       )}
       
-      {/* Mini-Meniu Hamburger - Stânga Sus */}
-      <div className="mini-menu">
-        <button className="hamburger-btn" onClick={() => setMenuOpen(!menuOpen)}>
-          ☰
-        </button>
-        
-        {menuOpen && (
-          <div className="menu-dropdown">
-            <button className="menu-item logout-btn" onClick={() => {
-              localStorage.removeItem('token');
-              localStorage.removeItem('user');
-              localStorage.removeItem('gardenSave');
-              setViewState('login');
-            }}>
-              🚪 LOGOUT
-            </button>
-            
-            <button className="menu-item restart-btn-menu" onClick={restart}>
-              🔄 RESTART
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Day Counter - Top Left Corner with Season */}
-      <div className="day-counter-corner">
-        <div className="season-indicator">
-          <span className="season-emoji">{currentSeason.emoji}</span>
-          <span className="season-name">{currentSeason.name}</span>
-        </div>
-        <div className="day-counter-row">
-          <div className="day-counter-number">{day}</div>
-          <div className="day-counter-separator">/</div>
-          <div className="day-counter-max">{maxDays}</div>
-        </div>
-      </div>
+      {/* Butoane Utilitare Direct pe Ecran */}
+<div className="utility-buttons-container">
+  <button className="utility-btn" onClick={() => {
+    localStorage.clear();
+    sessionStorage.clear();
+    setUser(null);
+    setViewState('title');
+  }}>
+    LOG OUT
+  </button>
+  
+  <button className="utility-btn restart-btn-top" onClick={restart}>
+    RESTART
+  </button>
+</div>
 
       {/* Moon Phase - Top Right Corner */}
-      <div 
-        className="moon-phase-corner clickable" 
-        onClick={() => setMoonCalendarExpanded(!moonCalendarExpanded)}
-      >
-        <div className="moon-expand-hint">▼ Click to expand</div>
-        <div className="moon-phase-emoji">{getMoonPhase(day).emoji}</div>
-        <div className="moon-phase-name">{getMoonPhase(day).name}</div>
-      </div>
+{/* ☀️/🌙 Indicator dinamic în colț */}
+<div 
+  className="moon-phase-corner clickable" 
+  onClick={() => setMoonCalendarExpanded(!moonCalendarExpanded)}
+>
+<div className={`moon-phase-emoji ${timeOfDay === 'morning' ? 'is-sun' : ''}`}>
+  {timeOfDay === 'morning' ? '☀️' : getMoonPhase(day).emoji}
+</div>
+</div>
 
       {/* MOON CALENDAR EXPANDED */}
       {moonCalendarExpanded && (
@@ -2285,10 +2302,102 @@ function App() {
       )}
 
       <div id="game" className={`${screenShake ? 'screen-shake' : ''} weather-${currentWeather} time-${timeOfDay}`}>
+<div className="room-view" style={{ 
+  gridColumn: '2', 
+  justifySelf: 'center', 
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'flex-end',
+  alignItems: 'center',
+  marginTop: '150px',
+  marginRight: '30px',
+  height: '60vh', 
+  width: '100%', 
+  maxWidth: '850px',
+
+}}>
+
+{/* 📅 WALL CALENDAR */}
+    <div style={{
+      position: 'absolute',
+      top: '100px',
+      left: '60px', /* Near the window */
+      width: '100px',
+      height: '110px',
+      background: '#ffffffff',
+      border: '4px solid #3d1f08',
+      boxShadow: '4px 4px 0 rgba(0,0,0,0.2)',
+      zIndex: 5,
+      display: 'flex',
+      flexDirection: 'column',
+      textAlign: 'center',
+      transform: 'rotate(-2deg)', /* Slight tilt makes it look natural */
+      transformOrigin: 'top center'
+    }}>
+      {/* Nail */}
+      <div style={{position:'absolute', top:'-8px', left:'50%', transform:'translateX(-50%)', width:'8px', height:'8px', background:'#333', borderRadius:'50%'}}></div>
+      
+      {/* Red Header */}
+      <div style={{background: '#d64545', color:'white', fontFamily:'"VT323", monospace', padding:'4px 0', borderBottom:'2px solid #3d1f08'}}>
+        {currentSeason.name.toUpperCase()}
+      </div>
+      
+      {/* Paper Body */}
+      <div style={{flex: 1, display:'flex', flexDirection:'column', justifyContent:'center', color:'#3d1f08'}}>
+        <div style={{fontSize:'3.5rem', lineHeight:'0.9', fontWeight:'bold', fontFamily:'"VT323", monospace'}}>{day}</div>
+        <div style={{fontSize:'0.8rem', fontFamily:'"VT323", monospace', color:'#888'}}>DAY OF {maxDays}</div>
+      </div>
+    </div>
+
+ {/* GEAMUL: Folosește clasele dinamice pentru a vedea cerul prin el */}
+  <div className={`window-glass weather-${currentWeather} time-${timeOfDay}`} style={{
+    width: '40%',
+    height: '50%',
+    position: 'absolute',
+    top: '15%',
+    border: '6px solid #5c382eff',
+    zIndex: 1,
+    boxShadow: 'inset 0 0 20px #ffcd2881'
+  }}>
+
+{currentWeather === 'rainy' && (
+      <div className="weather-overlay rain-overlay">
+        {Array.from({ length: 20 }).map((_, i) => (
+          <div key={i} className="rain-drop" style={{ left: `${Math.random() * 100}%` }}></div>
+        ))}
+      </div>
+    )}
+
+    {/* Grilaj geam pentru aspect mai drăguț */}
+    <div style={{ position: 'absolute', top: '50%', width: '100%', height: '5px', background: '#5c382eff' }}></div>
+    <div style={{ position: 'absolute', left: '50%', height: '100%', width: '5px', background: '#5c382eff' }}></div>
+  </div>
+
+  {/* 🪵 PODEAUA CAMEREI */}
+  <div className="room-floor" style={{ 
+    width: '100%', 
+    height: '25%', 
+    background: '#b1917fff', 
+    borderTop: '6px solid #c5a491ff',
+    zIndex: 1
+  }}></div>
+
+  {/* Planta și Fata: Vor sta în fața geamului */}
+  <div style={{ display: 'flex', alignItems: 'flex-end', zIndex: 10, marginTop: '25%', marginTop: '25%' }}>
+     <img src={plantType.image} style={{ width: '300px', height: 'auto', imageRendering: 'pixelated' }} />
+     <img src="/assets/girl.png" style={{ width: '300px', height: 'auto', imageRendering: 'pixelated' }} />
+  </div>
+  {/* Panou Dreapta */}
+  <div className="plant-panel stats-panel">...</div>
+</div>
+
+
+  {/*INVENTORY */}
+  <div className="stats-panel inventory-panel"> ... </div>
         {/* INVENTORY PANEL (Left Side) */}
         <div className="stats-panel inventory-panel">
           <div className="stats-panel-section">
-            <div className="stats-panel-title">🎒 Your Inventory</div>
+            <div className="stats-panel-title">Inventory</div>
             <div className="stat-row">
               <div className="stat-label">💧 Water Buckets</div>
               <div className={`stat-value ${water < 3 ? 'warning' : ''}`}>{water}</div>
@@ -2449,7 +2558,7 @@ function App() {
                     {/* Plant Name & Emoji */}
                     <div style={{flex: 1, textAlign: 'center'}}>
                       <div style={{fontSize: '2rem', marginBottom: '5px'}}>{currentHead.emoji}</div>
-                      <div style={{fontWeight: 'bold', color: 'white', fontSize: '1.1rem'}}>
+                      <div style={{fontWeight: 'bold', fontSize: '1.1rem'}}>
                         {currentHead.name}
                       </div>
                       {plantHeads.length > 1 && (
@@ -2533,7 +2642,7 @@ function App() {
             
             {/* Consumption Info Panel */}
             <div className="consumption-info">
-              <div className="consumption-label">🌙 Nightly Consumption:</div>
+              <div className="consumption-label">🌙Nightly Consumption:</div>
               
               {/* WEATHER EFFECT INDICATOR */}
               {(currentWeather === 'snowy' || currentWeather === 'rainy' || currentWeather === 'sunny') && (
@@ -2596,24 +2705,6 @@ function App() {
                 </div>
               </div>
             )}
-          </div>
-        </div>
-
-        {/* CENTER STAGE (Plant) - Shows SELECTED plant */}
-        <div className="center-stage">
-          <div className={`plant-display ${plant.health < 5 ? 'low-health' : ''}`}>
-            {(() => {
-              if (gameView === 'dead') return '🥀';
-              const selectedHead = plantHeads[selectedHeadIndex];
-              if (!selectedHead) return plantType.emoji;
-              
-              // Show wilted if low water
-              if (selectedHead.water < 3) return '🍂';
-              return selectedHead.emoji;
-            })()}
-          </div>
-          <div className="time-of-day-label">
-            {timeOfDay.toUpperCase()}
           </div>
         </div>
 
@@ -2714,7 +2805,6 @@ function App() {
             {/* MAIN MENU - MORNING */}
             {gameView === 'normal' && timeOfDay === 'morning' && (
               <div className="action-menu-container">
-                <div className={`click-here-indicator weather-${currentWeather}`}>👇 CLICK HERE 👇</div>
                 {currentWeather === 'thunderstorm' ? (
                   <>
                     <div className="action-menu-item disabled">
@@ -2729,12 +2819,10 @@ function App() {
                 ) : energy >= getEnergyCost(1) ? (
                   <>
                     <div className="action-menu-item" onClick={() => setGameView('plant-menu')}>
-                      <div className="action-menu-title">🌿 Tend Plant</div>
-                      <div className="action-menu-subtitle">Water, fertilize, or heal your plant</div>
+                      <div className="action-menu-title">🌿 Plant Care </div>
                     </div>
                     <div className="action-menu-item" onClick={() => setGameView('expedition-menu')}>
-                      <div className="action-menu-title">🎒 Expedition</div>
-                      <div className="action-menu-subtitle">Gather water and nutrients</div>
+                      <div className="action-menu-title">🎒 Expedition </div>
                     </div>
                   </>
                 ) : (
@@ -2751,26 +2839,6 @@ function App() {
             {/* MAIN MENU - AFTERNOON */}
             {gameView === 'normal' && timeOfDay === 'afternoon' && (
               <div className="action-menu-container">
-                {/* DEBUG DISPLAY */}
-                <div style={{
-                  position: 'fixed',
-                  top: '10px',
-                  right: '10px',
-                  background: 'rgba(0,0,0,0.8)',
-                  color: 'white',
-                  padding: '10px',
-                  borderRadius: '5px',
-                  fontSize: '12px',
-                  zIndex: 10000
-                }}>
-                  <div>DEBUG:</div>
-                  <div>battleCompleted: {battleCompleted ? 'TRUE' : 'FALSE'}</div>
-                  <div>battleWarning: {battleWarning ? 'TRUE' : 'FALSE'}</div>
-                  <div>gameView: {gameView}</div>
-                  <div>timeOfDay: {timeOfDay}</div>
-                  <div>weather: {currentWeather}</div>
-                </div>
-                
                 {/* After battle completed - show continue */}
                 {battleCompleted && (
                   <div className="action-menu-item" onClick={sleep}>
@@ -3143,5 +3211,6 @@ function App() {
     </>
   );
 }
+
 
 export default App;

@@ -1,4 +1,3 @@
-/* auth.css */
 @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
 :root {
@@ -6,13 +5,16 @@
   --wood-light: #A0522D;
   --wood-shadow: #5e2f0d;
   --paper-bg: #e6dcc0;
+  --paper-border: #c2b280;
   --leaf-green: #6d864b;
+  --leaf-dark: #2f3a22; 
+  --pixel-red: #d95763; 
   --game-font: 'VT323', monospace;
 }
 
 body {
   margin: 0;
-  overflow: hidden; /* Prevent scrolling on the game screen */
+  overflow: hidden;
 }
 
 .auth-wrapper {
@@ -21,13 +23,13 @@ body {
   align-items: center;
   justify-content: center;
   height: 100vh;
-  /* Pixel art grass pattern background */
   background-color: #87CEEB;
   background-image: 
     linear-gradient(rgba(255, 255, 255, 0.2) 2px, transparent 2px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.2) 2px, transparent 2px);
   background-size: 40px 40px;
   font-family: var(--game-font);
+  gap: 20px;
 }
 
 .auth-container {
@@ -36,179 +38,242 @@ body {
   padding: 2rem;
   text-align: center;
   position: relative;
-  
-  /* The Wooden Board Effect */
   border: 4px solid var(--wood-primary);
   box-shadow: 
-    inset 0 0 0 4px #c2b280, /* Inner paper border */
-    8px 8px 0px rgba(0,0,0,0.3); /* Hard pixel shadow */
-    
+    inset 0 0 0 4px #c2b280,
+    8px 8px 0px rgba(0,0,0,0.3);
   image-rendering: pixelated;
 }
 
-/* Nails in the corners of the board */
+/* Nails */
 .auth-container::before, .auth-container::after {
-  content: '';
-  position: absolute;
-  top: 10px;
-  width: 8px;
-  height: 8px;
-  background: var(--wood-shadow);
-  border-radius: 50%;
-  box-shadow: 0 0 0 2px var(--wood-light);
+  content: ''; position: absolute; top: 10px;
+  width: 8px; height: 8px; background: var(--wood-shadow);
+  border-radius: 50%; box-shadow: 0 0 0 2px var(--wood-light);
 }
 .auth-container::before { left: 10px; }
 .auth-container::after { right: 10px; }
 
 h2 {
-  font-size: 2.5rem;
-  color: var(--wood-primary);
-  margin-top: 0;
-  text-transform: uppercase;
-  letter-spacing: 2px;
+  font-size: 2.5rem; color: var(--wood-primary); margin-top: 0;
+  text-transform: uppercase; letter-spacing: 2px;
   text-shadow: 2px 2px 0px rgba(0,0,0,0.1);
 }
 
-/* Game Inputs */
+/* Inputs */
 input {
-  width: 90%;
-  padding: 10px;
-  margin: 8px 0;
-  background: #fff;
-  border: 2px solid var(--wood-primary);
-  font-family: var(--game-font);
-  font-size: 1.5rem;
-  color: #333;
-  outline: none;
-  box-shadow: inset 4px 4px 0px rgba(0,0,0,0.1); /* Inner shadow for depth */
+  width: 90%; padding: 10px; margin: 8px 0;
+  background: #fff; border: 2px solid var(--wood-primary);
+  font-family: var(--game-font); font-size: 1.5rem;
+  color: #333; outline: none;
+  box-shadow: inset 4px 4px 0px rgba(0,0,0,0.1);
 }
+input:focus { background: #fffef0; border-color: var(--leaf-green); }
 
-input:focus {
-  background: #fffef0;
-  border-color: var(--leaf-green);
-}
-
-/* The Main "Play" Button */
+/* Main Button (Login/Register Forms) */
 button[type="submit"] {
-  margin-top: 20px;
-  width: 100%;
-  padding: 10px;
-  background: var(--leaf-green);
-  border: 2px solid #2f3a22;
-  color: white;
-  font-family: var(--game-font);
-  font-size: 1.8rem;
-  text-transform: uppercase;
-  cursor: pointer;
-  box-shadow: 0 6px 0 #2f3a22; /* 3D height */
-  transition: all 0.1s;
-  position: relative;
-  top: 0;
+  margin-top: 20px; width: 100%; padding: 10px;
+  background: var(--leaf-green); border: 2px solid #2f3a22;
+  color: white; font-family: var(--game-font); font-size: 1.8rem;
+  text-transform: uppercase; cursor: pointer;
+  box-shadow: 0 6px 0 #2f3a22; transition: all 0.1s;
+  position: relative; top: 0;
 }
+button[type="submit"]:active { top: 6px; box-shadow: 0 0 0 #2f3a22; }
 
-button[type="submit"]:active {
-  top: 6px; /* Moves down to simulate press */
-  box-shadow: 0 0 0 #2f3a22;
-}
-
-/* The Toggle Link */
+/* Links */
 .link-btn {
-  background: none;
-  border: none;
-  color: var(--wood-primary);
-  font-family: var(--game-font);
-  font-size: 1.2rem;
-  margin-top: 25px;
-  cursor: pointer;
-  text-decoration: underline;
-  opacity: 0.7;
+  background: none; border: none; color: var(--wood-primary);
+  font-family: var(--game-font); font-size: 1.2rem;
+  margin-top: 25px; cursor: pointer; text-decoration: underline; opacity: 0.7;
 }
-
-.link-btn:hover {
-  opacity: 1;
-  color: var(--leaf-green);
-}
+.link-btn:hover { opacity: 1; color: var(--leaf-green); }
 
 /* Character Selection */
-.char-options {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  margin-bottom: 20px;
-}
-
+.char-options { display: flex; justify-content: center; gap: 20px; margin-bottom: 20px; }
 .char-option {
-  width: 70px;
-  height: 70px;
-  border: 2px dashed var(--wood-primary);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: transform 0.2s;
-  background: rgba(255,255,255,0.5);
+  width: 70px; height: 70px; border: 2px dashed var(--wood-primary);
+  border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: transform 0.2s; background: rgba(255,255,255,0.5);
 }
-
-.char-option img {
-  width: 100%;
-  height: 100%;
-  image-rendering: pixelated;
-}
-
+.char-option img { width: 100%; height: 100%; image-rendering: pixelated; }
 .char-option.selected {
-  border: 4px solid var(--leaf-green);
-  background: #fff;
-  transform: scale(1.1);
-  box-shadow: 0 0 15px var(--leaf-green);
+  border: 4px solid var(--leaf-green); background: #fff;
+  transform: scale(1.1); box-shadow: 0 0 15px var(--leaf-green);
 }
 
 .error {
-  color: #d9534f;
-  font-size: 1.2rem;
-  background: rgba(217, 83, 79, 0.1);
-  padding: 5px;
-  margin-top: 10px;
-  border: 2px dashed #d9534f;
+  color: #d9534f; font-size: 1.2rem; background: rgba(217, 83, 79, 0.1);
+  padding: 5px; margin-top: 10px; border: 2px dashed #d9534f;
 }
 
+/* Titles */
 .game-title {
-  font-family: 'VT323', monospace;
-  font-size: 6rem; 
-  color: #2f3a22; /* Dark forest green */
-  margin: 0 0 1rem 0;
-  
-  /* White pixel outline around the text */
-  text-shadow: 
-    -2px -2px 0 #fff, 
-     2px -2px 0 #fff,
-    -2px  2px 0 #fff,
-     2px  2px 0 #fff,
-     4px  4px 0 rgba(0,0,0,0.2); /* Drop shadow */
-     
-  /* Floating animation */
-  animation: float 3s ease-in-out infinite;
-  text-align: center;
-  line-height: 1;
+  font-family: 'VT323', monospace; font-size: 6rem;
+  color: #2f3a22; margin: 0 0 1rem 0;
+  text-shadow: -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 2px 2px 0 #fff, 4px 4px 0 rgba(0,0,0,0.2);
+  animation: float 3s ease-in-out infinite; text-align: center; line-height: 1;
 }
 
-/* Floating animation keyframes */
 @keyframes float {
   0% { transform: translateY(0px); }
   50% { transform: translateY(-10px); }
   100% { transform: translateY(0px); }
 }
 
-.auth-wrapper {
-  justify-content: center; /* Keep centered */
-  gap: 20px; /* Space between title and box */
-}
-
-/* auth.css */
-
 .title-icon {
-  width: 150px;  
-  height: auto; 
-  image-rendering: pixelated; 
+  width: 150px; height: auto; image-rendering: pixelated;
   animation: bounce 3s infinite alternate;
 }
+
+/* ======================================================
+   ⬇️ START PAGE STYLES (UPDATED FOR DUAL BUTTONS) ⬇️
+   ====================================================== */
+
+.game-subtitle {
+  font-family: var(--game-font);
+  font-size: 2.5rem;
+  color: #fff;
+  text-shadow: 2px 2px 0 #000;
+  margin-top: -20px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+/* Container for the two start buttons */
+.title-menu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 25px; /* Space between buttons */
+  margin-top: 40px;
+  width: 100%;
+}
+
+/* 1. RESUME BUTTON (Wooden Plank Style) */
+.press-start-btn {
+  font-family: var(--game-font);
+  font-size: 2.8rem;
+  /* Change from red to wood colors */
+  background: var(--wood-primary);
+  color: var(--paper-bg); /* Light text looks painted on wood */
+  border: 4px solid var(--wood-shadow); /* Dark wood border */
+  width: 340px;
+  padding: 10px 0;
+  cursor: pointer;
+  /* Create a 3D wooden plank look with layered shadows */
+  box-shadow: 
+    inset 2px 2px 0 var(--wood-light), /* Lighter top/left edge */
+    inset -2px -2px 0 var(--wood-shadow), /* Darker bottom/right inset */
+    0 8px 0 var(--wood-shadow); /* Thick bottom shadow */
+  text-transform: uppercase;
+  text-shadow: 2px 2px 0 var(--wood-shadow); /* Give text depth */
+  transition: all 0.2s;
+  /* Removed the aggressive 'pulseBtn' animation */
+}
+
+/* Hover: Brighten the wood slightly and lift */
+.press-start-btn:hover {
+  background: var(--wood-light);
+  transform: translateY(-2px);
+  box-shadow: 
+    inset 2px 2px 0 var(--wood-primary),
+    inset -2px -2px 0 var(--wood-shadow),
+    0 10px 0 var(--wood-shadow);
+}
+
+/* Active: Push the plank down */
+.press-start-btn:active {
+  transform: translateY(8px);
+  box-shadow: 
+    inset 2px 2px 0 var(--wood-shadow), /* Inner shadow darkens */
+    0 0 0 var(--wood-shadow); /* Outer shadow disappears */
+}
+
+/* 2. NEW GAME BUTTON (Green) */
+.new-game-btn {
+  font-family: var(--game-font);
+  font-size: 2.2rem;
+  background: var(--leaf-green);
+  color: white;
+  border: 4px solid #2f3a22;
+  width: 340px; /* Match width of resume button */
+  padding: 12px 0;
+  cursor: pointer;
+  box-shadow: 0 8px 0 #2f3a22;
+  text-transform: uppercase;
+  transition: all 0.1s;
+  text-shadow: 2px 2px 0px rgba(0,0,0,0.3);
+}
+
+.new-game-btn:hover {
+  background: #7db85a; /* Slightly lighter green */
+  transform: scale(1.05);
+}
+
+.new-game-btn:active {
+  transform: translateY(8px);
+  box-shadow: 0 0 0 #2f3a22;
+}
+
+@keyframes pulseBtn {
+  from { transform: scale(1); }
+  to { transform: scale(1.03); }
+}
+
+.version-tag {
+  position: absolute; bottom: 10px; right: 10px;
+  color: rgba(255,255,255,0.8); font-size: 1.2rem;
+}
+
+/* ⬇️ LOGIN EXTRAS (Checkbox & Forgot Password) ⬇️ */
+
+.auth-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 90%; 
+  margin: 10px auto;
+  font-size: 1.1rem;
+  color: var(--wood-primary);
+}
+
+.checkbox-container {
+  display: flex; align-items: center; cursor: pointer;
+  position: relative; padding-left: 25px; user-select: none;
+}
+.checkbox-container input { position: absolute; opacity: 0; cursor: pointer; height: 0; width: 0; }
+.checkmark {
+  position: absolute; top: 0; left: 0;
+  height: 18px; width: 18px;
+  background-color: #fff;
+  border: 2px solid var(--wood-primary);
+}
+.checkbox-container:hover .checkmark { background-color: #f0f0f0; }
+.checkbox-container input:checked ~ .checkmark { background-color: var(--leaf-green); }
+.checkmark:after {
+  content: ""; position: absolute; display: none;
+  left: 5px; top: 1px; width: 4px; height: 10px;
+  border: solid white; border-width: 0 3px 3px 0;
+  transform: rotate(45deg);
+}
+.checkbox-container input:checked ~ .checkmark:after { display: block; }
+
+.forgot-password {
+  cursor: pointer; text-decoration: underline; color: var(--wood-light);
+}
+.forgot-password:hover { color: var(--pixel-red); }
+
+/* BACK BUTTON */
+.back-btn-login {
+  background: none; border: none;
+  color: var(--wood-light);
+  font-family: var(--game-font);
+  font-size: 1.2rem;
+  cursor: pointer;
+  margin-bottom: 5px;
+  text-align: left;
+  display: block;
+  width: 100%;
+}
+.back-btn-login:hover { text-decoration: underline; color: var(--wood-primary); }

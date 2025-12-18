@@ -4,17 +4,22 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer'); // 🟢 Required for email
 
 dotenv.config();
 
 const app = express();
 app.use(express.json());
 app.use(cors());
+
 app.get('/', (req, res) => {
-  res.send('The server is up and running! 🌱 Play the game here: http://localhost:5173.');
+  res.send('The server is up! 🌱');
 });
 
-// --- USER ---
+// ==========================================
+// 1. DATABASE MODELS
+// ==========================================
+
 const UserSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
@@ -25,19 +30,35 @@ const UserSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', UserSchema);
 
-// --- LOGIN & REGISTER ---
+// ==========================================
+// 2. HELPER VARIABLES
+// ==========================================
 
-// 1. Register
+// Temporary memory for reset codes
+const resetCodes = {}; 
+
+// 🕒 Memory for Cooldowns (Spam Protection)
+// Stores: { "alex@gmail.com": 1702819200000 }
+const emailCooldowns = {}; 
+
+// ==========================================
+// 3. API ROUTES
+// ==========================================
+
+// --- REGISTER ---
 app.post('/api/register', async (req, res) => {
   try {
     const { username, email, password, character } = req.body;
     
+    // Check if user exists
     const existingUser = await User.findOne({ email });
     if (existingUser) return res.status(400).json({ message: "User already exists!" });
 
+    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    // Create User
     const newUser = new User({
       username,
       email,
@@ -52,7 +73,7 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
-// 2. Login
+// --- LOGIN ---
 app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -71,7 +92,7 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// 3. Save Game
+// --- SAVE GAME ---
 app.post('/api/save', async (req, res) => {
   try {
     const { email, gameState } = req.body;
@@ -82,7 +103,7 @@ app.post('/api/save', async (req, res) => {
   }
 });
 
-// 4. Load Game
+// --- LOAD GAME ---
 app.get('/api/load/:email', async (req, res) => {
   try {
     const user = await User.findOne({ email: req.params.email });
@@ -92,13 +113,110 @@ app.get('/api/load/:email', async (req, res) => {
   }
 });
 
-// --- Connect to MongoDB
+// ==========================================
+// 🟢 PASSWORD RESET FLOW (3 STEPS)
+// ==========================================
+
+// STEP 1: SEND EMAIL (With Cooldown)
+app.post('/api/forgot-password', async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // 🛑 CHECK COOLDOWN (Limit: 1 minute)
+    const lastSentTime = emailCooldowns[email];
+    const now = Date.now();
+    if (lastSentTime && (now - lastSentTime) < 60000) {
+      const timeLeft = Math.ceil((60000 - (now - lastSentTime)) / 1000);
+      return res.status(429).json({ message: `Please wait ${timeLeft}s before sending again.` });
+    }
+
+    // Generate 6-digit Code
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    resetCodes[email] = code; 
+
+    // Update Cooldown
+    emailCooldowns[email] = now;
+
+    // Setup Gmail Sender
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER, // Reads from .env
+        pass: process.env.EMAIL_PASS  // Reads from .env
+      }
+    });
+
+    const mailOptions = {
+      from: `Plant Game <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: '🌱 Plant Game - Reset Code',
+      text: `Hello Gardener!\n\nYour Password Reset Code is: ${code}\n\nGood luck!`
+    };
+
+    // SEND!
+    await transporter.sendMail(mailOptions);
+    console.log(`✅ Email sent to ${email}`);
+    res.json({ message: "Code sent to email" });
+
+  } catch (err) {
+    console.error("❌ Email Error:", err); 
+    res.status(500).json({ message: "Could not send email" });
+  }
+});
+
+// STEP 2: VERIFY CODE ONLY
+app.post('/api/verify-code', (req, res) => {
+  const { email, code } = req.body;
+
+  if (resetCodes[email] && resetCodes[email] === code) {
+    return res.status(200).json({ message: "Code is valid" });
+  } else {
+    return res.status(400).json({ message: "Invalid or expired code" });
+  }
+});
+
+// STEP 3: RESET PASSWORD (CHANGE IT)
+app.post('/api/reset-password', async (req, res) => {
+  const { email, code, newPassword } = req.body;
+
+  try {
+    // Check code again
+    if (resetCodes[email] !== code) {
+      return res.status(400).json({ message: "Invalid or expired code" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Encrypt New Password
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    
+    await user.save();
+    delete resetCodes[email]; // Clear code
+
+    res.json({ message: "Password updated successfully!" });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// ==========================================
+// 4. START SERVER
+// ==========================================
 const PORT = process.env.PORT || 5000;
 
 mongoose.connect(process.env.MONGO_URL)
   .then(() => {
-    console.log("✅ MongoDB connection: SUCCESS!")
-    app.listen(PORT, () => console.log(`🚀 Server is running on port ${PORT}`));
+    console.log("✅ MongoDB connected");
+    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
   })
   .catch((err) => {
     console.log("❌ Error connecting to MongoDB");

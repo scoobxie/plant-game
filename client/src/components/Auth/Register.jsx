@@ -6,6 +6,7 @@ export default function Register({ switchToLogin }) {
     username: '', 
     email: '', 
     password: '', 
+    confirmPassword: '', 
     character: 'girl'
   });
   
@@ -16,7 +17,9 @@ export default function Register({ switchToLogin }) {
     e.preventDefault();
     setError('');
     
-    // Simple validation
+    if (formData.password !== formData.confirmPassword) {
+      return setError("Passwords do not match!");
+    }
     if (!formData.username || !formData.email || !formData.password) {
       return setError("Please fill in all fields!");
     }
@@ -24,16 +27,20 @@ export default function Register({ switchToLogin }) {
     setIsLoading(true);
 
     try {
+      // Remove confirmPassword before sending
+      const { confirmPassword, ...dataToSend } = formData;
+
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
       const res = await fetch(`${apiUrl}/api/register`, { 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(dataToSend)
       });
       
       const data = await res.json();
       
       if (res.ok) {
+        alert("Account Created! Check your email.");
         switchToLogin(); 
       } else {
         setError(data.message || "Registration failed");
@@ -48,19 +55,17 @@ export default function Register({ switchToLogin }) {
 
   return (
     <div className="auth-wrapper">
-      {/* 🌿 BIG TITLE 🌿 */}
       <h1 className="game-title">
-  <img src="/assets/plant wide open mouth.png" alt="sprout" className="title-icon left-icon" />
-  Plant Game
-  <img src="/assets/plant wide open mouth.png" alt="sprout" className="title-icon right-icon" />
-</h1>
+        <img src="/assets/plant wide open mouth.png" alt="sprout" className="title-icon left-icon" />
+        Plant Game
+        <img src="/assets/plant wide open mouth.png" alt="sprout" className="title-icon right-icon" />
+      </h1>
 
       <div className="auth-container">
         <h2>New Gardener</h2>
         
         <form onSubmit={handleSubmit}>
           
-          {/* Character Selector */}
           <div className="char-select">
             <div className="char-options">
               <div 
@@ -69,7 +74,6 @@ export default function Register({ switchToLogin }) {
               >
                 <img src="/assets/girl.png" alt="Girl" />
               </div>
-
               <div 
                 className={`char-option ${formData.character === 'boy' ? 'selected' : ''}`}
                 onClick={() => setFormData({...formData, character: 'boy'})}
@@ -79,7 +83,6 @@ export default function Register({ switchToLogin }) {
             </div>
           </div>
 
-          {/* Inputs */}
           <div className="input-group">
             <input 
               type="text" 
@@ -97,10 +100,17 @@ export default function Register({ switchToLogin }) {
             />
             <input 
               type="password" 
-              placeholder="Secret Code" 
+              placeholder="Password" 
               required 
               value={formData.password}
               onChange={e => setFormData({...formData, password: e.target.value})} 
+            />
+            <input 
+              type="password" 
+              placeholder="Confirm Password" 
+              required 
+              value={formData.confirmPassword}
+              onChange={e => setFormData({...formData, confirmPassword: e.target.value})} 
             />
           </div>
 
