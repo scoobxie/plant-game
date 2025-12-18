@@ -226,3 +226,22 @@ mongoose.connect(process.env.MONGO_URL)
     console.log("❌ Error connecting to MongoDB");
     console.error(err);
   });
+
+  // FORCE PASSWORD RESET (Frontend already verified the code)
+app.post('/api/reset-password-force', async (req, res) => {
+  const { email, newPassword } = req.body;
+  
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Encrypt the new password
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    
+    await user.save();
+    res.json({ message: "Password updated successfully!" });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});

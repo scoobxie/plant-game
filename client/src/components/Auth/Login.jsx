@@ -57,45 +57,41 @@ export default function Login({ switchToRegister, onLoginSuccess, onBack }) {
   // ==========================================
 
   // STEP 1: SEND EMAIL
-  const handleSendCode = async (e) => {
+ // 1. GENERATE & SEND CODE (Frontend Version)
+  const handleSendCode = (e) => {
     e.preventDefault();
-    console.log("🟢 1. Button Clicked!"); // Spy #1
-    
-    setError('');
     setIsLoading(true);
+    setError('');
 
-    // Print the URL we are trying to reach
-    console.log("🟢 2. API URL is:", apiUrl); 
+    // Generate random 6-digit code locally
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    setGeneratedCode(code); // Save it to check later
 
-    try {
-        const fullUrl = `${apiUrl}/api/forgot-password`;
-        console.log("🟢 3. Sending request to:", fullUrl); // Spy #3
-
-        const res = await fetch(fullUrl, { 
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: resetEmail })
-        });
-        
-        console.log("🟢 4. Response received:", res.status); // Spy #4
-        
-        const data = await res.json();
-        
-        if (res.ok) {
-          setSuccessMsg("Email sent! Check your inbox.");
-          setTimeout(() => {
-              setSuccessMsg('');
-              setView('forgot-code'); 
-          }, 1500);
-        } else {
-          setError(data.message || "Email not found.");
-        }
-    } catch (err) {
-        console.error("🔴 CRASH:", err); // Spy #5 (The Error)
-        setError("Connection Error: " + err.message);
-    } finally {
-        setIsLoading(false);
-    }
+    // Send via EmailJS
+    emailjs.send(
+      import.meta.env.VITE_SERVICE_ID,
+      import.meta.env.VITE_TEMPLATE_ID,
+      {
+        to_email: resetEmail, // This sends it to the user's email
+        code: code            // This puts the number in the email
+      },
+      import.meta.env.VITE_PUBLIC_KEY
+    )
+    .then(() => {
+       console.log("✅ Email sent successfully!");
+       setSuccessMsg("Code sent! Check your inbox.");
+       setTimeout(() => {
+           setSuccessMsg('');
+           setView('forgot-code'); 
+       }, 2000);
+    })
+    .catch((err) => {
+       console.error("❌ EmailJS Failed:", err);
+       setError("Could not send email. Check console.");
+    })
+    .finally(() => {
+       setIsLoading(false);
+    });
   };
 
   // STEP 2: VERIFY CODE
