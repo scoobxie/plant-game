@@ -19,7 +19,7 @@ export default function Login({ switchToRegister, onLoginSuccess, onBack }) {
   const [successMsg, setSuccessMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  const apiUrl = import.meta.env.VITE_API_URL || 'https://plant-game.onrender.com';
 
   // ==========================================
   // 1. LOGIN HANDLER
