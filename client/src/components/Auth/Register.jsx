@@ -40,7 +40,7 @@ export default function Register({ switchToLogin }) {
       const data = await res.json();
       
       if (res.ok) {
-        alert("Account Created! Check your email.");
+        alert("Account created! Please log in.");
         switchToLogin(); 
       } else {
         setError(data.message || "Registration failed");
