@@ -56,9 +56,9 @@ export default function Register({ switchToLogin }) {
   return (
     <div className="auth-wrapper">
       <h1 className="game-title">
-        <img src="/assets/plant wide open mouth.png" alt="sprout" className="title-icon left-icon" />
+        <img src="/assets/plant.wide.open.mouth.png" alt="sprout" className="title-icon left-icon" />
         Plant Game
-        <img src="/assets/plant wide open mouth.png" alt="sprout" className="title-icon right-icon" />
+        <img src="/assets/plant.wide.open.mouth.png" alt="sprout" className="title-icon right-icon" />
       </h1>
 
       <div className="auth-container">

@@ -13,7 +13,7 @@ function App() {
   const plantTypes = {
     cactus: {
       name: 'Cactus',
-      image: '/assets/mutations/cactus mutation.png',
+      image: '/assets/mutations/cactus.mutation.png',
       damageType: 'Pierce',
       maxWater: 5,
       maxNutrients: 15,
@@ -33,7 +33,7 @@ function App() {
     },
     venusFlytrap: {
       name: 'Venus Flytrap',
-      image: '/assets/mutations/venus fly trap mutation.png',
+      image: '/assets/mutations/venus.fly.trap.mutation.png',
       damageType: 'Bite',
       maxWater: 10,
       maxNutrients: 0,
@@ -51,7 +51,7 @@ function App() {
     },
     sunflower: {
       name: 'Sunflower',
-      image: '/assets/mutations/sunflower mutation.png',
+      image: '/assets/mutations/sunflower.mutation.png',
       damageType: 'Beam',
       maxWater: 12,
       maxNutrients: 12,
@@ -69,7 +69,7 @@ function App() {
     },
     rose: {
       name: 'Rose',
-      image: '/assets/mutations/rose mutation.png',
+      image: '/assets/mutations/rose.mutation.png',
       damageType: 'Pierce',
       maxWater: 10,
       maxNutrients: 15,
@@ -88,7 +88,7 @@ function App() {
     },
     ivy: {
       name: 'Ivy',
-      image: '/assets/mutations/ivy mutation.png',
+      image: '/assets/mutations/ivy.mutation.png',
       damageType: 'Poison',
       maxWater: 8,
       maxNutrients: 10,
@@ -107,7 +107,7 @@ function App() {
     },
     mushroom: {
       name: 'Mushroom',
-      image: '/assets/mutations/mushroom mutation.png',
+      image: '/assets/mutations/mushroom.mutation.png',
       damageType: 'Fungi',
       maxWater: 20, // MARE! (nu 15)
       maxNutrients: 5,
@@ -124,7 +124,7 @@ function App() {
     },
     appleTree: {
       name: 'Apple Tree',
-      image: '/assets/mutations/apple tree mutation.png',
+      image: '/assets/mutations/apple.tree.mutation.png',
       damageType: 'Gravity',
       maxWater: 20,
       maxNutrients: 20,
@@ -2055,9 +2055,9 @@ function App() {
     return (
       <div className="auth-wrapper">
         <h1 className="game-title">
-          <img src="/assets/plant wide open mouth.png" alt="" className="title-icon left-icon" />
+          <img src="/assets/plant.wide.open.mouth.png" alt="" className="title-icon left-icon" />
           PLANT GAME
-          <img src="/assets/plant wide open mouth.png" alt="" className="title-icon right-icon" />
+          <img src="/assets/plant.wide.open.mouth.png" alt="" className="title-icon right-icon" />
         </h1>
         
         <div className="game-subtitle">Pixel Garden Adventure</div>
