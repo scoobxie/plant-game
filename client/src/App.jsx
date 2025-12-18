@@ -1620,6 +1620,36 @@ function App() {
     }
   };
 
+// NEW FUNCTION: Send save data to backend
+const saveToCloud = async () => {
+  if (!user || !user.email) return; // Don't save if not logged in
+
+  const gameState = { 
+    day, water, nutrients, energy, plant, timeOfDay,
+    plantConsumptionRate, difficultyLevel 
+  };
+
+  try {
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    
+    // This sends the data to your Node.js server
+    await fetch('http://localhost:5000/api/save', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}` // 🔐 This is the "Key" for the lock
+      },
+      body: JSON.stringify({ 
+        email: user.email, 
+        gameState: gameState 
+      })
+    });
+    console.log("☁️ Cloud Save Complete");
+  } catch (error) {
+    console.error("❌ Cloud Save Failed:", error);
+  }
+};
+
   const startNewDay = () => {
     const newDay = day + 1;
     
@@ -1917,6 +1947,9 @@ function App() {
     if (newDay === nextDisasterDay) {
         triggerDisaster(newDay);
     }
+
+    saveToCloud();
+
   };
 
   const triggerDisaster = (currentDay = day) => {
@@ -2385,8 +2418,11 @@ function App() {
   {/* Planta și Fata: Vor sta în fața geamului */}
   <div style={{ display: 'flex', alignItems: 'flex-end', zIndex: 10, marginTop: '25%'}}>
      <img src={plantType.image} style={{ width: '300px', height: 'auto', imageRendering: 'pixelated' }} />
-     <img src="/assets/girl.png" style={{ width: '300px', height: 'auto', imageRendering: 'pixelated' }} />
-  </div>
+     <img 
+        src={user?.character === 'boy' ? "/assets/boy.png" : "/assets/girl.png"} 
+        style={{ width: '300px', height: 'auto', imageRendering: 'pixelated' }} 
+     />
+</div>
   {/* Panou Dreapta */}
   <div className="plant-panel stats-panel">...</div>
 </div>

@@ -42,6 +42,24 @@ const resetCodes = {};
 const emailCooldowns = {}; 
 
 // ==========================================
+// MIDDLEWARE (SECURITY)
+// ==========================================
+const verifyToken = (req, res, next) => {
+  const tokenHeader = req.headers['authorization'];
+  
+  if (!tokenHeader) return res.status(401).json({ message: "Access Denied: No Token" });
+
+  try {
+    const token = tokenHeader.split(' ')[1]; // Remove "Bearer "
+    const verified = jwt.verify(token, process.env.JWT_SECRET || "secretKey");
+    req.user = verified;
+    next();
+  } catch (err) {
+    res.status(400).json({ message: "Invalid Token" });
+  }
+};
+
+// ==========================================
 // 3. API ROUTES
 // ==========================================
 
@@ -93,7 +111,7 @@ app.post('/api/login', async (req, res) => {
 });
 
 // --- SAVE GAME ---
-app.post('/api/save', async (req, res) => {
+app.post('/api/save', verifyToken, async (req, res) => {
   try {
     const { email, gameState } = req.body;
     await User.findOneAndUpdate({ email }, { gameSave: gameState });
