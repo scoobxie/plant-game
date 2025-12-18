@@ -59,15 +59,25 @@ export default function Login({ switchToRegister, onLoginSuccess, onBack }) {
   // STEP 1: SEND EMAIL
   const handleSendCode = async (e) => {
     e.preventDefault();
+    console.log("🟢 1. Button Clicked!"); // Spy #1
+    
     setError('');
     setIsLoading(true);
 
+    // Print the URL we are trying to reach
+    console.log("🟢 2. API URL is:", apiUrl); 
+
     try {
-        const res = await fetch(`${apiUrl}/api/forgot-password`, { 
+        const fullUrl = `${apiUrl}/api/forgot-password`;
+        console.log("🟢 3. Sending request to:", fullUrl); // Spy #3
+
+        const res = await fetch(fullUrl, { 
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: resetEmail })
         });
+        
+        console.log("🟢 4. Response received:", res.status); // Spy #4
         
         const data = await res.json();
         
@@ -81,7 +91,8 @@ export default function Login({ switchToRegister, onLoginSuccess, onBack }) {
           setError(data.message || "Email not found.");
         }
     } catch (err) {
-        setError("Connection Error");
+        console.error("🔴 CRASH:", err); // Spy #5 (The Error)
+        setError("Connection Error: " + err.message);
     } finally {
         setIsLoading(false);
     }
