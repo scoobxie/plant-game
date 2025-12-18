@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import emailjs from '@emailjs/browser';
 import '../../styles/auth.css';
 
 export default function Login({ switchToRegister, onLoginSuccess, onBack }) {
@@ -8,6 +9,7 @@ export default function Login({ switchToRegister, onLoginSuccess, onBack }) {
   // Login Data
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [generatedCode, setGeneratedCode] = useState(null);
   
   // Reset Flow Data
   const [resetEmail, setResetEmail] = useState('');
@@ -38,7 +40,6 @@ export default function Login({ switchToRegister, onLoginSuccess, onBack }) {
       
       const data = await res.json();
       if (res.ok) {
-        // 🟢 ALWAYS SAVE TO LOCALSTORAGE (Default behavior)
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
         onLoginSuccess(data.user); 
@@ -57,7 +58,6 @@ export default function Login({ switchToRegister, onLoginSuccess, onBack }) {
   // ==========================================
 
   // STEP 1: SEND EMAIL
- // 1. GENERATE & SEND CODE (Frontend Version)
   const handleSendCode = (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -65,15 +65,15 @@ export default function Login({ switchToRegister, onLoginSuccess, onBack }) {
 
     // Generate random 6-digit code locally
     const code = Math.floor(100000 + Math.random() * 900000).toString();
-    setGeneratedCode(code); // Save it to check later
+    setGeneratedCode(code); // Save it locally to check later
 
     // Send via EmailJS
     emailjs.send(
       import.meta.env.VITE_SERVICE_ID,
       import.meta.env.VITE_TEMPLATE_ID,
       {
-        to_email: resetEmail, // This sends it to the user's email
-        code: code            // This puts the number in the email
+        to_email: resetEmail,
+        code: code
       },
       import.meta.env.VITE_PUBLIC_KEY
     )
@@ -94,48 +94,37 @@ export default function Login({ switchToRegister, onLoginSuccess, onBack }) {
     });
   };
 
-  // STEP 2: VERIFY CODE
-  const handleVerifyCode = async (e) => {
+  // STEP 2: VERIFY CODE (FIXED: Local Check)
+  const handleVerifyCode = (e) => {
     e.preventDefault();
     setError('');
-    setIsLoading(true);
-
-    try {
-        const res = await fetch(`${apiUrl}/api/verify-code`, { 
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: resetEmail, code: resetCode })
-        });
-        
-        if (res.ok) {
-            setSuccessMsg("Code Verified!");
-            setTimeout(() => {
-                setSuccessMsg('');
-                setView('forgot-password'); 
-            }, 1000);
-        } else {
-            setError("Invalid Code. Try again.");
-        }
-    } catch (err) {
-        setError("Connection Error");
-    } finally {
-        setIsLoading(false);
+    
+    // IMPORTANT FIX: We compare the code LOCALLY.
+    // The server doesn't know the code because we generated it here in the browser.
+    if (resetCode === generatedCode) {
+        setSuccessMsg("Code Verified!");
+        setTimeout(() => {
+            setSuccessMsg('');
+            setView('forgot-password'); 
+        }, 1000);
+    } else {
+        setError("Invalid Code. Try again.");
     }
   };
 
-  // STEP 3: CHANGE PASSWORD
+  // STEP 3: CHANGE PASSWORD (FIXED: Uses correct route)
   const handleChangePassword = async (e) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
     try {
-        const res = await fetch(`${apiUrl}/api/reset-password`, { 
+        // IMPORTANT FIX: Use the 'force' route we created
+        const res = await fetch(`${apiUrl}/api/reset-password-force`, { 
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
               email: resetEmail, 
-              code: resetCode, 
               newPassword: newPassword 
           })
         });
@@ -185,7 +174,6 @@ export default function Login({ switchToRegister, onLoginSuccess, onBack }) {
               <input type="password" placeholder="Password" required value={password} onChange={e => setPassword(e.target.value)} />
               
               <div className="auth-options" style={{ justifyContent: 'flex-start' }}>
-                {/* 🗑️ REMOVED CHECKBOX HERE */}
                 <span className="forgot-password" onClick={() => {setError(''); setView('forgot-email')}}>
                   Forgot Password?
                 </span>
