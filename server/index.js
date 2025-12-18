@@ -117,57 +117,60 @@ app.get('/api/load/:email', async (req, res) => {
 // 🟢 PASSWORD RESET FLOW (3 STEPS)
 // ==========================================
 
-// STEP 1: SEND EMAIL (With Cooldown)
+// STEP 1: SEND EMAIL (Debug Version)
 app.post('/api/forgot-password', async (req, res) => {
   const { email } = req.body;
+  console.log(`🔎 1. Received request for: ${email}`);
 
   try {
     const user = await User.findOne({ email });
     if (!user) {
+      console.log("❌ User not found in DB");
       return res.status(404).json({ message: "User not found" });
     }
 
-    // 🛑 CHECK COOLDOWN (Limit: 1 minute)
-    const lastSentTime = emailCooldowns[email];
-    const now = Date.now();
-    if (lastSentTime && (now - lastSentTime) < 60000) {
-      const timeLeft = Math.ceil((60000 - (now - lastSentTime)) / 1000);
-      return res.status(429).json({ message: `Please wait ${timeLeft}s before sending again.` });
-    }
+    // 🛑 COOLDOWN DISABLED FOR TESTING
+    // const lastSentTime = emailCooldowns[email];
+    // const now = Date.now();
+    // if (lastSentTime && (now - lastSentTime) < 60000) { ... }
 
-    // Generate 6-digit Code
+    // Generate Code
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     resetCodes[email] = code; 
+    console.log(`🔎 2. Generated Code: ${code}`);
 
-    // Update Cooldown
-    emailCooldowns[email] = now;
-
-    // Setup Gmail Sender
+    // Setup Gmail Sender (WITH DEBUGGING)
     const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,            
-    secure: false,        
-    auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
+      host: 'smtp.gmail.com',
+      port: 587,            
+      secure: false,        
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      },
+      // 🟢 CRITICAL FOR DEBUGGING:
+      logger: true,
+      debug: true 
+    });
 
     const mailOptions = {
-      from: `Plant Game <${process.env.EMAIL_USER}>`,
+      from: `"Plant Game" <${process.env.EMAIL_USER}>`, // Added Name for professional look
       to: email,
       subject: '🌱 Plant Game - Reset Code',
       text: `Hello Gardener!\n\nYour Password Reset Code is: ${code}\n\nGood luck!`
     };
 
     // SEND!
+    console.log("🔎 3. Attempting to send to Gmail...");
     await transporter.sendMail(mailOptions);
-    console.log(`✅ Email sent to ${email}`);
+    console.log(`✅ 4. Email successfully sent to ${email}`);
+    
     res.json({ message: "Code sent to email" });
 
   } catch (err) {
-    console.error("❌ Email Error:", err); 
-    res.status(500).json({ message: "Could not send email" });
+    console.error("❌ CRASH AT STEP 3:", err); 
+    // This will now show up in your Render logs!
+    res.status(500).json({ message: "Could not send email", error: err.message });
   }
 });
 
