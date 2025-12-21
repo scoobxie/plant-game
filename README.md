@@ -36,5 +36,4 @@
 ---
 
 ## 💌 Credits & Developers
-* **[@scoobxie](https://github.com/scoobxie)** 
-* **[@Lucaunderlimit](https://github.com/Lucaunderlimit)**
+**Plant Game Team🌱**
