@@ -1673,7 +1673,7 @@ const saveToCloud = async () => {
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     
     // This sends the data to your Node.js server
-    await fetch('http://localhost:5000/api/save', {
+    await fetch('https://plant-game.onrender.com/api/save', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
