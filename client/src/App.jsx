@@ -552,28 +552,47 @@ function App() {
 
 // Verificăm dacă userul e logat la pornire
   useEffect(() => {
-    // 🟢 NEW: Checks localStorage OR sessionStorage
+    // Check localStorage OR sessionStorage
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    const savedUser = localStorage.getItem('user') || sessionStorage.getItem('user');
+    const savedUserString = localStorage.getItem('user') || sessionStorage.getItem('user');
     
-    if (token && savedUser) {
-      setUser(JSON.parse(savedUser));
-      setViewState('game');
-      
-      // Încărcăm și salvarea jocului dacă există (din localStorage momentan)
-      const savedGame = localStorage.getItem('gardenSave');
-      if (savedGame) {
-        try {
-          const data = JSON.parse(savedGame);
-          setDay(data.day); 
-          setWater(data.water); 
-          setNutrients(data.nutrients);
-          setEnergy(data.energy); 
-          setPlant(data.plant);
-          setTimeOfDay(data.timeOfDay);
-          setPlantConsumptionRate(data.plantConsumptionRate || 1);
-          setDifficultyLevel(data.difficultyLevel || 1);
-        } catch(e) { console.error("Corrupted save"); }
+    if (token && savedUserString) {
+      try {
+        const parsedUser = JSON.parse(savedUserString);
+        setUser(parsedUser);
+        setViewState('game');
+        
+        // Look at the USER OBJECT for the save, not 'gardenSave'
+        if (parsedUser.gameSave) {
+          console.log("☁️ Loading Cloud Save...");
+          const save = parsedUser.gameSave;
+          
+          setDay(save.day || 1); 
+          setWater(save.water !== undefined ? save.water : 10); 
+          setNutrients(save.nutrients !== undefined ? save.nutrients : 10);
+          setEnergy(save.energy !== undefined ? save.energy : 2); 
+          setPlant(save.plant || plant);
+          setTimeOfDay(save.timeOfDay || 'morning');
+          setPlantConsumptionRate(save.plantConsumptionRate || 1);
+          setDifficultyLevel(save.difficultyLevel || 1);
+          
+          // Sync Weather/Calendar if day > 1
+          if (save.day && weatherCalendar) {
+             // (Optional: logic to sync weather visual)
+          }
+        } else {
+          // NO CLOUD SAVE? Start Fresh (Don't load ghost data)
+          console.log("🆕 New Game / No Save Found");
+          setDay(1);
+          setWater(10);
+          setNutrients(10);
+          setEnergy(2);
+        }
+      } catch(e) { 
+        console.error("Corrupted user data", e); 
+        // Safety: Log out if data is bad
+        localStorage.clear();
+        setUser(null);
       }
     }
   }, []);
@@ -2114,15 +2133,33 @@ const saveToCloud = async () => {
       </div>
     );
   }
-  // 🟢 END NEW BLOCK
 
-  if (viewState === 'login') {
+if (viewState === 'login') {
     return (
       <div className="auth-wrapper">
         <Login 
           switchToRegister={() => setViewState('register')} 
-          onLoginSuccess={(u) => { setUser(u); setViewState('game'); }} 
-          // 🟢 ADD THIS: Allow going back to Title
+          // This loads your save immediately when you click "Login"
+          onLoginSuccess={(u) => { 
+            setUser(u); 
+            
+            // If the user has a save file, force the game to use it NOW
+            if (u.gameSave) {
+              console.log("☁️ Instant Cloud Load:", u.gameSave);
+              setDay(u.gameSave.day || 1);
+              setWater(u.gameSave.water !== undefined ? u.gameSave.water : 10);
+              setNutrients(u.gameSave.nutrients !== undefined ? u.gameSave.nutrients : 10);
+              setEnergy(u.gameSave.energy !== undefined ? u.gameSave.energy : 2);
+              setPlant(u.gameSave.plant || plant);
+              
+              // Load extra details if they exist
+              setTimeOfDay(u.gameSave.timeOfDay || 'morning');
+              setDifficultyLevel(u.gameSave.difficultyLevel || 1);
+              setPlantConsumptionRate(u.gameSave.plantConsumptionRate || 1);
+            }
+            
+            setViewState('game'); 
+          }} 
           onBack={() => setViewState('title')} 
         />
       </div>
@@ -2215,8 +2252,8 @@ const saveToCloud = async () => {
   <button className="utility-btn" onClick={() => {
     localStorage.clear();
     sessionStorage.clear();
-    setUser(null);
-    setViewState('title');
+    // FORCE RELOAD: This guarantees no "ghost data" stays in memory
+    window.location.reload(); 
   }}>
     LOG OUT
   </button>
