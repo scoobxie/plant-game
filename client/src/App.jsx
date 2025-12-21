@@ -598,16 +598,37 @@ function App() {
   }, []);
 
   // Salvăm jocul la fiecare modificare
+  // --- CLOUD ONLY AUTO-SAVE (Replaces your old localStorage save) ---
   useEffect(() => {
-    if (viewState === 'game') {
+    // Only save if we are in-game and have a valid user
+    if (viewState === 'game' && user && user.email) {
+      
       const gameState = { 
         day, water, nutrients, energy, plant, timeOfDay,
         plantConsumptionRate, difficultyLevel 
       };
-      localStorage.setItem('gardenSave', JSON.stringify(gameState));
-    }
-  }, [day, water, nutrients, energy, plant, timeOfDay, viewState, plantConsumptionRate, difficultyLevel]);
 
+      // 🟢 NO localStorage here! (Prevents Ghost Data)
+      
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://plant-game.onrender.com';
+      const token = localStorage.getItem('token');
+      
+      // Save to Cloud
+      fetch(`${apiUrl}/api/save`, {
+        method: 'POST',
+        keepalive: true, // Ensures save finishes even if tab closes
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ 
+          email: user.email, 
+          gameState: gameState 
+        })
+      }).catch(err => console.warn("☁️ Save skipped:", err));
+    }
+  }, [day, water, nutrients, energy, plant, timeOfDay, viewState, plantConsumptionRate, difficultyLevel, user]);
+  
   // Aplicăm tema (Zi/Noapte) pe body
   useEffect(() => {
     document.body.className = ''; 
