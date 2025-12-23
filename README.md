@@ -3,6 +3,7 @@
 
 ![MERN Stack](https://img.shields.io/badge/MERN-Stack-000000?style=for-the-badge&logo=react)
 ![Status](https://img.shields.io/badge/Status-Live-success?style=for-the-badge)
+![Art](https://img.shields.io/badge/Art-Resprite-ff69b4?style=for-the-badge&logo=aseprite&logoColor=white)
 
 ## 🎮 PLAY NOW
 **Click here to play:** [ **🔗 https://plant-game-client.onrender.com** ]
@@ -35,5 +36,7 @@
 
 ---
 
-## 💌 License
-This project is licensed under the **[MIT License](LICENSE)**.
+## 📜 Credits & License
+* **Development:** Created by **The Plant Team**.
+* **Visual Assets:** Handcrafted by **Scoobxie** via **Resprite** (No reuse or redistribution permitted)
+* **Software:** Open-source and available under the **[MIT License](LICENSE)**.
