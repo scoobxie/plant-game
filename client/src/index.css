@@ -1,0 +1,3702 @@
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+/* ===================================
+   SISTEM NUMERE FLOATING (RPG STYLE)
+   =================================== */
+
+.floating-number {
+  position: fixed;
+  font-family: VT323;
+  font-weight: 900;
+  font-size: 3.2rem; /* Mărit pentru impact vizual */
+  z-index: 9999;
+  
+  /* Contur negru gros pentru aspect de joc (Text Stroke) */
+  text-shadow: 
+    -3px -3px 0 #000,  
+     3px -3px 0 #000,
+    -3px  3px 0 #000,
+     3px  3px 0 #000,
+     0 0 20px rgba(0,0,0,0.5);
+  
+  /* Animație cu efect de "pop" */
+  animation: floatUpGame 1.2s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+}
+
+/* Feedback Types */
+.floating-heal {
+  color: #67bb60;
+  filter: drop-shadow(0 0 10px #5fac58);
+}
+
+.floating-damage {
+  color: #bb6060;
+  filter: drop-shadow(0 0 10px #964d4d);
+}
+
+.floating-success {
+  color: #a660bb; 
+  filter: drop-shadow(0 0 10px #9254a5);
+}
+
+/* Poziționare ajustată pentru noua "cameră" */
+.floating-center {
+  left: 50%;
+  top: 50%;
+  transform: translateX(-50%);
+}
+
+/* Apar deasupra plantei (care e acum la bottom 60%) */
+.floating-plant-water, 
+.floating-plant-nutrients, 
+.floating-plant-health {
+  left: 50%;
+  top: 55%; 
+  transform: translateX(-50%);
+}
+
+/* Apar deasupra panourilor laterale */
+.floating-water {
+  left: 15%;
+  top: 45%;
+}
+
+.floating-nutrients {
+  left: 85%;
+  top: 45%;
+}
+
+/* Animație RPG: Sare în sus, se rotește ușor și dispare */
+@keyframes floatUpGame {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 40px) scale(0.3) rotate(-15deg);
+  }
+  25% {
+    opacity: 1;
+    transform: translate(-50%, -20px) scale(1.4) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -40px) scale(1.2) rotate(5deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -120px) scale(0.8) rotate(10deg);
+  }
+}
+
+/* ===================================
+   UTILITY BUTTONS (TOP LEFT HUD)
+   =================================== */
+
+.utility-buttons-container {
+  position: fixed;
+  top: 20px;
+  left: 27px;
+  display: flex;
+  gap: 15px;
+  z-index: 10001;
+}
+
+.utility-btn {
+  font-weight: 900;
+  font-size: 0.8rem;
+  padding: 10px 20px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  
+  
+  background: rgba(255, 255, 255, 0.15); 
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  
+  
+  border: 3px solid #3d1f08 !important;
+  border-radius: 0px !important;
+  background: #8b4513 !important;
+  color: #fff;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 4px 4px 0 #2a1a0f !important;
+  text-shadow: 1px 1px 0 #000;
+  
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.utility-btn:hover {
+  /* Efect de iluminare la hover */
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translate(-1px, -1px);
+  background: #a0522d !important;
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
+}
+
+.utility-btn:active {
+  transform: translate(3px, 3px);
+  box-shadow: 1px 1px 0 #2a1a0f !important;
+}
+
+/* Stil special pentru Restart (Accent de culoare) */
+.restart-btn-top {
+  background: #be2424 !important; /* Roșu pixel */
+  border-color: #5c0000 !important;
+}
+
+.restart-btn-top:hover {
+  background: linear-gradient(135deg, rgba(200, 50, 50, 0.5), rgba(150, 30, 30, 0.5));
+  border-color: rgba(255, 100, 100, 0.6);
+  color: #ffcccc;
+}
+
+/* Efect Glow */
+.utility-btn::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  border-radius: 12px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+}
+
+.utility-btn:hover::after {
+  opacity: 1;
+}
+
+/* ===================================
+   TEME PENTRU TIMPUL ZILEI (Better Colors)
+   =================================== */
+
+body {
+  transition: background-color 0.5s ease, background-image 0.5s ease;
+}
+
+/* MORNING - Soft warm tones */
+body.day {
+  background: linear-gradient(135deg, #87ceeb 0%, #e0f6ff 50%, #fffacd 100%) !important;
+}
+
+/* AFTERNOON - Warmer golden hour */
+body.afternoon {
+  background: linear-gradient(135deg, #ffa500 0%, #ff8c69 50%, #ffb347 100%) !important;
+}
+
+/* NIGHT - Deep blues with stars */
+body.night {
+  background: linear-gradient(135deg, #0a0e27 0%, #1a1a3e 50%, #0f0c29 100%) !important;
+}
+
+#moonlight-overlay {
+  display: none !important;
+}
+
+:root {
+  --p3-blue: #0066cc;
+  --p3-dark-blue: #003366;
+  --p3-light-blue: #4da6ff;
+  --p3-yellow: #ffd700;
+  --p3-white: #ffffff;
+  --p3-black: #0a0a0a;
+  --p3-gray: #664b3c;
+  --p3-light-gray: #ffffff;
+}
+
+/* ===================================
+   FAZĂ LUNARĂ DISPLAY
+   =================================== */
+
+.moon-phase-corner {
+  position: fixed;
+  top: 230px;
+  right: 810px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  z-index: 1001; /* Peste overlay (900) */
+}
+
+.moon-phase-emoji {
+  font-size: 6rem;
+  filter: drop-shadow(0 0 15px rgb(235, 218, 173)); /* Glow mai puternic */
+  transition: transform 0.3s ease;
+}
+
+.moon-phase-emoji.is-sun {
+  animation: sunGlow 5s ease-in-out infinite;
+  filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.6));
+}
+
+@keyframes sunGlow {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 20px rgb(255, 190, 116)); }
+  50% { transform: scale(1.1); filter: drop-shadow(0 0 40px rgba(255, 209, 71, 0.856)); }
+}
+/* ===================================
+   CALENDAR NOU - De la Zero
+   =================================== */
+
+.calendar-container-new {
+  position: fixed;
+  top: 23px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 1200px;
+  height: 100px;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(20, 20, 40, 0.9));
+  border: 2px solid var(--p3-blue);
+  border-radius: 15px;
+  box-shadow: 0 0 20px rgba(0, 102, 204, 0.5);
+  backdrop-filter: blur(10px);
+  z-index: 1001; /* Peste overlay (900) */
+}
+
+/* Săgeată mobilă - se mișcă la ziua curentă */
+.calendar-arrow-new {
+  position: absolute;
+  top: -15px;
+  left: 40px;
+  font-size: 2rem;
+  color: var(--p3-yellow);
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+  z-index: 999;
+  transition: left 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Track scrollabil după ziua 8 */
+.calendar-track-new {
+  display: flex;
+  gap: 10px;
+  padding: 0;
+  height: 100%;
+  position: relative;
+  left: 0;
+  overflow-x: visible;
+  align-items: center;
+  transition: transform 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  will-change: transform;
+}
+
+/* Cutii zi */
+.calendar-day-new {
+  width: 110px;
+  min-width: 110px;
+  max-width: 110px;
+  height: 80px;
+  box-sizing: border-box;
+  background: #fdf5e6 !important; /* Hârtie bej */
+  border: 2px solid #8b6b55 !important;
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.2) !important;
+  border-radius: 0px !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+  opacity: 0;
+  animation: calendarDayFadeIn 0.5s ease-out forwards;
+}
+
+/* Ziua curentă */
+.calendar-day-new.current-day {
+  background: #fff !important; /* Hârtie albă curată */
+  border: 4px solid #ffcc00 !important; /* Contur auriu pixelat */
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.8), inset 0 0 20px rgba(255, 215, 0, 0.3);
+  transform: translateY(-5px) !important; /* Se ridică puțin */
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.2) !important;
+  animation: currentDayPulse 2s ease-in-out infinite;
+  opacity: 1 !important;
+}
+
+/* Zi cu dezastru */
+.calendar-day-new.disaster-day {
+  border-color: #ff0000;
+  box-shadow: 0 0 15px rgba(255, 0, 0, 0.6);
+}
+
+/* ANIMAȚII */
+@keyframes calendarDayFadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes currentDayPulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.8), inset 0 0 20px rgba(255, 215, 0, 0.3); }
+  50% { box-shadow: 0 0 30px rgba(255, 215, 0, 1), inset 0 0 30px rgba(255, 215, 0, 0.5); }
+}
+
+/* Staggered animation pentru cutii */
+.calendar-day-new:nth-child(1) { animation-delay: 0.05s; }
+.calendar-day-new:nth-child(2) { animation-delay: 0.1s; }
+.calendar-day-new:nth-child(3) { animation-delay: 0.15s; }
+.calendar-day-new:nth-child(4) { animation-delay: 0.2s; }
+.calendar-day-new:nth-child(5) { animation-delay: 0.25s; }
+.calendar-day-new:nth-child(6) { animation-delay: 0.3s; }
+.calendar-day-new:nth-child(7) { animation-delay: 0.35s; }
+.calendar-day-new:nth-child(8) { animation-delay: 0.4s; }
+.calendar-day-new:nth-child(9) { animation-delay: 0.45s; }
+.calendar-day-new:nth-child(10) { animation-delay: 0.5s; }
+
+.calendar-day-number {
+  font-weight: bold;
+  font-size: 0.75rem;
+  color: #5e2f0d !important;
+  text-transform: uppercase;
+}
+
+.calendar-moon {
+  font-size: 1.8rem;
+  filter: none !important;
+  transition: all 0.5s ease;
+}
+
+.current-day .calendar-moon {
+  font-size: 2rem;
+}
+
+@keyframes iconGlow {
+  0%, 100% { 
+    filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.5));
+    transform: scale(1);
+  }
+  50% { 
+    filter: drop-shadow(0 0 15px rgba(255, 215, 0, 1));
+    transform: scale(1.1);
+  }
+}
+
+.calendar-disaster {
+  font-weight: 700;
+  font-size: 0.77rem;
+  color: #ff6b97;
+  text-align: center;
+  line-height: 1.1;
+}
+
+/* ===================================
+   SISTEM MENIU ACȚIUNI
+   =================================== */
+
+.action-menu-container {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%); /* Centrat pe mijlocul ecranului */
+  display: flex;
+  flex-direction: row; /* Aliniere orizontală */
+  gap: 30px;
+  z-index: 998;
+  padding-bottom: 20px;
+  width: 100%;
+  justify-content: center;
+}
+
+
+/* Containerul general pentru butoane */
+.action-menu-container {
+  gap: 30px; /* Mai mult spațiu între butoane */
+  padding-bottom: 20px;
+}
+
+/* Stilul Butonului - ACUM PIXELAT & LEMNOS */
+.action-menu-item {
+  background: #c5a491 !important; /* Culoare lemn deschis */
+  border: 4px solid #5e2f0d !important; /* Contur maro închis */
+  border-radius: 0px !important; /* FĂRĂ COLȚURI ROTUNDE! Pixel art e pătrat */
+  box-shadow: 
+    inset 3px 3px 0px rgba(255, 255, 255, 0.3), /* Highlight interior */
+    inset -3px -3px 0px rgba(0, 0, 0, 0.1), /* Umbră interioară */
+    6px 6px 0px #3d1f08 !important; /* Umbră solidă "Hard Shadow" */
+  
+  transform: translateY(0);
+  transition: transform 0.1s;
+  min-width: 280px;
+}
+
+/* Efect de apăsare "Clicky" */
+.action-menu-item:active {
+  transform: translate(4px, 4px); /* Se mută în locul umbrei */
+  box-shadow: 2px 2px 0px #3d1f08 !important;
+}
+
+/* Hover Effect */
+.action-menu-item:hover {
+  background: #d4b5a2 !important; /* Puțin mai deschis la hover */
+  transform: translateY(-2px);
+  border-color: #3d1f08 !important;
+}
+
+/* Titlul butonului */
+.action-menu-title {
+  color: #3d1f08 !important;
+  font-size: 1.8rem !important;
+  text-shadow: none !important;
+  border-bottom: 2px dashed #5e2f0d;
+  padding-bottom: 5px;
+  margin-bottom: 5px;
+  margin-right: 5px;;
+}
+
+/* Subtitlul */
+.action-menu-subtitle {
+  color: #5e2f0d !important;
+  font-weight: bold;
+}
+
+/* Costul de energie */
+.action-menu-cost {
+  color: #b91c1c !important; /* Roșu închis retro */
+  text-shadow: none !important;
+  font-size: 1.4rem !important;
+  background: rgba(255,255,255,0.5);
+  padding: 2px 6px;
+  border: 2px solid #5e2f0d;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* ===================================
+   PANOU STATISTICI (Partea Stângă)
+   =================================== */
+
+.stats-panel {
+  position: fixed;
+  background-color: #fdf5e6 !important; /* Fundal bej/crem */
+  background-image: none !important;
+  background-size: 20px 20px !important;
+  border: 6px solid #3d1f08 !important; /* Bordură groasă de lemn maro */
+  border-radius: 2px !important; /* Colțuri ascuțite, stil retro */
+  padding: 18px !important;
+  box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.2) !important; /* Umbră solidă, pixelată */
+  min-width: 260px;
+  max-width: 280px;
+  backdrop-filter: none !important; 
+  z-index: 997;
+}
+
+.inventory-panel {
+top: 240px;
+  left: 15px;
+  /* Animation set globally in PAGE LOAD FIX section */
+}
+
+.plant-panel {
+  top: 240px;
+  right: 15px;
+  /* Animation set globally in PAGE LOAD FIX section */
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.consumption-info {
+  background: transparent !important;
+  border-top: 3px solid #3d1f08;
+  margin-top: 15px;
+  padding-top: 10px;
+}
+
+.consumption-label {
+  color: #3d1f08 !important;
+  font-size: 1.1rem !important;
+  text-align: center;
+  margin-bottom: 5px;
+}
+
+.consumption-value {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--p3-light-blue);
+}
+
+/* ===================================
+   DEBUFF INDICATOR
+   =================================== */
+
+.debuff-indicator {
+  margin-top: 15px;
+  padding: 10px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: debuffPulse 2s ease-in-out infinite;
+}
+
+.overwatered-debuff {
+  background: linear-gradient(135deg, rgba(0, 100, 200, 0.3), rgba(0, 150, 255, 0.3));
+  border: 2px solid rgba(0, 150, 255, 0.6);
+  box-shadow: 0 0 15px rgba(0, 150, 255, 0.4);
+}
+
+.damaged-roots-debuff {
+  background: linear-gradient(135deg, rgba(139, 69, 19, 0.3), rgba(160, 82, 45, 0.3));
+  border: 2px solid rgba(139, 69, 19, 0.6);
+  box-shadow: 0 0 15px rgba(139, 69, 19, 0.4);
+}
+
+.damaged-roots-debuff .debuff-icon {
+  filter: drop-shadow(0 0 10px rgba(139, 69, 19, 0.8));
+}
+
+.damaged-roots-debuff .debuff-name {
+  color: #D2691E;
+}
+
+.debuff-icon {
+  font-size: 2rem;
+  filter: drop-shadow(0 0 10px rgba(0, 150, 255, 0.8));
+}
+
+.debuff-text {
+  flex: 1;
+}
+
+.debuff-name {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--p3-light-blue);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.debuff-duration {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 2px;
+}
+
+@keyframes debuffPulse {
+  0%, 100% { 
+    box-shadow: 0 0 15px rgba(0, 150, 255, 0.4);
+  }
+  50% { 
+    box-shadow: 0 0 25px rgba(0, 150, 255, 0.7);
+  }
+}
+
+.stat-row {
+display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
+}
+
+.stat-row:last-child {
+  border-bottom: none;
+}
+
+.stat-label {
+  font-family: 'VT323', monospace !important;
+  font-size: 1.2rem !important;
+  color: #5c3d2e !important; /* Maro pământiu */
+  font-weight: bold;
+}
+
+.stat-value {
+  font-family: 'VT323', monospace !important;
+  font-size: 1.3rem !important;
+  color: #3d1f08 !important;
+}
+
+.stat-value.warning {
+  color: #ff6b97;
+  animation: warningPulse 1s ease-in-out infinite;
+}
+
+@keyframes warningPulse {
+  0%, 100% { 
+    opacity: 1; 
+    text-shadow: 0 0 5px rgba(255, 107, 107, 0.5);
+  }
+  50% { 
+    opacity: 0.6; 
+    text-shadow: 0 0 15px rgba(255, 107, 107, 0.8);
+  }
+}
+
+.stat-bar {
+  height: 14px !important;
+  background: #d9c5b2 !important; /* Fundal bară mai închis */
+  border: 3px solid #3d1f08 !important;
+  border-radius: 0px !important;
+  margin-top: 4px;
+}
+
+.stat-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff9ed7, #e798ff);
+  transition: width 0.5s ease-out;
+  box-shadow: none !important; /* Elimină strălucirea */
+  border-right: 2px solid rgba(0,0,0,0.2);
+}
+
+/* Culori specifice pentru fiecare bară */
+.water-bar { background: #3bbbf6 !important; } /* Denumirea: Water Buckets */
+.nutrient-bar { background: #6bc522 !important; } /* Denumirea: Nutrient Bags */
+.hp-bar-fill, .stat-bar-fill.hp { background: #ef4444 !important; } /* Denumirea: Health */
+
+/* Animații pentru nivele periculoase */
+.water-bar[style*="width: 0%"],
+.water-bar[style*="width: 10%"],
+.water-bar[style*="width: 20%"] {
+  animation: barDanger 1s ease-in-out infinite;
+}
+
+.nutrient-bar[style*="width: 0%"],
+.nutrient-bar[style*="width: 10%"],
+.nutrient-bar[style*="width: 20%"] {
+  animation: barDanger 1s ease-in-out infinite;
+}
+
+.health-bar[style*="width: 0%"],
+.health-bar[style*="width: 10%"],
+.health-bar[style*="width: 20%"],
+.health-bar[style*="width: 30%"] {
+  animation: barDanger 1s ease-in-out infinite;
+}
+
+@keyframes barDanger {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ===================================
+   SCENĂ CENTRALĂ (Personaj + Plantă)
+   =================================== */
+
+.center-stage {
+  width: 100%; /* Ocupă tot ecranul pe lățime */
+  left: 0;
+  justify-content: center;
+  transform: none;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  z-index: 1000;
+  animation: fadeIn 1s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+.character-display {
+  font-size: 3rem;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5));
+  animation: characterIdle 3s ease-in-out infinite;
+}
+
+@keyframes characterIdle {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-15px); }
+}
+
+.plant-display {
+  font-size: 8rem;
+  filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.5));
+  transition: all 0.5s ease-out;
+  animation: plantBreath 4s ease-in-out infinite;
+}
+
+@keyframes plantBreath {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.plant-display.low-health {
+  filter: drop-shadow(0 0 20px rgba(255, 0, 0, 0.8));
+  animation: plantShiver 0.5s ease-in-out infinite;
+}
+
+@keyframes plantShiver {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+@keyframes textGlow {
+  0%, 100% { text-shadow: 0 0 10px rgba(255, 215, 0, 0.8); }
+  50% { text-shadow: 0 0 20px rgba(255, 215, 0, 1), 0 0 30px rgba(255, 215, 0, 0.8); }
+}
+
+/* ===================================
+   SISTEM JURNAL (Stânga Jos)
+   =================================== */
+
+.log-panel {
+  position: fixed;
+  bottom: 30px;
+  left: 15px;
+  background: #fdf5e6 !important; /* Același bej */
+  border: 4px solid #3d1f08 !important;
+  box-shadow: 4px 4px 0px rgba(0,0,0,0.2) !important;
+}
+
+.log-panel-title {
+  font-weight: 900;
+  font-size: 1.5rem;
+  color: #3d1f08 !important;
+  text-shadow: none !important;
+  letter-spacing: 2px;
+  margin-bottom: 3px;
+}
+
+.log-entry {
+  font-weight: 300;
+  font-size: 1rem;
+  color: #3d1f08;
+  padding: 4px 0;
+  border-bottom: 1px dashed #ad8b70;
+  animation: logSlideIn 0.3s ease-out;
+}
+
+.log-entry:last-child {
+  border-bottom: none;
+}
+
+@keyframes logSlideIn {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Custom Scrollbar */
+.log-panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.log-panel::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+}
+
+.log-panel::-webkit-scrollbar-thumb {
+  background: var(--p3-blue);
+  border-radius: 4px;
+}
+
+.log-panel::-webkit-scrollbar-thumb:hover {
+  background: var(--p3-light-blue);
+}
+
+/* ===================================
+   CARD TRANZIȚIE TIMP (Acoperire Ecran Complet)
+   =================================== */
+
+.time-transition {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(8px);
+  z-index: 99999 !important;
+  animation: fadeInOut 1.2s ease-in-out;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.time-transition-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  background: linear-gradient(135deg, rgba(0, 51, 102, 0.95), rgba(0, 102, 204, 0.95));
+  border: 3px solid var(--p3-light-blue);
+  border-radius: 20px;
+  padding: 40px 60px;
+  box-shadow: 0 0 50px rgba(77, 166, 255, 0.8), 0 0 100px rgba(77, 166, 255, 0.4);
+  animation: slideDownBounce 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes slideDownBounce {
+  0% { 
+    transform: translateY(-100vh);
+    opacity: 0;
+  }
+  60% { 
+    transform: translateY(0);
+    opacity: 1;
+  }
+  75% {
+    transform: translateY(-20px);
+  }
+  85% {
+    transform: translateY(0);
+  }
+  100% { 
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.time-emoji {
+  font-size: 6rem;
+  text-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+  filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.6));
+}
+
+.time-label {
+  font-weight: 900;
+  font-size: 3rem;
+  color: var(--p3-yellow);
+  text-transform: uppercase;
+  letter-spacing: 5px;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.5);
+}
+
+/* ===================================
+   AVERTISMENT DEZASTRU
+   =================================== */
+
+.disaster-warning {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, rgba(139, 0, 0, 0.95), rgba(255, 0, 0, 0.95));
+  border: 3px solid #ff6b97;
+  border-radius: 10px;
+  padding: 15px 30px;
+  font-weight: 900;
+  font-size: 1.2rem;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  box-shadow: 0 0 30px rgba(255, 0, 0, 0.8);
+  animation: disasterPulse 1s ease-in-out infinite;
+  z-index: 1000;
+}
+
+@keyframes disasterPulse {
+  0%, 100% { 
+    transform: translateX(-50%) scale(1); 
+    box-shadow: 0 0 30px rgba(255, 0, 0, 0.8);
+  }
+  50% { 
+    transform: translateX(-50%) scale(1.05); 
+    box-shadow: 0 0 50px rgba(255, 0, 0, 1);
+  }
+}
+
+/* ===================================
+   SUPRAPUNERI ECRAN COMPLET (Expediție, Dezastru, Moarte)
+   =================================== */
+
+.full-screen-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.85) !important; /* Mai întunecat, fără blur albăstrui */
+  backdrop-filter: none !important;
+  z-index: 99999 !important;
+  animation: overlayFadeIn 0.3s ease-out;
+}
+
+@keyframes overlayFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.full-screen-overlay.expedition-overlay {
+  background: rgba(0, 50, 100, 0.85);
+}
+
+.full-screen-overlay.disaster-overlay {
+  background: rgba(100, 0, 0, 0.85);
+}
+
+.overlay-card {
+  background: linear-gradient(135deg, rgba(0, 51, 102, 0.95), rgba(0, 102, 204, 0.95));
+  border: 3px solid var(--p3-light-blue);
+  border-radius: 20px;
+  padding: 50px 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  box-shadow: 0 0 50px rgba(77, 166, 255, 0.8), 0 0 100px rgba(77, 166, 255, 0.4);
+  animation: overlayCardFadeIn 0.4s ease-out;
+  text-align: center;
+}
+
+@keyframes overlayCardFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.overlay-icon {
+ filter: drop-shadow(4px 4px 0 rgba(0,0,0,0.3)) !important; /* Umbră pixelată */
+  animation: none !important; /* Oprim animațiile complexe */
+}
+
+.overlay-title {
+  font-weight: 900;
+  font-size: 3rem;
+  color: var(--p3-yellow);
+  text-transform: uppercase;
+  letter-spacing: 5px;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+}
+
+.overlay-subtitle {
+color: #5e2f0d !important;
+  font-size: 1.5rem !important;
+  font-family: 'VT323', monospace !important;
+}
+
+.overlay-button {
+ background: #5e2f0d !important;
+  border: 3px solid #3d1f08 !important;
+  border-radius: 0px !important;
+  box-shadow: 5px 5px 0 rgba(0,0,0,0.3) !important;
+  color: #fff !important;
+  font-family: 'VT323', monospace !important;
+}
+
+.overlay-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 8px 25px rgba(77, 166, 255, 0.6);
+}
+
+.overlay-button:active {
+  transform: scale(0.95);
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+/* ===================================
+   MODAL OVERLAY (for submenus)
+   =================================== */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(5px);
+  z-index: 900; /* Sub panels (care sunt 997-1001) */
+  animation: fadeInOverlay 0.3s ease-out;
+}
+
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.submenu-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(20, 20, 40, 0.95));
+  border: 3px solid var(--p3-blue);
+  border-radius: 20px;
+  padding: 30px 40px;
+  min-width: 400px;
+  box-shadow: 0 0 40px rgba(0, 102, 204, 0.8);
+  z-index: 1002;
+  animation: popInClean 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  opacity: 0;
+  overflow: hidden;
+}
+
+@keyframes popInClean {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.submenu-title {
+  font-weight: 900;
+  font-size: 1.8rem;
+  color: var(--p3-yellow);
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  text-align: center;
+  margin-bottom: 25px;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+}
+
+.submenu-options {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Reduc glow-ul pentru butoanele din submeniu */
+.submenu-options .action-menu-item {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3), 0 0 8px 2px rgba(77, 166, 255, 0.4);
+  /* Removed slideInRight - causes jumping. Keep only pulse */
+  animation: buttonPulseMild 2s ease-in-out infinite;
+}
+
+@keyframes buttonPulseMild {
+  0%, 100% {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3), 0 0 8px 2px rgba(77, 166, 255, 0.4);
+  }
+  50% {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3), 0 0 15px 4px rgba(77, 166, 255, 0.6);
+  }
+}
+
+/* Plant Type Info */
+.plant-type-info {
+  text-align: center;
+  margin-bottom: 15px;
+  padding: 8px;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 165, 0, 0.1));
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 8px;
+}
+
+.plant-damage-type {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--p3-yellow);
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+}
+
+.carnivorous-indicator {
+  text-align: center;
+  padding: 10px;
+  margin: 10px 0;
+  background: linear-gradient(135deg, rgba(255, 0, 0, 0.1), rgba(139, 0, 0, 0.1));
+  border: 2px solid rgba(255, 0, 0, 0.4);
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #ff4444;
+  text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+  animation: carnivorousPulse 2s ease-in-out infinite;
+}
+
+@keyframes carnivorousPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Consumption Info - Detailed Display */
+.consumption-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 5px 0;
+}
+
+.consumption-item {
+  background: transparent !important;
+  border: 1px solid #3d1f08 !important;
+  color: #3d1f08 !important;
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.1) !important;
+  font-weight: bold;
+}
+
+.consumption-item.debuff-highlight {
+  background: rgba(255, 165, 0, 0.2);
+  border: 2px solid rgba(255, 165, 0, 0.6);
+  animation: debuffHighlight 1.5s ease-in-out infinite;
+  box-shadow: 0 0 10px rgba(255, 165, 0, 0.4);
+}
+
+.consumption-item.damage-item {
+  background: rgba(255, 0, 0, 0.2);
+  border: 2px solid rgba(255, 0, 0, 0.6);
+  color: #ff4444;
+  animation: damageHighlight 1.5s ease-in-out infinite;
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.4);
+}
+
+.debuff-tag {
+  font-size: 0.8rem;
+  margin-left: 3px;
+  animation: bounce 1s ease-in-out infinite;
+}
+
+@keyframes debuffHighlight {
+  0%, 100% { 
+    opacity: 1; 
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 0.8; 
+    transform: scale(1.05);
+  }
+}
+
+@keyframes damageHighlight {
+  0%, 100% { 
+    opacity: 1; 
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 0.8; 
+    transform: scale(1.05);
+  }
+}
+
+/* Plant Abilities Display */
+.plant-abilities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0;
+  justify-content: center;
+ font-size: 2rem;
+}
+
+.ability-badge {
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 4px 8px;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.ability-badge.immunity {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 165, 0, 0.3));
+  border: 2px solid rgba(255, 215, 0, 0.6);
+  color: var(--p3-yellow);
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+}
+
+.ability-badge.buff {
+  background: linear-gradient(135deg, rgba(144, 221, 183, 0.2), rgba(50, 205, 50, 0.2));
+  border: 2px solid rgba(54, 126, 90, 0.5);
+  color: #16472f;
+}
+
+.ability-badge.debuff {
+  background: linear-gradient(135deg, rgba(255, 69, 0, 0.2), rgba(220, 20, 60, 0.2));
+  border: 2px solid rgba(255, 69, 0, 0.5);
+  color: #ff6347;
+}
+
+@keyframes badgePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+/* Moon Phase Corner - Clickable */
+.moon-phase-corner.clickable {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 100;
+}
+
+/* Moon Calendar Overlay */
+.moon-calendar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  z-index: 10000;
+  animation: fadeIn 0.2s ease;
+  padding: 20px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.moon-calendar-panel {
+  background: linear-gradient(135deg, #6585c7, #d8c292);
+  border: 3px;
+  padding: 25px;
+  width: 650px;
+  max-width: 90vw;
+  max-height: 85vh;
+  overflow-y: auto;
+  animation: slideIn 0.25s ease-out;
+}
+
+.moon-calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid var(--p3-yellow);
+  gap: 15px;
+}
+
+.moon-calendar-header h2 {
+  font-size: 1.8rem;
+  color: #101622;
+  margin: 0;
+  flex: 1;
+}
+
+.close-btn {
+  background: rgba(255, 0, 0, 0.2);
+  border: 2px solid #ff4444;
+  color: #ff4444;
+  font-size: 1.3rem;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
+  line-height: 1;
+}
+
+.close-btn:hover {
+  background: rgba(255, 0, 0, 0.4);
+  transform: scale(1.1);
+}
+
+/* Moon Calendar Grid - 7 PER ROW */
+.moon-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 12px;
+  padding: 10px;
+}
+
+.moon-calendar-day {
+  background: linear-gradient(135deg, rgba(0, 51, 102, 0.3), rgba(0, 102, 204, 0.3));
+  border: 2px solid rgba(77, 166, 255, 0.5);
+  border-radius: 12px;
+  padding: 12px 8px;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.moon-calendar-day:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(77, 166, 255, 0.5);
+  border-color: var(--p3-blue);
+}
+
+.moon-calendar-day.current {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.2));
+  border: 3px solid var(--p3-yellow);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+  animation: currentDayGlow 2s ease-in-out infinite;
+}
+
+@keyframes currentDayGlow {
+  0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.6); }
+  50% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.9); }
+}
+
+.moon-calendar-day-num {
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: var(--p3-light-blue);
+  margin-bottom: 6px;
+}
+
+.moon-calendar-moon {
+  font-size: 2rem;
+  margin: 8px 0;
+}
+
+.moon-calendar-phase {
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: var(--p3-yellow);
+  text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+  line-height: 1.2;
+}
+
+/* Plant Info Button */
+.plant-info-btn {
+  background: linear-gradient(135deg, rgba(0, 102, 204, 0.3), rgba(0, 51, 102, 0.3));
+  border: 2px solid var(--p3-blue);
+  color: var(--p3-light-blue);
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 5px;
+}
+
+.plant-info-btn:hover {
+  background: linear-gradient(135deg, rgba(0, 102, 204, 0.5), rgba(0, 51, 102, 0.5));
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 102, 204, 0.4);
+}
+
+.plant-type-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+/* Consumption Inline */
+.consumption-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 5px;
+}
+
+.consumption-row {
+  /* Deprecated - nu mai e folosit */
+  display: none;
+}
+
+/* Time of Day Coloring pentru Calendar (current day only) */
+.calendar-day-new.time-morning {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 165, 0, 0.3)) !important;
+  border-color: var(--p3-yellow) !important;
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.5) !important;
+}
+
+.calendar-day-new.time-afternoon {
+  background: linear-gradient(135deg, rgba(255, 140, 0, 0.3), rgba(255, 69, 0, 0.3)) !important;
+  border-color: #ff8c00 !important;
+  box-shadow: 0 0 15px rgba(255, 140, 0, 0.5) !important;
+}
+
+.calendar-day-new.time-night {
+  background: linear-gradient(135deg, rgba(75, 0, 130, 0.3), rgba(25, 25, 112, 0.3)) !important;
+  border-color: #8b00ff !important;
+  box-shadow: 0 0 15px rgba(138, 43, 226, 0.5) !important;
+}
+
+@keyframes backgroundFade {
+  from {
+    opacity: 0.7;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Notification System - ASCUNS */
+.notification {
+  display: none !important;
+}
+
+/* ========================================
+   WEATHER OVERLAYS
+   ======================================== */
+
+.weather-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 500; /* Sub UI dar peste background */
+  overflow: hidden;
+}
+
+/* RAIN */
+.rain-drop {
+  position: absolute;
+  top: -10px;
+  width: 2px;
+  height: 20px;
+  background: linear-gradient(to bottom, transparent, rgba(174, 194, 224, 0.8));
+  animation: rainFall linear infinite;
+}
+
+.rain-drop.heavy {
+  width: 3px;
+  height: 25px;
+  background: linear-gradient(to bottom, transparent, rgba(174, 194, 224, 0.9));
+}
+
+@keyframes rainFall {
+  from {
+    transform: translateY(-10px);
+  }
+  to {
+    transform: translateY(100vh);
+  }
+}
+
+/* SNOW */
+.snowflake {
+  position: absolute;
+  top: -20px;
+  color: white;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+  animation: snowFall linear infinite;
+  opacity: 0.8;
+}
+
+@keyframes snowFall {
+  0% {
+    transform: translateY(-20px) translateX(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(50vh) translateX(50px) rotate(180deg);
+  }
+  100% {
+    transform: translateY(100vh) translateX(0) rotate(360deg);
+  }
+}
+
+/* THUNDERSTORM */
+.thunderstorm-rain .rain-drop {
+  background: linear-gradient(to bottom, transparent, rgba(100, 120, 150, 0.9));
+}
+
+.lightning-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 501;
+  animation: lightning 8s infinite;
+}
+
+@keyframes lightning {
+  0%, 10%, 20%, 100% {
+    background: transparent;
+  }
+  5% {
+    background: rgba(255, 255, 255, 0.3);
+  }
+  10.5% {
+    background: rgba(255, 255, 255, 0.5);
+  }
+  11% {
+    background: rgba(255, 255, 255, 0.2);
+  }
+  50%, 60% {
+    background: transparent;
+  }
+  55% {
+    background: rgba(255, 255, 255, 0.4);
+  }
+  55.5% {
+    background: rgba(255, 255, 255, 0.6);
+  }
+}
+
+/* ========================================
+   VICTORY SCREEN
+   ======================================== */
+
+.victory-overlay {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(50, 205, 50, 0.2)) !important;
+}
+
+.victory-card {
+  max-width: 700px;
+  padding: 40px !important;
+}
+
+.victory-stats {
+  margin: 30px 0;
+  padding: 25px;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.5), rgba(20, 20, 40, 0.5));
+  border: 2px solid var(--p3-yellow);
+  border-radius: 15px;
+}
+
+.victory-stat-title {
+  font-size: 1.8rem;
+  color: var(--p3-yellow);
+  text-align: center;
+  margin-bottom: 20px;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+}
+
+.victory-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.victory-stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 15px;
+  background: rgba(0, 51, 102, 0.3);
+  border: 2px solid var(--p3-blue);
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.victory-stat-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 102, 204, 0.5);
+}
+
+.victory-stat-item .stat-icon {
+  font-size: 2rem;
+}
+
+.victory-stat-item .stat-label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--p3-light-blue);
+  text-align: center;
+}
+
+.victory-stat-item .stat-value {
+  font-weight: 900;
+  font-size: 1.8rem;
+  color: var(--p3-yellow);
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+}
+
+.victory-button {
+  background: linear-gradient(135deg, rgba(50, 205, 50, 0.3), rgba(34, 139, 34, 0.3)) !important;
+  border-color: #32cd32 !important;
+  font-size: 1.3rem !important;
+}
+
+.victory-button:hover {
+  background: linear-gradient(135deg, rgba(50, 205, 50, 0.5), rgba(34, 139, 34, 0.5)) !important;
+  box-shadow: 0 8px 20px rgba(50, 205, 50, 0.6) !important;
+}
+
+/* ========================================
+   WEATHER VISUAL EFFECTS
+   ======================================== */
+
+/* Weather Effect Banner (above consumption) */
+.weather-effect-banner {
+  margin: 8px 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  animation: weatherPulse 2s ease-in-out infinite;
+}
+
+.weather-effect {
+  display: inline-block;
+}
+
+.weather-effect.frozen {
+  color: #00ffff;
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+  background: linear-gradient(135deg, rgba(0, 191, 255, 0.2), rgba(135, 206, 250, 0.2));
+  border: 2px solid #00bfff;
+}
+
+.weather-effect.rain-bonus {
+  color: #4682b4;
+  text-shadow: 0 0 10px rgba(70, 130, 180, 0.8);
+  background: linear-gradient(135deg, rgba(70, 130, 180, 0.2), rgba(95, 158, 160, 0.2));
+  border: 2px solid #4682b4;
+}
+
+.weather-effect.sunny-bonus {
+  color: #ffd700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.2));
+  border: 2px solid #ffd700;
+}
+
+@keyframes weatherPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.02);
+  }
+}
+
+/* Frozen Stats Effect */
+.frozen-stat {
+  position: relative;
+  color: #00ffff !important;
+  text-shadow: 0 0 15px rgba(0, 255, 255, 1) !important;
+  animation: frozenShimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes frozenShimmer {
+  0%, 100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.5);
+  }
+}
+
+.frozen-tag {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  background: linear-gradient(135deg, rgba(0, 191, 255, 0.3), rgba(135, 206, 250, 0.3));
+  border: 1px solid #00bfff;
+  border-radius: 4px;
+  animation: iceCrystal 2s ease-in-out infinite;
+}
+
+@keyframes iceCrystal {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(0, 255, 255, 1);
+  }
+}
+
+/* Weather Status Panel */
+.weather-status-panel {
+  background: transparent !important;
+  border: 2px dashed #3d1f08 !important; /* Bordură punctată simplă */
+  box-shadow: none !important;
+  padding: 10px;
+  margin: 15px 0;
+  border-radius: 0px !important;
+}
+
+.weather-status-title {
+  font-size: 1.4rem !important;
+  color: #3d1f08 !important;
+  text-align: center;
+  margin-bottom: 5px;
+}
+
+.weather-effects-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.weather-effect-item {
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  text-align: center;
+  background: transparent !important;
+  border: none !important;
+  color: #5c3d2e !important; /* Maro închis */
+  box-shadow: none !important;
+
+}
+
+.weather-effect-item:hover {
+  transform: translateX(3px);
+}
+
+.weather-effect-item.sunny {
+  color: #ffd700;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 165, 0, 0.15));
+  border-color: #ffd700;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.weather-effect-item.overcast {
+  color: #a9a9a9;
+  background: linear-gradient(135deg, rgba(169, 169, 169, 0.15), rgba(119, 136, 153, 0.15));
+  border-color: #778899;
+  box-shadow: 0 0 10px rgba(169, 169, 169, 0.3);
+}
+
+.weather-effect-item.rainy {
+  color: #4682b4;
+  background: linear-gradient(135deg, rgba(70, 130, 180, 0.15), rgba(95, 158, 160, 0.15));
+  border-color: #5f9ea0;
+  box-shadow: 0 0 10px rgba(70, 130, 180, 0.3);
+}
+
+.weather-effect-item.snowy {
+  color: #00ffff;
+  background: linear-gradient(135deg, rgba(0, 255, 255, 0.15), rgba(176, 196, 222, 0.15));
+  border-color: #00bfff;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+  animation: snowGlow 2s ease-in-out infinite;
+}
+
+@keyframes snowGlow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+  }
+}
+
+.weather-effect-item.thunderstorm {
+  color: #ff6347;
+  background: linear-gradient(135deg, rgba(47, 79, 79, 0.15), rgba(28, 40, 51, 0.15));
+  border-color: #2f4f4f;
+  box-shadow: 0 0 10px rgba(255, 99, 71, 0.3);
+  animation: thunderFlash 3s ease-in-out infinite;
+}
+
+@keyframes thunderFlash {
+  0%, 90%, 100% {
+    opacity: 1;
+  }
+  93%, 97% {
+    opacity: 0.5;
+  }
+  95% {
+    opacity: 1;
+    box-shadow: 0 0 25px rgba(255, 255, 255, 0.8);
+  }
+}
+
+/* ========================================
+   PLANT INFO COMPACT BUTTON & MODAL
+   ======================================== */
+
+/* Compact Info Button */
+.plant-info-btn-compact {
+  font-weight: 700;
+  font-size: 1.2rem;
+  padding: 6px 10px;
+  background: linear-gradient(135deg, rgba(0, 102, 204, 0.3), rgba(0, 153, 255, 0.3));
+  border: 2px solid var(--p3-blue);
+  border-radius: 8px;
+  color: var(--p3-light-blue);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 10px rgba(0, 102, 204, 0.4);
+}
+
+.plant-info-btn-compact:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 20px rgba(0, 102, 204, 0.8);
+  background: linear-gradient(135deg, rgba(0, 102, 204, 0.5), rgba(0, 153, 255, 0.5));
+}
+
+.plant-info-btn-compact:active {
+  transform: scale(0.95);
+}
+
+/* Plant Info Modal */
+.plant-info-modal {
+  position: fixed;
+  top: 50%;
+  right: 20px;
+  transform: translateY(-50%);
+  width: 320px;
+  max-height: 80vh;
+  overflow-y: auto;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(20, 20, 40, 0.95));
+  border: 3px solid var(--p3-blue);
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 0 40px rgba(0, 102, 204, 0.8);
+  z-index: 1003;
+  animation: slideInRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  backdrop-filter: blur(10px);
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+}
+
+.plant-info-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 2px #ff0000;
+  position: relative;
+}
+
+.plant-info-title {
+  font-size: 1.8rem;
+  color: var(--p3-yellow);
+  text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+  text-align: center;
+}
+
+.plant-damage-type-modal {
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: #000000;
+  text-align: center;
+  padding: 6px 12px;
+  background: #c74c75;
+  border: 2px solid #69263d;
+  border-radius: 8px;
+  margin: 0 auto;
+  width: fit-content;
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  font-weight: 900;
+  font-size: 1.5rem;
+  width: 35px;
+  height: 35px;
+  padding: 0;
+  background: linear-gradient(135deg, rgba(204, 0, 0, 0.8), rgba(153, 0, 0, 0.8));
+  border: 2px solid #ff0000;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
+}
+
+.modal-close-btn:hover {
+  transform: rotate(90deg) scale(1.1);
+  box-shadow: 0 0 25px rgba(255, 0, 0, 0.8);
+}
+
+.modal-close-btn:active {
+  transform: rotate(90deg) scale(0.9);
+}
+
+.plant-abilities-modal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Scrollbar styling for modal */
+.plant-info-modal::-webkit-scrollbar {
+  width: 8px;
+}
+
+.plant-info-modal::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+}
+
+.plant-info-modal::-webkit-scrollbar-thumb {
+  background: var(--p3-blue);
+  border-radius: 10px;
+}
+
+.plant-info-modal::-webkit-scrollbar-thumb:hover {
+  background: var(--p3-light-blue);
+}
+
+/* Inline Info Button (next to plant name) */
+.plant-info-btn-inline {
+  font-size: 1rem;
+  padding: 4px 8px;
+  margin-left: 10px;
+  background: linear-gradient(135deg, rgba(0, 102, 204, 0.3), rgba(0, 153, 255, 0.3));
+  border: 2px solid var(--p3-blue);
+  border-radius: 6px;
+  color: var(--p3-light-blue);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 8px rgba(0, 102, 204, 0.3);
+  vertical-align: middle;
+}
+
+.plant-info-btn-inline:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 15px rgba(0, 102, 204, 0.7);
+  background: linear-gradient(135deg, rgba(0, 102, 204, 0.5), rgba(0, 153, 255, 0.5));
+}
+
+.plant-info-btn-inline:active {
+  transform: scale(0.95);
+}
+
+/* Make title flexbox for inline button alignment */
+.stats-panel-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'VT323', monospace !important;
+  font-size: 1.8rem !important;
+  color: #3d1f08 !important; /* Maro închis */
+  text-shadow: none !important; /* Fără contur alb/negru */
+  border-bottom: 3px solid #3d1f08;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+}
+/* ========================================
+   PRELOAD ANIMATION FIX
+   Prevent all animations until page loads
+   ======================================== */
+
+/* Apply to body initially */
+.preload * {
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+  transition-duration: 0s !important;
+}
+
+/* ========================================
+   PAGE LOAD FIX - Prevent flash of unstyled content
+   ======================================== */
+
+/* Start with opacity 0 and fade in */
+.stats-panel,
+.inventory-panel {
+  animation: fadeInPanel 0.5s ease-out 0.1s forwards;
+  opacity: 0;
+}
+
+@keyframes fadeInPanel {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Calendar and corners - slide in smoothly */
+.calendar-container-new {
+  background: #5e2f0d;
+  border: 4px solid #3d1f08;
+  border-radius: 0px !important;
+  box-shadow: 0 6px 0 rgba(0,0,0,0.3) !important;
+  padding: 2px 0;
+  animation: slideInCalendar 0.4s ease-out 0.15s forwards;
+  opacity: 0;
+}
+
+.day-counter-corner,
+.moon-phase-corner {
+  animation: slideInSmooth 0.4s ease-out 0.15s forwards;
+  opacity: 0;
+}
+
+/* Calendar specific - preserve centering */
+@keyframes slideInCalendar {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes slideInSmooth {
+  from {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==========================================
+   BATTLE SYSTEM CSS
+   ========================================== */
+
+.battle-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.battle-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  z-index: -1;
+}
+
+/* Turn Order Panel - LEFT SIDE */
+.turn-order-panel {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid #4a9eff;
+  border-radius: 10px;
+  padding: 15px;
+  max-width: 200px;
+  box-shadow: 0 0 20px rgba(74, 158, 255, 0.3);
+}
+
+.turn-order-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #4a9eff;
+  text-align: center;
+  margin-bottom: 10px;
+  text-shadow: 0 0 10px rgba(74, 158, 255, 0.5);
+}
+
+.turn-order-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.turn-order-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+  transition: all 0.3s ease;
+}
+
+.turn-order-item.current-turn {
+  background: rgba(74, 158, 255, 0.3);
+  border: 2px solid #4a9eff;
+  box-shadow: 0 0 15px rgba(74, 158, 255, 0.5);
+  transform: scale(1.05);
+}
+
+.turn-order-item.dead {
+  opacity: 0.3;
+  text-decoration: line-through;
+}
+
+.turn-order-icon {
+  font-size: 1.5rem;
+}
+
+.turn-order-name {
+  flex: 1;
+  font-size: 0.9rem;
+  color: white;
+  font-weight: bold;
+}
+
+.turn-order-hp {
+  font-size: 0.8rem;
+  color: #ff6b6b;
+  font-weight: bold;
+}
+
+/* Enemies Display - TOP CENTER */
+.battle-enemies {
+  position: absolute;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 30px;
+  z-index: 10;
+}
+
+.battle-enemy {
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid #ff6b97;
+  border-radius: 10px;
+  padding: 20px;
+  min-width: 200px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 20px rgba(255, 107, 107, 0.3);
+}
+
+.battle-enemy:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 30px rgba(255, 107, 107, 0.5);
+  border-color: #ff4757;
+}
+
+.battle-enemy.targeted {
+  border-color: #ffd700;
+  box-shadow: 0 0 40px rgba(255, 215, 0, 0.6);
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.enemy-sprite {
+  font-size: 4rem;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.enemy-name {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.hp-bar-container {
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 10px;
+  height: 25px;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.hp-bar-fill {
+  background: linear-gradient(90deg, #ff6b6b 0%, #ff4757 100%);
+  height: 100%;
+  transition: width 0.5s ease;
+  box-shadow: inset 0 2px 10px rgba(255, 255, 255, 0.2);
+}
+
+.hp-bar-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-weight: bold;
+  font-size: 0.9rem;
+  text-shadow: 1px 1px 2px black;
+}
+
+.weakness-indicator {
+  color: #c0392b !important; /* Roșu cărămiziu vizibil */
+  font-weight: 900 !important;
+  text-shadow: none !important;
+  background: rgba(255, 255, 255, 0.5); /* Mic fundal alb pentru contrast */
+  border-radius: 4px;
+  padding: 2px 5px;
+  margin-top: 5px;
+  display: inline-block;
+}
+
+/* Plants Display - BOTTOM */
+.battle-plants {
+  position: absolute;
+  bottom: 180px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 20px;
+}
+
+.battle-plant {
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid #51cf66;
+  border-radius: 10px;
+  padding: 15px;
+  min-width: 180px;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 20px rgba(81, 207, 102, 0.3);
+}
+
+.battle-plant.current-turn-plant {
+  border-color: #ffd700;
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+  transform: scale(1.05);
+}
+
+.plant-sprite {
+  font-size: 3rem;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.plant-name {
+  font-size: 1rem;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.stat-bar-container {
+  margin-bottom: 8px;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: #aaa;
+  margin-bottom: 3px;
+}
+
+.stat-bar {
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 5px;
+  height: 18px;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-bar-fill {
+  height: 100%;
+  transition: width 0.5s ease;
+}
+
+.stat-bar-fill.hp {
+  background: linear-gradient(90deg, #ff6b6b 0%, #ff4757 100%);
+}
+
+.stat-bar-fill.water {
+  background: linear-gradient(90deg, #4a9eff 0%, #3b82f6 100%);
+}
+
+.stat-bar-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-weight: bold;
+  font-size: 0.75rem;
+  text-shadow: 1px 1px 2px black;
+}
+
+/* Action Menu - BOTTOM RIGHT */
+.battle-action-menu {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.9);
+  border: 2px solid #4a9eff;
+  border-radius: 10px;
+  padding: 15px;
+  min-width: 250px;
+  box-shadow: 0 0 30px rgba(74, 158, 255, 0.4);
+}
+
+.battle-action-title {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #4a9eff;
+  text-align: center;
+  margin-bottom: 15px;
+  text-shadow: 0 0 10px rgba(74, 158, 255, 0.5);
+}
+
+.battle-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.battle-action-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid #555;
+  border-radius: 8px;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: white;
+  font-size: 0.95rem;
+}
+
+.battle-action-btn:hover:not(:disabled) {
+  transform: translateX(5px);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+}
+
+.battle-action-btn.attack {
+  border-color: #ff6b6b;
+}
+
+.battle-action-btn.attack:hover:not(:disabled) {
+  background: rgba(255, 107, 107, 0.2);
+  border-color: #ff4757;
+  box-shadow: 0 0 20px rgba(255, 107, 107, 0.4);
+}
+
+.battle-action-btn.heal {
+  border-color: #51cf66;
+}
+
+.battle-action-btn.heal:hover:not(:disabled) {
+  background: rgba(81, 207, 102, 0.2);
+  border-color: #37b24d;
+  box-shadow: 0 0 20px rgba(81, 207, 102, 0.4);
+}
+
+.battle-action-btn.restore {
+  border-color: #4a9eff;
+}
+
+.battle-action-btn.restore:hover:not(:disabled) {
+  background: rgba(74, 158, 255, 0.2);
+  border-color: #3b82f6;
+  box-shadow: 0 0 20px rgba(74, 158, 255, 0.4);
+}
+
+.battle-action-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.action-icon {
+  font-size: 1.5rem;
+}
+
+.action-name {
+  flex: 1;
+  font-weight: bold;
+}
+
+/* Battle Log - BOTTOM LEFT */
+.battle-log-panel {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  background: rgba(0, 0, 0, 0.9);
+  border: 2px solid #aaa;
+  border-radius: 10px;
+  padding: 15px;
+  max-width: 350px;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.battle-log-title {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #aaa;
+  margin-bottom: 10px;
+}
+
+.battle-log-content {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.battle-log-entry {
+  font-size: 0.85rem;
+  color: white;
+  padding: 5px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+/* Weakness Popup */
+.weakness-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10000;
+  animation: weaknessAppear 1.5s ease-out;
+}
+
+.weakness-text {
+  font-size: 5rem;
+  font-weight: bold;
+  color: #ffd700;
+  text-shadow: 0 0 30px rgba(255, 215, 0, 0.8),
+               0 0 60px rgba(255, 215, 0, 0.6);
+  animation: weaknessPulse 0.5s ease-in-out infinite;
+}
+
+@keyframes weaknessAppear {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+}
+
+@keyframes weaknessPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+/* Battle Warning in Afternoon Menu */
+.action-menu-item.danger {
+  border-color: #ff6b97 !important;
+  animation: dangerPulse 1s infinite;
+}
+
+@keyframes dangerPulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(255, 71, 87, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(255, 71, 87, 0.8);
+  }
+}
+
+
+/* Battle Log Scrollbar Styling */
+.battle-log-panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.battle-log-panel::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+}
+
+.battle-log-panel::-webkit-scrollbar-thumb {
+  background: rgba(170, 170, 170, 0.5);
+  border-radius: 10px;
+}
+
+.battle-log-panel::-webkit-scrollbar-thumb:hover {
+  background: rgba(170, 170, 170, 0.8);
+}
+
+/* Nutrients Bar Color */
+.stat-bar-fill.nutrients {
+  background: linear-gradient(90deg, #51cf66 0%, #37b24d 100%);
+}
+
+/* Action Section Titles */
+.action-section-title {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #4a9eff;
+  margin-top: 10px;
+  margin-bottom: 5px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid rgba(74, 158, 255, 0.3);
+  text-shadow: 0 0 5px rgba(74, 158, 255, 0.5);
+}
+
+.action-section-title:first-child {
+  margin-top: 0;
+}
+
+/* Action Description Text */
+.action-desc {
+color: #5e2f0d !important; /* Maro închis (în loc de gri) */
+  font-weight: 600 !important;
+  opacity: 0.9;
+  font-size: 0.85rem !important;
+}
+
+.battle-action-btn {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.battle-action-btn .action-icon {
+  align-self: center;
+  margin-bottom: 5px;
+}
+
+.battle-action-btn .action-name {
+  align-self: flex-start;
+  width: 100%;
+}
+
+/* ==========================================
+   BATTLE TRANSITIONS & ANIMATIONS
+   ========================================== */
+
+/* Fade in battle screen */
+.battle-screen {
+  animation: battleFadeIn 0.5s ease-out;
+}
+
+@keyframes battleFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Enemy attack animation */
+.battle-enemy.attacking {
+  animation: enemyAttack 0.5s ease-out;
+}
+
+@keyframes enemyAttack {
+  0%, 100% { transform: translateY(0); }
+  25% { transform: translateY(-10px); }
+  50% { transform: translateY(5px); }
+  75% { transform: translateY(-5px); }
+}
+
+/* Plant hurt animation */
+.battle-plant.hurt {
+  animation: plantHurt 0.5s ease-out;
+}
+
+@keyframes plantHurt {
+  0%, 100% { transform: translateX(0); filter: brightness(1); }
+  25% { transform: translateX(-10px); filter: brightness(0.7); }
+  50% { transform: translateX(10px); filter: brightness(0.7); }
+  75% { transform: translateX(-5px); filter: brightness(0.9); }
+}
+
+/* Weakness hit - make it MUCH more visible */
+.weakness-popup {
+  position: fixed;
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10001;
+  animation: weaknessExplode 2s ease-out;
+}
+
+.weakness-text {
+  font-size: 8rem;
+  font-weight: 900;
+  color: #ffd700;
+  text-shadow: 
+    0 0 20px rgba(255, 215, 0, 1),
+    0 0 40px rgba(255, 215, 0, 0.8),
+    0 0 60px rgba(255, 215, 0, 0.6),
+    0 0 80px rgba(255, 215, 0, 0.4),
+    5px 5px 10px rgba(0, 0, 0, 0.8);
+  animation: weaknessTextPulse 0.3s ease-in-out infinite;
+  letter-spacing: 10px;
+}
+
+@keyframes weaknessExplode {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3) rotate(-10deg);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.3) rotate(5deg);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1) rotate(-2deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8) rotate(0deg);
+  }
+}
+
+@keyframes weaknessTextPulse {
+  0%, 100% { 
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% { 
+    transform: scale(1.05);
+    filter: brightness(1.3);
+  }
+}
+
+/* HP Bar damage animation */
+.hp-bar-fill {
+  transition: width 0.8s ease-out;
+}
+
+.stat-bar-fill {
+  transition: width 0.6s ease-out;
+}
+
+/* Battle entry transition */
+.battle-enemies {
+  animation: enemiesEnter 0.8s ease-out;
+}
+
+@keyframes enemiesEnter {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.battle-plants {
+  animation: plantsEnter 0.8s ease-out 0.2s backwards;
+}
+
+@keyframes plantsEnter {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.turn-order-panel {
+  animation: panelSlideIn 0.6s ease-out 0.3s backwards;
+}
+
+@keyframes panelSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+}
+
+.battle-action-menu {
+  animation: menuSlideUp 0.5s ease-out 0.4s backwards;
+}
+
+@keyframes menuSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.battle-log-panel {
+  animation: logFadeIn 0.5s ease-out 0.5s backwards;
+}
+
+@keyframes logFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Plant Heads Indicator */
+.plant-heads-indicator {
+  background: rgba(81, 207, 102, 0.2);
+  border: 1px solid #51cf66;
+  border-radius: 5px;
+  padding: 8px;
+  margin: 10px 0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #51cf66;
+}
+
+/* Battle Damage Numbers */
+.battle-damage-number {
+  font-size: 3rem;
+  font-weight: 900;
+  animation: damageFloat 1.5s ease-out forwards;
+  text-shadow: 
+    2px 2px 4px rgba(0, 0, 0, 0.8),
+    0 0 10px rgba(0, 0, 0, 0.6);
+}
+
+.battle-damage-number.damage {
+  color: #ff4757;
+}
+
+.battle-damage-number.heal {
+  color: #51cf66;
+}
+
+.battle-damage-number.weakness {
+  color: #ffd700;
+  font-size: 4rem;
+  text-shadow: 
+    0 0 20px rgba(255, 215, 0, 0.8),
+    0 0 40px rgba(255, 215, 0, 0.6),
+    2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+@keyframes damageFloat {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.5);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(-20px) scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-80px) scale(0.8);
+  }
+}
+/* --- 🏡 MAIN GAME GRID CENTRAT --- */
+.game-screen-wrapper {
+  display: grid;
+  grid-template-columns: 280px 1fr 280px; /* Panouri mai mici pentru room mai mare */
+  grid-template-rows: auto 1fr auto; /* Top | Middle (ROOM) | Bottom */
+  height: 100vh;
+  width: 100vw;
+  gap: 15px;
+  padding: 15px;
+  box-sizing: border-box;
+  overflow: hidden;
+  align-items: stretch; /* Panourile ocupă înălțimea */
+}
+
+.room-view {
+  grid-column: 2; /* Mijloc */
+  grid-row: 2; /* Middle row - ROOM MARE AICI */
+  background: #ffd5d5;
+  border: 8px solid #3d1f08;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  image-rendering: pixelated;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 500px; /* Room mai înalt */
+}
+
+.room-floor {
+  position: absolute; bottom: 0; width: 100%; height: 20%;
+  background: #8B4513; border-top: 4px solid #5e2f0d;
+}
+
+.pixel-plant-sprite {
+  width: 120px; height: auto;
+  image-rendering: pixelated; /* 🟢 Keeps pixel art sharp */
+  filter: drop-shadow(0 4px 4px rgba(0,0,0,0.2));
+  z-index: 10;
+}
+
+.char-sprite {
+  position: absolute; bottom: 18%; width: 85px;
+  image-rendering: pixelated; z-index: 15;
+  transition: all 0.5s ease-in-out;
+}
+
+/* Character positions */
+.char-pos-center { left: 45%; }
+.char-pos-door { left: 12%; }
+.char-pos-bed { left: 78%; transform: rotate(90deg); bottom: 25%; }
+
+/* Panouri laterale (inventory + stats) */
+.left-panel-wrapper {
+  grid-column: 1;
+  grid-row: 1 / -1; /* Ocupă toată înălțimea */
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  overflow-y: auto;
+}
+
+.right-panel-wrapper {
+  grid-column: 3;
+  grid-row: 1 / -1; /* Ocupă toată înălțimea */
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  overflow-y: auto;
+}
+
+/* Calendar la top (peste toate coloanele) */
+.calendar-top {
+  grid-column: 1 / -1; /* Span toate coloanele */
+  grid-row: 1;
+  display: flex;
+  justify-content: center;
+  padding: 10px;
+  z-index: 100;
+}
+
+/* Action buttons la bottom */
+.action-buttons-bottom {
+  grid-column: 1 / -1; /* Span toate coloanele */
+  grid-row: 3;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 15px;
+  z-index: 100;
+}
+
+/* Culorile care se vor vedea prin geam */
+/* VECHILE REGULI - COMENTATE (acum folosim weather + time combined)
+.window-glass.time-morning { background: linear-gradient(to bottom, #a2d2ff 0%, #ffffff 100%) !important; }
+.window-glass.time-afternoon { background: linear-gradient(to bottom, #ffa500 0%, #ff8c69 50%, #f4ecd8 100%) !important; }
+.window-glass.time-night { background: linear-gradient(to bottom, #0a0e27 0%, #1a1a3e 50%, #0f0c29 100%) !important; }
+*/
+
+/* Efect de sticlă mată peste culori */
+.window-glass::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%);
+}
+
+/* Titlurile panourilor și meniurilor */
+.stats-panel-title, 
+.action-menu-title, 
+.submenu-title, 
+.overlay-title, 
+.victory-stat-title {
+  font-family: 'VT323', monospace !important;
+  font-size: 2.2rem !important; /* Mărit pentru a compensa lățimea fontului pixel */
+  text-transform: uppercase;
+  text-shadow: none !important; /* Eliminăm umbrele moderne */
+}
+
+/* Textul mic din calendar și bare de status */ 
+.stat-label, 
+.stat-value, 
+.consumption-label, 
+.consumption-item {
+  font-family: 'VT323', monospace !important;
+  font-size: 1.2rem !important;
+  text-transform: uppercase;
+  
+}
+
+/* FORȚARE GLOBALĂ PIXEL ART */
+* {
+  border-radius: 0px !important; /* Fără colțuri rotunde nicăieri */
+  box-sizing: border-box;
+}
+
+/* Asigură-te că toate umbrele sunt solide (fără blur) */
+.stats-panel, .log-panel, .room-view, .calendar-container-new {
+  box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.25) !important;
+}
+
+/* FORȚARE GLOBALĂ: Tot textul din panouri devine Maro Închis */
+.stat-label, 
+.stat-value, 
+.consumption-label,
+.weather-status-title,
+.plant-name,
+.turn-order-name {
+  color: #3d1f08 !important; /* Culoare de cerneală/lemn ars */
+  text-shadow: none !important; /* Fără umbre neclare */
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+/* Doar emoji-urile păstrează culoarea naturală */
+.stat-label::first-letter,
+.weather-status-title::first-letter {
+  filter: drop-shadow(0 0 0 transparent); /* Curățăm efectele de pe emoji */
+}
+
+/* Separatoare discrete în interiorul panourilor */
+.stats-panel-section {
+  border-bottom: 2px dashed #8b6b55; /* Linie punctată maro deschis */
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+}
+
+/* Asigură-te că fontul se aplică și în Log */
+.log-panel, .log-panel-title, .log-entry {
+  font-family: 'VT323', monospace !important;
+  color: #3d1f08 !important;
+  text-transform: uppercase;
+  text-shadow: none !important;
+  box-sizing: border-box;
+}
+
+.log-panel-title {
+  font-size: 1.6rem !important; /* Titlu mare și clar */
+  border-bottom: 3px solid #3d1f08; /* Linie groasă sub titlu */
+  margin-bottom: 10px;
+  padding-bottom: 5px;
+  text-align: center;
+}
+
+.log-entry {
+  font-size: 1.2rem !important; /* Textul mesajelor */
+  line-height: 1.4;
+  padding: 5px 0;
+  border-bottom: 1px dashed #8b6b55; /* Linie punctată subtilă între mesaje */
+}
+
+.log-entry:last-child {
+  border-bottom: none;
+}
+
+/* Setări comune pentru TOATE panourile laterale */
+.stats-panel, .log-panel {
+  position: fixed !important;
+  width: 280px !important; /* Lățime fixă pentru simetrie */
+  left: auto; 
+  right: auto;
+  box-sizing: border-box;
+  background-color: #fdf5e6 !important;
+  border: 4px solid #3d1f08 !important;
+  box-shadow: 6px 6px 0 rgba(0,0,0,0.2) !important;
+  border-radius: 0px !important;
+}
+
+/* === COLOANA STÂNGA === */
+
+/* Inventarul - Sus Stânga */
+.inventory-panel {
+  top: 140px !important; /* Imediat sub calendar */
+  left: 20px !important;
+  height: auto;
+}
+
+/* Jurnalul - Jos Stânga (Sub Inventar) */
+.log-panel {
+  top: 400px !important; /* Ajustează valoarea asta în funcție de înălțimea inventarului */
+  left: 20px !important;
+  bottom: auto !important; /* Anulăm bottom: 30px */
+  height: 280px; /* Înălțime fixă */
+  overflow-y: auto; /* Scroll dacă e prea mult text */
+}
+
+/* === COLOANA DREAPTA === */
+
+/* Status Plantă - Sus Dreapta */
+.plant-panel {
+  top: 140px !important;
+  right: 20px !important;
+  width: 280px !important;
+}
+
+/* === MODUL DE NOAPTE: Panouri de Lemn === */
+body.night .stats-panel, 
+body.night .log-panel,
+body.night .calendar-container-new {
+  background-color: #c5a491 !important; /* Aceeași nuanță ca butoanele */
+  border-color: #3d1f08 !important;
+  color: #2a1a0f !important; /* Text puțin mai închis pentru contrast pe lemn */
+  box-shadow: inset 0 0 30px rgba(0,0,0,0.3), 6px 6px 0 rgba(0,0,0,0.4) !important; /* Umbră interioară pentru atmosferă */
+}
+
+/* Ajustăm și barele de status să fie mai vizibile pe fundalul de lemn */
+body.night .stat-bar {
+  background: #a88b7d !important; /* Lemn mai închis în spatele barelor */
+  border: 2px solid #2a1a0f !important;
+}
+
+/* Log-ul noaptea */
+body.night .log-entry {
+  color: #2a1a0f !important;
+  border-bottom: 1px dashed #8b6b55;
+}
+
+/* === SUBMENIURI & OVERLAYS (Fixarea designului vechi) === */
+
+/* Containerul ferestrei (Plant Care, Expedition) */
+.submenu-panel, 
+.plant-info-modal,
+.overlay-card {
+  background: #fdf5e6 !important; /* Bej Parchment (ziua) */
+  border: 6px solid #5e2f0d !important; /* Ramă groasă de lemn */
+  border-radius: 0px !important; /* Colțuri drepte */
+  box-shadow: 10px 10px 0 rgba(0,0,0,0.4) !important; /* Umbră solidă retro */
+  color: #3d1f08 !important;
+  font-family: 'VT323', monospace !important;
+}
+
+/* Dacă e noapte, facem și submeniurile de lemn */
+body.night .submenu-panel,
+body.night .plant-info-modal {
+  background: #c5a491 !important;
+}
+
+/* Titlurile din submeniuri */
+.submenu-title, 
+.overlay-title, 
+.plant-info-title {
+  color: #3d1f08 !important;
+  text-shadow: none !important;
+  font-size: 2.5rem !important;
+  border-bottom: 3px solid #3d1f08;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+}
+
+/* Butoanele din interiorul meniurilor (Water, Fertilize, Trips) */
+.submenu-options .action-menu-item {
+  width: 100%; /* Să ocupe toată lățimea panoului */
+  background: #d4b5a2 !important; /* Lemn puțin mai deschis */
+  border: 3px solid #3d1f08 !important;
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.2) !important;
+  margin-bottom: 10px;
+}
+
+.submenu-options .action-menu-item:hover {
+  background: #e6cbb8 !important;
+  transform: translate(-2px, -2px);
+}
+
+/* Eliminăm iconița veche de închidere (X) și o facem retro */
+.modal-close-btn {
+  background: #d32f2f !important;
+  border: 2px solid #5c0000 !important;
+  border-radius: 0px !important;
+  color: white !important;
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.3) !important;
+}
+
+.action-menu-container {
+  width: 100%;       /* Ocupă tot ecranul pe lățime */
+  left: 0;           /* Ancorat la stânga */
+  transform: none;   /* Eliminăm vechiul transform */
+  display: flex;
+  justify-content: center; /* Centrează elementele pe orizontală */
+  align-items: center;
+  bottom: 30px;
+  gap: 20px;
+  z-index: 1000;
+}
+
+/* Facem ca overlay-ul să nu mai fie albastru neon, ci întunecat simplu */
+.full-screen-overlay, .battle-screen {
+  background: rgba(0, 0, 0, 0.85) !important;
+  backdrop-filter: blur(5px);
+}
+
+/* Cardurile din interiorul overlay-ului (Expedition, Victory) */
+.overlay-card {
+  border: 6px solid #5e2f0d !important; /* Ramă de lemn */
+  color: #3d1f08 !important; /* Text maro */
+  box-shadow: 10px 10px 0 rgba(0,0,0,0.5) !important;
+}
+
+/* Titlurile din ecranele de overlay */
+.overlay-title, .overlay-subtitle {
+  color: #3d1f08 !important;
+  text-shadow: none !important;
+}
+
+/* Butoanele din Battle și Expedition */
+.overlay-button, .battle-action-btn {
+  background: #c5a491 !important; /* Lemn */
+  border: 3px solid #3d1f08 !important;
+  color: #3d1f08 !important;
+  text-shadow: none !important;
+  border-radius: 0px !important;
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.3) !important;
+}
+
+.battle-action-btn:hover {
+  background: #d4b5a2 !important;
+  transform: translateY(-2px);
+}
+
+/* =================================================================
+   ⚔️ BATTLE SCREEN COMPLETE OVERHAUL (Boardgame Style)
+   ================================================================= */
+
+/* 1. SCENA DE LUPTĂ (Fundalul) */
+.battle-screen {
+  background-color: #2a1d15 !important; /* Lemn foarte închis / Cafea */
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px) !important;
+  background-size: 40px 40px !important; /* Grilaj subtil tactic */
+  backdrop-filter: none !important;
+}
+
+.battle-background {
+  display: none !important; /* Scoatem fundalul vechi cosmic */
+}
+
+/* 2. CARDURILE DE UNITĂȚI (Plante & Inamici) */
+/* Le transformăm în "cărți de joc" așezate pe masă */
+.battle-enemy, 
+.battle-plant {
+  background-color: #fdf5e6 !important; /* Hârtie */
+  border: 4px solid #3d1f08 !important; /* Ramă groasă */
+  border-radius: 2px !important;
+  padding: 15px !important;
+  box-shadow: 0 8px 0 rgba(0,0,0,0.4) !important; /* Umbră 3D solidă */
+  transition: transform 0.2s !important;
+  min-width: 160px !important;
+  text-align: center;
+  position: relative;
+}
+
+/* Efect când e rândul lor */
+.battle-plant.current-turn-plant,
+.battle-enemy.targeted {
+  border-color: #d4af37 !important; /* Auriu */
+  transform: translateY(-5px) !important;
+  box-shadow: 0 12px 0 rgba(0,0,0,0.4) !important;
+}
+
+/* Numele unităților */
+.enemy-name, .plant-name {
+  color: #3d1f08 !important;
+  font-size: 1.2rem !important;
+  text-transform: uppercase;
+  border-bottom: 2px solid #3d1f08;
+  margin-bottom: 8px !important;
+  padding-bottom: 4px !important;
+  text-shadow: none !important;
+}
+
+/* Sprite-urile (Iconițele) */
+.enemy-sprite, .plant-sprite {
+  font-size: 3.5rem !important;
+  filter: drop-shadow(2px 2px 0 rgba(0,0,0,0.2)) !important;
+  margin: 10px 0 !important;
+}
+
+/* 3. BARELE DE VIAȚĂ (HP/Water) ÎN LUPTĂ */
+.battle-screen .stat-bar {
+  background: #d3c4a9 !important;
+  border: 2px solid #3d1f08 !important;
+  height: 12px !important;
+  border-radius: 0 !important;
+  margin: 4px 0 !important;
+}
+
+.battle-screen .stat-label {
+  color: #5c3d2e !important;
+  font-size: 0.9rem !important;
+}
+
+/* 4. TURN ORDER (Stânga - Lista de ordine) */
+.turn-order-panel {
+  background-color: #e6d5b8 !important; /* Carton mai închis */
+  border: 4px solid #3d1f08 !important;
+  box-shadow: 6px 6px 0 rgba(0,0,0,0.3) !important;
+  border-radius: 0 !important;
+  left: 30px !important;
+}
+
+.turn-order-title {
+  background: #3d1f08;
+  color: #fdf5e6 !important;
+  padding: 5px;
+  margin: -15px -15px 10px -15px !important; /* Header stilizat */
+  border-bottom: 4px solid #3d1f08;
+}
+
+.turn-order-item {
+  background: transparent !important;
+  border-bottom: 2px solid rgba(61, 31, 8, 0.2) !important;
+  color: #3d1f08 !important;
+  border-radius: 0 !important;
+}
+
+.turn-order-item.current-turn {
+  background: #fff !important;
+  border: 2px solid #3d1f08 !important;
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.1);
+  transform: scale(1.05);
+}
+
+/* 5. MENIUL DE ACȚIUNI (Dreapta Jos - Control Panel) */
+.battle-action-menu {
+  background-color: #fdf5e6 !important;
+  border: 6px solid #3d1f08 !important; /* Ramă foarte groasă */
+  box-shadow: 10px 10px 0 rgba(0,0,0,0.4) !important;
+  border-radius: 0 !important;
+  padding: 20px !important;
+  right: 30px !important;
+  bottom: 30px !important;
+  width: 300px !important;
+}
+
+.battle-action-title {
+  color: #3d1f08 !important;
+  font-size: 1.5rem !important;
+  border-bottom: 4px solid #3d1f08 !important;
+  margin-bottom: 15px !important;
+  text-transform: uppercase;
+}
+
+.action-section-title {
+  color: #8b4513 !important; /* Maro ruginiu */
+  border-bottom: 2px dashed #3d1f08 !important;
+  font-size: 1rem !important;
+}
+
+/* Butoanele de atac/heal */
+.battle-action-btn {
+  background: #c5a491 !important; /* Lemn */
+  border: 3px solid #3d1f08 !important;
+  color: #3d1f08 !important;
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.25) !important;
+  margin-bottom: 8px !important;
+  border-radius: 0 !important;
+}
+
+.battle-action-btn:hover:not(:disabled) {
+  background: #e6cbb8 !important;
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 rgba(0,0,0,0.25) !important;
+}
+
+.battle-action-btn:disabled {
+  background: #a89f91 !important;
+  color: #666 !important;
+  border-color: #555 !important;
+  box-shadow: none !important;
+}
+
+/* 6. BATTLE LOG (Stânga Jos) */
+.battle-log-panel {
+  background-color: #2a1d15 !important; /* Negru-Maro (Consolă) */
+  border: 4px solid #3d1f08 !important;
+  color: #51cf66 !important; /* Text verde terminal retro */
+  box-shadow: 6px 6px 0 rgba(0,0,0,0.4) !important;
+}
+
+.battle-log-title {
+  color: #fdf5e6 !important;
+  border-bottom: 2px solid #555 !important;
+}
+
+.battle-log-entry {
+  font-family: 'VT323', monospace !important;
+  font-size: 1rem !important;
+  border-bottom: 1px dashed rgba(255,255,255,0.1) !important;
+}
+
+
+/* ============================================
+   🎯 LAYOUT ÎMBUNĂTĂȚIT - ROOM CENTRAT
+   ============================================ */
+
+/* Sun în geam - mai mare și mai centrat */
+.sun-sprite {
+  position: absolute !important;
+  top: 20% !important; /* Mai sus în geam */
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  font-size: 8rem !important; /* Mai mare */
+  z-index: 50 !important;
+  filter: drop-shadow(0 0 30px rgba(255, 200, 0, 0.8)) !important;
+  animation: sunPulse 4s ease-in-out infinite !important;
+}
+
+@keyframes sunPulse {
+  0%, 100% { transform: translateX(-50%) scale(1); }
+  50% { transform: translateX(-50%) scale(1.1); }
+}
+
+/* Plant în mijlocul geamului */
+.pixel-plant-sprite {
+  position: absolute !important;
+  bottom: 25% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: 180px !important; /* Mai mare */
+  height: auto !important;
+  image-rendering: pixelated !important;
+  filter: drop-shadow(0 8px 12px rgba(0,0,0,0.3)) !important;
+  z-index: 20 !important;
+}
+
+/* Room view mai mare */
+.room-view {
+  min-height: 600px !important;
+  max-height: 70vh !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+
+/* Panouri laterale mai compacte */
+.stats-panel,
+.inventory-panel,
+.activity-log {
+  max-height: 400px;
+  overflow-y: auto;
+  font-size: 0.9rem;
+}
+
+/* Calendar horizontal la top */
+.calendar-wrapper {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 10px 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+
+/* ============================================
+   🦊 FIREFOX SPECIFIC FIXES
+   ============================================ */
+
+/* Firefox Grid Centering Fix */
+@-moz-document url-prefix() {
+  .room-view {
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+  
+  .game-screen-wrapper {
+    grid-template-columns: 280px 1fr 280px !important;
+    justify-items: center !important;
+  }
+}
+
+/* Webkit (Chrome/Safari) optimizations */
+@supports (-webkit-appearance: none) {
+  .room-view {
+    -webkit-transform: translateZ(0);
+  }
+}
+
+
+/* ============================================
+   🌤️ WEATHER BACKGROUNDS - CULORI DIFERITE
+   ============================================ */
+
+/* Smooth transitions pentru toate schimbările de culoare */
+.window-glass {
+  transition: background 2s ease-in-out !important;
+}
+
+/* SUNNY WEATHER */
+.window-glass.weather-sunny.time-morning {
+  background: linear-gradient(to bottom, #87CEEB 0%, #B0E0FF 60%, #FFE5B4 100%) !important;
+}
+.window-glass.weather-sunny.time-afternoon {
+  background: linear-gradient(to bottom, #FFD700 0%, #FFA500 40%, #FFE5B4 100%) !important;
+}
+.window-glass.weather-sunny.time-night {
+  background: linear-gradient(to bottom, #0a0e27 0%, #1a1f3e 100%) !important;
+}
+
+/* OVERCAST WEATHER */
+.window-glass.weather-overcast.time-morning {
+  background: linear-gradient(to bottom, #778899 0%, #A9A9A9 50%, #D3D3D3 100%) !important;
+}
+.window-glass.weather-overcast.time-afternoon {
+  background: linear-gradient(to bottom, #696969 0%, #A9A9A9 50%, #C0C0C0 100%) !important;
+}
+.window-glass.weather-overcast.time-night {
+  background: linear-gradient(to bottom, #2F4F4F 0%, #3d3d5c 50%, #1a1a2e 100%) !important;
+}
+
+/* RAINY WEATHER */
+.window-glass.weather-rainy.time-morning {
+  background: linear-gradient(to bottom, #4682B4 0%, #6495ED 40%, #B0C4DE 100%) !important;
+}
+.window-glass.weather-rainy.time-afternoon {
+  background: linear-gradient(to bottom, #36648B 0%, #5F9EA0 50%, #8B9CAF 100%) !important;
+}
+.window-glass.weather-rainy.time-night {
+  background: linear-gradient(to bottom, #1e3a5f 0%, #2c4a6e 50%, #1a1f3e 100%) !important;
+}
+
+/* SNOWY WEATHER */
+.window-glass.weather-snowy.time-morning {
+  background: linear-gradient(to bottom, #E0FFFF 0%, #F0F8FF 50%, #FFFFFF 100%) !important;
+}
+.window-glass.weather-snowy.time-afternoon {
+  background: linear-gradient(to bottom, #B0E0E6 0%, #E0F6FF 50%, #F5F5F5 100%) !important;
+}
+.window-glass.weather-snowy.time-night {
+  background: linear-gradient(to bottom, #2F4F5F 0%, #465863 50%, #3d4a5c 100%) !important;
+}
+
+/* THUNDERSTORM WEATHER */
+.window-glass.weather-thunderstorm.time-morning {
+  background: linear-gradient(to bottom, #2F4F4F 0%, #3d3d5c 40%, #696969 100%) !important;
+}
+.window-glass.weather-thunderstorm.time-afternoon {
+  background: linear-gradient(to bottom, #1C1C1C 0%, #363636 50%, #4F4F4F 100%) !important;
+}
+.window-glass.weather-thunderstorm.time-night {
+  background: linear-gradient(to bottom, #000000 0%, #1a1a2e 50%, #0a0a1e 100%) !important;
+}
+
+/* ============================================
+   🎨 DEPTH EFFECTS - PARALLAX & SHADOWS
+   ============================================ */
+
+/* Room View - 3D depth */
+.room-view {
+  transform: perspective(1000px) !important;
+  transform-style: preserve-3d !important;
+}
+
+/* Window glass - slightly inset */
+.window-glass {
+  box-shadow: 
+    inset 0 0 40px rgba(0,0,0,0.15),
+    inset -8px -8px 20px rgba(0,0,0,0.1),
+    0 10px 30px rgba(0,0,0,0.3) !important;
+}
+
+/* Floor - shadow depth */
+.room-floor {
+  box-shadow: 
+    inset 0 10px 20px rgba(0,0,0,0.2),
+    0 -5px 15px rgba(0,0,0,0.1) !important;
+}
+
+/* Plant sprite - parallax depth */
+.pixel-plant-sprite {
+  filter: drop-shadow(0 15px 25px rgba(0,0,0,0.4)) !important;
+  transition: transform 0.3s ease !important;
+}
+
+.pixel-plant-sprite:hover {
+  transform: translateX(-50%) translateY(-5px) scale(1.02) !important;
+}
+
+/* Character sprite - depth */
+.char-sprite {
+  filter: drop-shadow(0 12px 20px rgba(0,0,0,0.35)) !important;
+}
+
+/* Calendar - floating depth */
+.room-view > div:nth-child(1) {
+  /* Calendar div */
+  box-shadow: 
+    3px 3px 0 rgba(0,0,0,0.2),
+    5px 5px 15px rgba(0,0,0,0.3) !important;
+}
+
+/* Weather emoji - glowing effect */
+.room-view > div:nth-child(2) {
+  /* Weather indicator div */
+  text-shadow: 0 0 20px rgba(255,255,255,0.5) !important;
+}
+
+/* Room border - inner shadow for depth */
+.room-view::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  box-shadow: inset 0 0 50px rgba(0,0,0,0.2);
+  pointer-events: none;
+  z-index: 100;
+}
+
+
+/* ============================================
+   🏠 ROOM BACKGROUND - WEATHER COLORS
+   Întreaga cameră își schimbă culoarea!
+   ============================================ */
+
+/* Smooth transitions */
+.room-view {
+  transition: background 2s ease-in-out !important;
+}
+
+/* SUNNY - Cameră luminoasă, caldă */
+.room-view.weather-sunny.time-morning {
+  background: linear-gradient(to bottom, #FFE5CC 0%, #FFC8A0 100%) !important;
+}
+.room-view.weather-sunny.time-afternoon {
+  background: linear-gradient(to bottom, #FFD4A3 0%, #FFB380 100%) !important;
+}
+.room-view.weather-sunny.time-night {
+  background: linear-gradient(to bottom, #4A4A6A 0%, #2A2A4A 100%) !important;
+}
+
+/* OVERCAST - Cameră gri, sumbră */
+.room-view.weather-overcast.time-morning {
+  background: linear-gradient(to bottom, #C8C8D0 0%, #A0A0B0 100%) !important;
+}
+.room-view.weather-overcast.time-afternoon {
+  background: linear-gradient(to bottom, #B0B0C0 0%, #909098 100%) !important;
+}
+.room-view.weather-overcast.time-night {
+  background: linear-gradient(to bottom, #3A3A4A 0%, #2A2A3A 100%) !important;
+}
+
+/* RAINY - Cameră cu nuanțe albastre */
+.room-view.weather-rainy.time-morning {
+  background: linear-gradient(to bottom, #D0E8F0 0%, #A8C8D8 100%) !important;
+}
+.room-view.weather-rainy.time-afternoon {
+  background: linear-gradient(to bottom, #B0D0E0 0%, #90B0C8 100%) !important;
+}
+.room-view.weather-rainy.time-night {
+  background: linear-gradient(to bottom, #3A4A5A 0%, #2A3A4A 100%) !important;
+}
+
+/* SNOWY - Cameră rece, albă-albastră */
+.room-view.weather-snowy.time-morning {
+  background: linear-gradient(to bottom, #F0F8FF 0%, #D8E8F8 100%) !important;
+}
+.room-view.weather-snowy.time-afternoon {
+  background: linear-gradient(to bottom, #E0F0FF 0%, #C0D8E8 100%) !important;
+}
+.room-view.weather-snowy.time-night {
+  background: linear-gradient(to bottom, #4A5A6A 0%, #3A4A5A 100%) !important;
+}
+
+/* THUNDERSTORM - Cameră foarte întunecată */
+.room-view.weather-thunderstorm.time-morning {
+  background: linear-gradient(to bottom, #808088 0%, #606068 100%) !important;
+}
+.room-view.weather-thunderstorm.time-afternoon {
+  background: linear-gradient(to bottom, #606068 0%, #404048 100%) !important;
+}
+.room-view.weather-thunderstorm.time-night {
+  background: linear-gradient(to bottom, #2A2A3A 0%, #1A1A2A 100%) !important;
+}
+
+
+/* ============================================
+   🌍 BODY BACKGROUND - WEATHER + TIME
+   Întregul ecran își schimbă culoarea!
+   ============================================ */
+
+/* SUNNY backgrounds */
+body.day.weather-sunny {
+  background: linear-gradient(135deg, #87CEEB 0%, #E0F6FF 50%, #FFE4B5 100%) !important;
+}
+body.afternoon.weather-sunny {
+  background: linear-gradient(135deg, #FFA500 0%, #FF8C69 50%, #FFD700 100%) !important;
+}
+body.night.weather-sunny {
+  background: linear-gradient(135deg, #0a0e27 0%, #1a1f3e 50%, #0f0c29 100%) !important;
+}
+
+/* OVERCAST backgrounds */
+body.day.weather-overcast {
+  background: linear-gradient(135deg, #778899 0%, #A9A9A9 50%, #C0C0C0 100%) !important;
+}
+body.afternoon.weather-overcast {
+  background: linear-gradient(135deg, #696969 0%, #808080 50%, #A9A9A9 100%) !important;
+}
+body.night.weather-overcast {
+  background: linear-gradient(135deg, #2F4F4F 0%, #3d3d5c 50%, #1a1a2e 100%) !important;
+}
+
+/* RAINY backgrounds */
+body.day.weather-rainy {
+  background: linear-gradient(135deg, #4682B4 0%, #5F9EA0 50%, #B0C4DE 100%) !important;
+}
+body.afternoon.weather-rainy {
+  background: linear-gradient(135deg, #36648B 0%, #4682B4 50%, #6495ED 100%) !important;
+}
+body.night.weather-rainy {
+  background: linear-gradient(135deg, #1e3a5f 0%, #2c4a6e 50%, #1a1f3e 100%) !important;
+}
+
+/* SNOWY backgrounds */
+body.day.weather-snowy {
+  background: linear-gradient(135deg, #E0FFFF 0%, #F0F8FF 50%, #FFFFFF 100%) !important;
+}
+body.afternoon.weather-snowy {
+  background: linear-gradient(135deg, #B0E0E6 0%, #D0E8F0 50%, #E6F2FF 100%) !important;
+}
+body.night.weather-snowy {
+  background: linear-gradient(135deg, #2F4F5F 0%, #3d4a5c 50%, #465863 100%) !important;
+}
+
+/* THUNDERSTORM backgrounds */
+body.day.weather-thunderstorm {
+  background: linear-gradient(135deg, #2F4F4F 0%, #3d3d5c 50%, #4F4F4F 100%) !important;
+}
+body.afternoon.weather-thunderstorm {
+  background: linear-gradient(135deg, #1C1C1C 0%, #2A2A2A 50%, #363636 100%) !important;
+}
+body.night.weather-thunderstorm {
+  background: linear-gradient(135deg, #000000 0%, #0a0a1e 50%, #1a1a2e 100%) !important;
+}
+

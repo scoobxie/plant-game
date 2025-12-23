@@ -1,160 +1,31 @@
 import React, { useState, useEffect, useRef } from 'react';
-import './game-ui.css';
+import './index.css';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
+import { plantTypes, getStartingPlantType } from './game/plantTypes';
+import {
+  generateEnemy,
+  sortTurnQueue,
+  calculateBattleDamage,
+  checkBattleEnd,
+  calculateBattleRewards
+} from './game/battleLogic';
+
 
 function App() {
   const maxDays = 30;
+  
+  const [authScreen, setAuthScreen] = useState('title'); // Options: 'title', 'login', 'register'
+  const [charPos, setCharPos] = useState('center'); // 🟢 This creates the missing variable
 
-  // --- PLANT TYPES SYSTEM ---
-  const plantTypes = {
-    cactus: {
-      name: 'Cactus',
-      emoji: '🌵',
-      damageType: 'Pierce',
-      maxWater: 5,
-      maxNutrients: 15,
-      maxHealth: 15,
-      startWater: 3,
-      startNutrients: 8,
-      baseWaterConsumption: 1, // LOW - nu crește
-      baseNutrientConsumption: 2,
-      overwaterThreshold: 4, // Overwater ușor! (4/5 nu 5/5)
-      overfeedThreshold: 15,
-      // Special abilities
-      waterConsumptionGrowth: false, // NU crește water consumption
-      nutrientConsumptionGrowth: 2, // Crește cu +2 (nu +1-2)
-      immuneToDrought: true,
-      floodDamage: [5, 7], // Extra damage de la flood
-      description: 'Desert survivor - immune to drought, hates floods'
-    },
-    venusFlytrap: {
-      name: 'Venus Flytrap',
-      emoji: '🪴',
-      damageType: 'Bite',
-      maxWater: 10,
-      maxNutrients: 0,
-      maxHealth: 6, // Fragil! (nu 8)
-      startWater: 5,
-      startNutrients: 0,
-      baseWaterConsumption: 2,
-      baseNutrientConsumption: 0,
-      overwaterThreshold: 8, // Overwater ușor! (8/10 nu 10/10)
-      overfeedThreshold: 0,
-      // Special abilities
-      expeditionWaterBonus: [2, 3], // Extra water în expeditions
-      earthquakeDamage: 2, // +2 extra damage
-      description: 'Carnivorous - finds extra water, fragile'
-    },
-    sunflower: {
-      name: 'Sunflower',
-      emoji: '🌻',
-      damageType: 'Beam',
-      maxWater: 12,
-      maxNutrients: 12,
-      maxHealth: 8, // 8 HP (nu 10)
-      startWater: 6,
-      startNutrients: 6,
-      baseWaterConsumption: 2,
-      baseNutrientConsumption: 2,
-      overwaterThreshold: 12,
-      overfeedThreshold: 12,
-      // Special abilities
-      photosynthesis: 2, // +2 nutrients dimineața
-      morningDewChance: 0.3, // 30% chance +1 water
-      description: 'Solar powered - photosynthesis & morning dew'
-    },
-    rose: {
-      name: 'Rose',
-      emoji: '🌹',
-      damageType: 'Pierce',
-      maxWater: 10,
-      maxNutrients: 15,
-      maxHealth: 8,
-      startWater: 2, // LOW start (nu 5)
-      startNutrients: 4, // LOW start (nu 8)
-      baseWaterConsumption: 2,
-      baseNutrientConsumption: 3,
-      overwaterThreshold: 10,
-      overfeedThreshold: 15,
-      // Special abilities
-      healEnergyCost: 2, // Heal costă 2 energy (thorny!)
-      fertilizeCost: 2, // Consumă 2 nutrients (picky eater!)
-      immuneToEarthquake: true,
-      description: 'Elegant aristocrat - strong roots, thorny care'
-    },
-    ivy: {
-      name: 'Ivy',
-      emoji: '🌿',
-      damageType: 'Poison',
-      maxWater: 8,
-      maxNutrients: 10,
-      maxHealth: 12,
-      startWater: 4,
-      startNutrients: 5,
-      baseWaterConsumption: 1,
-      baseNutrientConsumption: 2,
-      overwaterThreshold: 8,
-      overfeedThreshold: 10,
-      // Special abilities
-      allDisastersDamage: 2, // +2 damage de la TOATE dezastrele
-      autoHealDays: 3, // +1 HP every 3 days
-      healEnergyCost: 3, // Manual heal costă 3 energy
-      description: 'Toxic creeper - regenerates, takes extra damage'
-    },
-    mushroom: {
-      name: 'Mushroom',
-      emoji: '🍄',
-      damageType: 'Fungi',
-      maxWater: 20, // MARE! (nu 15)
-      maxNutrients: 5,
-      maxHealth: 10,
-      startWater: 8,
-      startNutrients: 3,
-      baseWaterConsumption: 5, // MULT! (nu 3)
-      baseNutrientConsumption: 1,
-      overwaterThreshold: 20,
-      overfeedThreshold: 5,
-      // Special abilities
-      nightEnergyBonus: 2, // +2 extra energy noaptea (total 3)
-      description: 'Nocturnal fungi - loves moisture, night energy'
-    },
-    appleTree: {
-      name: 'Apple Tree',
-      emoji: '🍎',
-      damageType: 'Gravity',
-      maxWater: 20,
-      maxNutrients: 20,
-      maxHealth: 20,
-      startWater: 18, // Aproape maxat!
-      startNutrients: 18, // Aproape maxat!
-      baseWaterConsumption: 4,
-      baseNutrientConsumption: 4,
-      overwaterThreshold: 20,
-      overfeedThreshold: 20,
-      // Special abilities
-      description: 'Mighty tree - massive tank, huge consumption'
-    }
-  };
+
 
   // Random starter plant - salvat în localStorage pentru consistency
-  const [plantType] = useState(() => {
-    // Check dacă avem deja un tip salvat
-    const savedType = localStorage.getItem('currentPlantType');
-    if (savedType && plantTypes[savedType]) {
-      return plantTypes[savedType];
-    }
-    
-    // Generează nou plantType random
-    const types = Object.keys(plantTypes);
-    const randomType = types[Math.floor(Math.random() * types.length)];
-    localStorage.setItem('currentPlantType', randomType);
-    return plantTypes[randomType];
-  });
+  const [plantType] = useState(() => getStartingPlantType());
 
   // --- 1. STATE: AUTENTIFICARE ---
   const [user, setUser] = useState(null);
-  const [viewState, setViewState] = useState('login'); // 'login', 'register', 'game'
+  const [viewState, setViewState] = useState('title'); 
 
   // --- SISTEM FAZĂ LUNARĂ (ciclu de 30 zile) ---
   const moonPhases = [
@@ -304,7 +175,6 @@ function App() {
     water: plantType.startWater,      
     nutrients: plantType.startNutrients,  
     health: plantType.maxHealth,    
-    growth: 1,
     dryDays: 0,
     overwateredDays: 0,  // Debuff pentru overwatering
     damagedRootsDays: 0  // Debuff pentru Landslide
@@ -487,7 +357,6 @@ function App() {
         id: `plant_head_0_${Date.now()}`,
         type: plantType.name.toLowerCase().replace(' ', ''),
         name: plantType.name,
-        emoji: plantType.emoji,
         damageType: plantType.damageType,
         hp: plant.health,
         maxHP: plantType.maxHealth,
@@ -518,7 +387,6 @@ function App() {
           id: `plant_head_${plantHeads.length}_${Date.now()}`,
           type: randomType.name.toLowerCase().replace(' ', ''),
           name: randomType.name,
-          emoji: randomType.emoji,
           damageType: randomType.damageType,
           hp: randomType.maxHealth,
           maxHP: randomType.maxHealth,
@@ -550,49 +418,94 @@ function App() {
 
   // --- EFECTE (Load & Save & Styles) ---
 
-  // Verificăm dacă userul e logat la pornire
+// Verificăm dacă userul e logat la pornire
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const savedUser = localStorage.getItem('user');
-    if (token && savedUser) {
-      setUser(JSON.parse(savedUser));
-      setViewState('game');
-      
-      // Încărcăm și salvarea jocului dacă există (din localStorage momentan)
-      const savedGame = localStorage.getItem('gardenSave');
-      if (savedGame) {
-        try {
-          const data = JSON.parse(savedGame);
-          setDay(data.day); 
-          setWater(data.water); 
-          setNutrients(data.nutrients);
-          setEnergy(data.energy); 
-          setPlant(data.plant);
-          setTimeOfDay(data.timeOfDay);
-          setPlantConsumptionRate(data.plantConsumptionRate || 1);
-          setDifficultyLevel(data.difficultyLevel || 1);
-        } catch(e) { console.error("Corrupted save"); }
+    // Check localStorage OR sessionStorage
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    const savedUserString = localStorage.getItem('user') || sessionStorage.getItem('user');
+    
+    if (token && savedUserString) {
+      try {
+        const parsedUser = JSON.parse(savedUserString);
+        setUser(parsedUser);
+        setViewState('game');
+        
+        // Look at the USER OBJECT for the save, not 'gardenSave'
+        if (parsedUser.gameSave) {
+          console.log("☁️ Loading Cloud Save...");
+          const save = parsedUser.gameSave;
+          
+          setDay(save.day || 1); 
+          setWater(save.water !== undefined ? save.water : 10); 
+          setNutrients(save.nutrients !== undefined ? save.nutrients : 10);
+          setEnergy(save.energy !== undefined ? save.energy : 2); 
+          setPlant(save.plant || plant);
+          setTimeOfDay(save.timeOfDay || 'morning');
+          setPlantConsumptionRate(save.plantConsumptionRate || 1);
+          setDifficultyLevel(save.difficultyLevel || 1);
+          
+          // Sync Weather/Calendar if day > 1
+          if (save.day && weatherCalendar) {
+             // (Optional: logic to sync weather visual)
+          }
+        } else {
+          // NO CLOUD SAVE? Start Fresh (Don't load ghost data)
+          console.log("🆕 New Game / No Save Found");
+          setDay(1);
+          setWater(10);
+          setNutrients(10);
+          setEnergy(2);
+        }
+      } catch(e) { 
+        console.error("Corrupted user data", e); 
+        // Safety: Log out if data is bad
+        localStorage.clear();
+        setUser(null);
       }
     }
   }, []);
 
   // Salvăm jocul la fiecare modificare
+  // --- CLOUD ONLY AUTO-SAVE (Replaces your old localStorage save) ---
   useEffect(() => {
-    if (viewState === 'game') {
+    // Only save if we are in-game and have a valid user
+    if (viewState === 'game' && user && user.email) {
+      
       const gameState = { 
         day, water, nutrients, energy, plant, timeOfDay,
         plantConsumptionRate, difficultyLevel 
       };
-      localStorage.setItem('gardenSave', JSON.stringify(gameState));
-    }
-  }, [day, water, nutrients, energy, plant, timeOfDay, viewState, plantConsumptionRate, difficultyLevel]);
 
+      // 🟢 NO localStorage here! (Prevents Ghost Data)
+      
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://plant-game.onrender.com';
+      const token = localStorage.getItem('token');
+      
+      // Save to Cloud
+      fetch(`${apiUrl}/api/save`, {
+        method: 'POST',
+        keepalive: true, // Ensures save finishes even if tab closes
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ 
+          email: user.email, 
+          gameState: gameState 
+        })
+      }).catch(err => console.warn("☁️ Save skipped:", err));
+    }
+  }, [day, water, nutrients, energy, plant, timeOfDay, viewState, plantConsumptionRate, difficultyLevel, user]);
+  
   // Aplicăm tema (Zi/Noapte) pe body
   useEffect(() => {
     document.body.className = ''; 
+    // Time of day class
     if (timeOfDay === 'night') document.body.classList.add('night');
     else if (timeOfDay === 'afternoon') document.body.classList.add('afternoon');
     else document.body.classList.add('day');
+    // Weather class
+    document.body.classList.add(`weather-${currentWeather}`);
   }, [timeOfDay]);
 
   // --- LOGICĂ JOC ---
@@ -1618,6 +1531,36 @@ function App() {
     }
   };
 
+// NEW FUNCTION: Send save data to backend
+const saveToCloud = async () => {
+  if (!user || !user.email) return; // Don't save if not logged in
+
+  const gameState = { 
+    day, water, nutrients, energy, plant, timeOfDay,
+    plantConsumptionRate, difficultyLevel 
+  };
+
+  try {
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    
+    // This sends the data to your Node.js server
+    await fetch('https://plant-game.onrender.com/api/save', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}` // 🔐 This is the "Key" for the lock
+      },
+      body: JSON.stringify({ 
+        email: user.email, 
+        gameState: gameState 
+      })
+    });
+    console.log("☁️ Cloud Save Complete");
+  } catch (error) {
+    console.error("❌ Cloud Save Failed:", error);
+  }
+};
+
   const startNewDay = () => {
     const newDay = day + 1;
     
@@ -1904,7 +1847,7 @@ function App() {
         water: newWater,
         nutrients: newNutrients,
         health: newHealth,
-        growth: prev.growth + 1,
+
         dryDays: newDryDays,
         overwateredDays: newOverwateredDays,
         damagedRootsDays: newDamagedRootsDays
@@ -1915,6 +1858,9 @@ function App() {
     if (newDay === nextDisasterDay) {
         triggerDisaster(newDay);
     }
+
+    saveToCloud();
+
   };
 
   const triggerDisaster = (currentDay = day) => {
@@ -2046,15 +1992,67 @@ function App() {
     return false;
   };
 
-  // --- RENDERIZARE ---
+// --- RENDERIZARE ---
 
-  if (viewState === 'login') {
+// 🟢 TITLE SCREEN WITH TWO BUTTONS
+  if (viewState === 'title') {
     return (
       <div className="auth-wrapper">
-        <h1 id="title">🌿 Plant Game</h1>
+        <h1 className="game-title">
+          <img src="/assets/plant.wide.open.mouth.png" alt="" className="title-icon left-icon" />
+          PLANT GAME
+          <img src="/assets/plant.wide.open.mouth.png" alt="" className="title-icon right-icon" />
+        </h1>
+        
+        <div className="game-subtitle">Pixel Garden Adventure</div>
+
+        {/* 🆕 BUTTON GROUP */}
+        <div className="title-menu">
+          
+          {/* Button 1: Play / Login */}
+          <button className="press-start-btn" onClick={() => setViewState('login')}>
+            ▶ RESUME GAME
+          </button>
+          
+          {/* Button 2: Register */}
+          <button className="new-game-btn" onClick={() => setViewState('register')}>
+            ★ NEW GARDENER
+          </button>
+
+        </div>
+
+        <div className="version-tag">v1.0</div>
+      </div>
+    );
+  }
+
+if (viewState === 'login') {
+    return (
+      <div className="auth-wrapper">
         <Login 
           switchToRegister={() => setViewState('register')} 
-          onLoginSuccess={(u) => { setUser(u); setViewState('game'); }} 
+          // This loads your save immediately when you click "Login"
+          onLoginSuccess={(u) => { 
+            setUser(u); 
+            
+            // If the user has a save file, force the game to use it NOW
+            if (u.gameSave) {
+              console.log("☁️ Instant Cloud Load:", u.gameSave);
+              setDay(u.gameSave.day || 1);
+              setWater(u.gameSave.water !== undefined ? u.gameSave.water : 10);
+              setNutrients(u.gameSave.nutrients !== undefined ? u.gameSave.nutrients : 10);
+              setEnergy(u.gameSave.energy !== undefined ? u.gameSave.energy : 2);
+              setPlant(u.gameSave.plant || plant);
+              
+              // Load extra details if they exist
+              setTimeOfDay(u.gameSave.timeOfDay || 'morning');
+              setDifficultyLevel(u.gameSave.difficultyLevel || 1);
+              setPlantConsumptionRate(u.gameSave.plantConsumptionRate || 1);
+            }
+            
+            setViewState('game'); 
+          }} 
+          onBack={() => setViewState('title')} 
         />
       </div>
     );
@@ -2063,7 +2061,6 @@ function App() {
   if (viewState === 'register') {
     return (
       <div className="auth-wrapper">
-        <h1 id="title">🌿 Plant Game</h1>
         <Register switchToLogin={() => setViewState('login')} />
       </div>
     );
@@ -2142,52 +2139,21 @@ function App() {
         </>
       )}
       
-      {/* Mini-Meniu Hamburger - Stânga Sus */}
-      <div className="mini-menu">
-        <button className="hamburger-btn" onClick={() => setMenuOpen(!menuOpen)}>
-          ☰
-        </button>
-        
-        {menuOpen && (
-          <div className="menu-dropdown">
-            <button className="menu-item logout-btn" onClick={() => {
-              localStorage.removeItem('token');
-              localStorage.removeItem('user');
-              localStorage.removeItem('gardenSave');
-              setViewState('login');
-            }}>
-              🚪 LOGOUT
-            </button>
-            
-            <button className="menu-item restart-btn-menu" onClick={restart}>
-              🔄 RESTART
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Day Counter - Top Left Corner with Season */}
-      <div className="day-counter-corner">
-        <div className="season-indicator">
-          <span className="season-emoji">{currentSeason.emoji}</span>
-          <span className="season-name">{currentSeason.name}</span>
-        </div>
-        <div className="day-counter-row">
-          <div className="day-counter-number">{day}</div>
-          <div className="day-counter-separator">/</div>
-          <div className="day-counter-max">{maxDays}</div>
-        </div>
-      </div>
-
-      {/* Moon Phase - Top Right Corner */}
-      <div 
-        className="moon-phase-corner clickable" 
-        onClick={() => setMoonCalendarExpanded(!moonCalendarExpanded)}
-      >
-        <div className="moon-expand-hint">▼ Click to expand</div>
-        <div className="moon-phase-emoji">{getMoonPhase(day).emoji}</div>
-        <div className="moon-phase-name">{getMoonPhase(day).name}</div>
-      </div>
+      {/* Butoane Utilitare Direct pe Ecran */}
+<div className="utility-buttons-container">
+  <button className="utility-btn" onClick={() => {
+    localStorage.clear();
+    sessionStorage.clear();
+    // FORCE RELOAD: This guarantees no "ghost data" stays in memory
+    window.location.reload(); 
+  }}>
+    LOG OUT
+  </button>
+  
+  <button className="utility-btn restart-btn-top" onClick={restart}>
+    RESTART
+  </button>
+</div>
 
       {/* MOON CALENDAR EXPANDED */}
       {moonCalendarExpanded && (
@@ -2287,10 +2253,148 @@ function App() {
       )}
 
       <div id="game" className={`${screenShake ? 'screen-shake' : ''} weather-${currentWeather} time-${timeOfDay}`}>
+<div className={`room-view weather-${currentWeather} time-${timeOfDay}`} style={{ 
+  gridColumn: '2', 
+  margin: '80px auto 0 auto', /* Centrare cu margin auto pentru Firefox */
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'flex-end',
+  alignItems: 'center',
+  height: '70vh', 
+  width: '100%', 
+  maxWidth: '1000px',
+  borderRadius: '12px',
+  overflow: 'hidden',
+  boxShadow: '0 10px 40px rgba(0,0,0,0.4)'
+}}>
+
+ {/* GEAMUL: Folosește clasele dinamice pentru a vedea cerul prin el */}
+  <div className={`window-glass weather-${currentWeather} time-${timeOfDay}`} style={{
+    width: '40%',
+    height: '50%',
+    position: 'absolute',
+    top: '15%',
+    left: '30%', /* Centrat în room */
+    border: '6px solid #5c382eff',
+    zIndex: 1,
+    boxShadow: 'inset 0 0 20px #ffcd2881'
+  }}>
+
+    {/* 📅 CALENDAR - Colțul STÂNG SUS al geamului, pe marginea lui */}
+    <div style={{
+      position: 'absolute',
+      top: '-2%', /* Mai sus, ușor afară din geam */
+      left: '-5%', /* AFARĂ din geam, pe marginea stângă */
+      width: '70px',
+      height: '80px',
+      background: '#ffffffff',
+      border: '3px solid #3d1f08',
+      boxShadow: '3px 3px 0 rgba(0,0,0,0.2)',
+      zIndex: 10,
+      display: 'flex',
+      flexDirection: 'column',
+      textAlign: 'center',
+      transform: 'rotate(-6deg)',
+      transformOrigin: 'top left'
+    }}>
+      {/* Nail */}
+      <div style={{position:'absolute', top:'-6px', left:'50%', transform:'translateX(-50%)', width:'6px', height:'6px', background:'#333', borderRadius:'50%'}}></div>
+      
+      {/* Red Header */}
+      <div style={{background: '#d64545', color:'white', fontFamily:'"VT323", monospace', padding:'2px 0', fontSize:'0.6rem', borderBottom:'2px solid #3d1f08'}}>
+        {currentSeason.name.toUpperCase()}
+      </div>
+      
+      {/* Paper Body */}
+      <div style={{flex: 1, display:'flex', flexDirection:'column', justifyContent:'center', color:'#3d1f08'}}>
+        <div style={{fontSize:'2.2rem', lineHeight:'0.9', fontWeight:'bold', fontFamily:'"VT323", monospace'}}>{day}</div>
+        <div style={{fontSize:'0.55rem', fontFamily:'"VT323", monospace', color:'#888'}}>DAY {maxDays}</div>
+      </div>
+    </div>
+
+    {/* 🌤️ WEATHER/TIME INDICATOR - Floating în colțul dreapta sus */}
+    <div style={{
+      position: 'absolute',
+      top: '5%',
+      right: '5%',
+      zIndex: 10,
+      fontSize: '3rem',
+      filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
+      animation: 'float 3s ease-in-out infinite'
+    }}>
+      {timeOfDay === 'night' ? '🌙' : (
+        <>
+          {currentWeather === 'sunny' && '☀️'}
+          {currentWeather === 'overcast' && '☁️'}
+          {currentWeather === 'rainy' && '🌧️'}
+          {currentWeather === 'snowy' && '☁️'}
+          {currentWeather === 'thunderstorm' && '⛈️'}
+        </>
+      )}
+    </div>
+
+{currentWeather === 'rainy' && (
+      <div className="weather-overlay rain-overlay">
+        {Array.from({ length: 20 }).map((_, i) => (
+          <div key={i} className="rain-drop" style={{ left: `${Math.random() * 100}%` }}></div>
+        ))}
+      </div>
+    )}
+
+    {/* Grilaj geam pentru aspect mai drăguț */}
+    <div style={{ position: 'absolute', top: '50%', width: '100%', height: '5px', background: '#5c382eff' }}></div>
+    <div style={{ position: 'absolute', left: '50%', height: '100%', width: '5px', background: '#5c382eff' }}></div>
+  </div>
+
+  {/* 🪵 PODEAUA CAMEREI */}
+  <div className="room-floor" style={{ 
+    width: '100%', 
+    height: '25%', 
+    background: '#b1917fff', 
+    borderTop: '6px solid #c5a491ff',
+    zIndex: 1
+  }}></div>
+
+  {/* Planta și Fata: Vor sta în fața geamului */}
+  <div style={{ 
+    position: 'absolute',
+    bottom: '20%',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    display: 'flex', 
+    alignItems: 'flex-end', 
+    gap: '40px',
+    zIndex: 10 
+  }}>
+     <img 
+       src={plantType.image} 
+       className="pixel-plant-sprite"
+       style={{ 
+         width: '350px', 
+         height: 'auto', 
+         imageRendering: 'pixelated',
+         filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.3))'
+       }} 
+     />
+     <img 
+        src={user?.character === 'boy' ? "/assets/boy.png" : "/assets/girl.png"} 
+        className="char-sprite"
+        style={{ 
+          width: '250px', 
+          height: 'auto', 
+          imageRendering: 'pixelated',
+          filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.2))'
+        }} 
+     />
+</div> {/* Închide plant+character container */}
+
+</div> {/* Închide room-view */}
+
+  {/*INVENTORY */}
         {/* INVENTORY PANEL (Left Side) */}
         <div className="stats-panel inventory-panel">
           <div className="stats-panel-section">
-            <div className="stats-panel-title">🎒 Your Inventory</div>
+            <div className="stats-panel-title">Inventory</div>
             <div className="stat-row">
               <div className="stat-label">💧 Water Buckets</div>
               <div className={`stat-value ${water < 3 ? 'warning' : ''}`}>{water}</div>
@@ -2376,29 +2480,6 @@ function App() {
               </>
             )}
             
-            {/* WEATHER STATUS PANEL */}
-            <div className="weather-status-panel">
-              <div className="weather-status-title">
-                {currentWeatherData.emoji} {currentWeatherData.name}
-              </div>
-              <div className="weather-effects-list">
-                {currentWeather === 'sunny' && (
-                  <div className="weather-effect-item sunny">☀️ +2 🌱 daily</div>
-                )}
-                {currentWeather === 'overcast' && (
-                  <div className="weather-effect-item overcast">☁️ 2x ⚡ cost</div>
-                )}
-                {currentWeather === 'rainy' && (
-                  <div className="weather-effect-item rainy">🌧️ Fill 💧 bar</div>
-                )}
-                {currentWeather === 'snowy' && (
-                  <div className="weather-effect-item snowy">❄️ FREEZE (0 consumption)</div>
-                )}
-                {currentWeather === 'thunderstorm' && (
-                  <div className="weather-effect-item thunderstorm">⛈️ Locked inside</div>
-                )}
-              </div>
-            </div>
             
             {/* SINGLE PLANT DISPLAY WITH SWAPPING */}
             {plantHeads && plantHeads.length > 0 && (() => {
@@ -2451,7 +2532,7 @@ function App() {
                     {/* Plant Name & Emoji */}
                     <div style={{flex: 1, textAlign: 'center'}}>
                       <div style={{fontSize: '2rem', marginBottom: '5px'}}>{currentHead.emoji}</div>
-                      <div style={{fontWeight: 'bold', color: 'white', fontSize: '1.1rem'}}>
+                      <div style={{fontWeight: 'bold', fontSize: '1.1rem'}}>
                         {currentHead.name}
                       </div>
                       {plantHeads.length > 1 && (
@@ -2535,7 +2616,7 @@ function App() {
             
             {/* Consumption Info Panel */}
             <div className="consumption-info">
-              <div className="consumption-label">🌙 Nightly Consumption:</div>
+              <div className="consumption-label">🌙Nightly Consumption:</div>
               
               {/* WEATHER EFFECT INDICATOR */}
               {(currentWeather === 'snowy' || currentWeather === 'rainy' || currentWeather === 'sunny') && (
@@ -2598,24 +2679,6 @@ function App() {
                 </div>
               </div>
             )}
-          </div>
-        </div>
-
-        {/* CENTER STAGE (Plant) - Shows SELECTED plant */}
-        <div className="center-stage">
-          <div className={`plant-display ${plant.health < 5 ? 'low-health' : ''}`}>
-            {(() => {
-              if (gameView === 'dead') return '🥀';
-              const selectedHead = plantHeads[selectedHeadIndex];
-              if (!selectedHead) return plantType.emoji;
-              
-              // Show wilted if low water
-              if (selectedHead.water < 3) return '🍂';
-              return selectedHead.emoji;
-            })()}
-          </div>
-          <div className="time-of-day-label">
-            {timeOfDay.toUpperCase()}
           </div>
         </div>
 
@@ -2716,7 +2779,6 @@ function App() {
             {/* MAIN MENU - MORNING */}
             {gameView === 'normal' && timeOfDay === 'morning' && (
               <div className="action-menu-container">
-                <div className={`click-here-indicator weather-${currentWeather}`}>👇 CLICK HERE 👇</div>
                 {currentWeather === 'thunderstorm' ? (
                   <>
                     <div className="action-menu-item disabled">
@@ -2731,12 +2793,10 @@ function App() {
                 ) : energy >= getEnergyCost(1) ? (
                   <>
                     <div className="action-menu-item" onClick={() => setGameView('plant-menu')}>
-                      <div className="action-menu-title">🌿 Tend Plant</div>
-                      <div className="action-menu-subtitle">Water, fertilize, or heal your plant</div>
+                      <div className="action-menu-title">🌿 Plant Care </div>
                     </div>
                     <div className="action-menu-item" onClick={() => setGameView('expedition-menu')}>
-                      <div className="action-menu-title">🎒 Expedition</div>
-                      <div className="action-menu-subtitle">Gather water and nutrients</div>
+                      <div className="action-menu-title">🎒 Expedition </div>
                     </div>
                   </>
                 ) : (
@@ -2753,26 +2813,6 @@ function App() {
             {/* MAIN MENU - AFTERNOON */}
             {gameView === 'normal' && timeOfDay === 'afternoon' && (
               <div className="action-menu-container">
-                {/* DEBUG DISPLAY */}
-                <div style={{
-                  position: 'fixed',
-                  top: '10px',
-                  right: '10px',
-                  background: 'rgba(0,0,0,0.8)',
-                  color: 'white',
-                  padding: '10px',
-                  borderRadius: '5px',
-                  fontSize: '12px',
-                  zIndex: 10000
-                }}>
-                  <div>DEBUG:</div>
-                  <div>battleCompleted: {battleCompleted ? 'TRUE' : 'FALSE'}</div>
-                  <div>battleWarning: {battleWarning ? 'TRUE' : 'FALSE'}</div>
-                  <div>gameView: {gameView}</div>
-                  <div>timeOfDay: {timeOfDay}</div>
-                  <div>weather: {currentWeather}</div>
-                </div>
-                
                 {/* After battle completed - show continue */}
                 {battleCompleted && (
                   <div className="action-menu-item" onClick={sleep}>
@@ -3145,5 +3185,6 @@ function App() {
     </>
   );
 }
+
 
 export default App;
