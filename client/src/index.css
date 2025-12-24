@@ -1,3 +1,22 @@
+
+/* ============================================
+   🎯 GLOBAL RESET - No white corners!
+   ============================================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+}
+
 @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
 /* ===================================
@@ -3698,5 +3717,380 @@ body.afternoon.weather-thunderstorm {
 }
 body.night.weather-thunderstorm {
   background: linear-gradient(135deg, #000000 0%, #0a0a1e 50%, #1a1a2e 100%) !important;
+}
+
+
+/* ============================================
+   🎮 AUTH MENU STYLING - TITLE SCREEN
+   Special retro game menu styling
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+/* Auth wrapper - full screen background */
+.auth-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  width: 100vw;
+  position: fixed;
+  top: 0;
+  left: 0;
+  margin: 0;
+  background-color: #87CEEB;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.2) 2px, transparent 2px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.2) 2px, transparent 2px);
+  background-size: 40px 40px;
+  background-position: 0 0; /* Aliniat perfect de la (0,0) */
+  font-family: 'VT323', monospace;
+  gap: 20px;
+  padding: 20px;
+  overflow-y: auto; /* Scroll dacă e nevoie */
+}
+
+/* Game title - big retro text */
+.game-title {
+  font-family: 'OriginalSurfer', 'VT323', monospace;
+  font-size: 6rem;
+  color: #2f3a22;
+  margin: 0 0 1rem 0;
+  text-shadow: 
+    -2px -2px 0 #fff, 
+    2px -2px 0 #fff, 
+    -2px 2px 0 #fff, 
+    2px 2px 0 #fff, 
+    4px 4px 0 rgba(0,0,0,0.2);
+  animation: float 3s ease-in-out infinite;
+  text-align: center;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+/* Title icons (plant emojis) */
+.title-icon {
+  width: 150px;
+  height: auto;
+  image-rendering: pixelated;
+  animation: bounce 3s infinite alternate;
+}
+
+.left-icon {
+  animation-delay: 0s;
+}
+
+.right-icon {
+  animation-delay: 0.5s;
+}
+
+@keyframes bounce {
+  0% { transform: translateY(0) rotate(-5deg); }
+  100% { transform: translateY(-15px) rotate(5deg); }
+}
+
+/* Game subtitle */
+.game-subtitle {
+  font-family: 'VT323', monospace;
+  font-size: 2.5rem;
+  color: #fff;
+  text-shadow: 2px 2px 0 #000;
+  margin-top: -20px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+/* Title menu container */
+.title-menu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 25px;
+  margin-top: 40px;
+  width: 100%;
+}
+
+/* Press Start button - wooden style */
+.press-start-btn {
+  font-family: 'VT323', monospace;
+  font-size: 2.8rem;
+  background: #8B4513;
+  color: #e6dcc0;
+  border: 4px solid #5e2f0d;
+  width: 340px;
+  padding: 10px 0;
+  cursor: pointer;
+  box-shadow: 
+    inset 2px 2px 0 #A0522D,
+    inset -2px -2px 0 #5e2f0d,
+    0 8px 0 #5e2f0d;
+  text-transform: uppercase;
+  text-shadow: 2px 2px 0 #5e2f0d;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.press-start-btn:hover {
+  background: #A0522D;
+  transform: translateY(-2px);
+  box-shadow: 
+    inset 2px 2px 0 #8B4513,
+    inset -2px -2px 0 #5e2f0d,
+    0 10px 0 #5e2f0d;
+}
+
+.press-start-btn:active {
+  transform: translateY(8px);
+  box-shadow: 
+    inset 2px 2px 0 #5e2f0d,
+    0 0 0 #5e2f0d;
+}
+
+/* New Game button - green leaf style */
+.new-game-btn {
+  font-family: 'VT323', monospace;
+  font-size: 2.2rem;
+  background: #6d864b;
+  color: white;
+  border: 4px solid #2f3a22;
+  width: 340px;
+  padding: 12px 0;
+  cursor: pointer;
+  box-shadow: 0 8px 0 #2f3a22;
+  text-transform: uppercase;
+  transition: all 0.1s;
+  text-shadow: 2px 2px 0px rgba(0,0,0,0.3);
+}
+
+.new-game-btn:hover {
+  background: #7db85a;
+  transform: scale(1.05);
+}
+
+.new-game-btn:active {
+  transform: translateY(8px);
+  box-shadow: 0 0 0 #2f3a22;
+}
+
+/* Version tag */
+.version-tag {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  color: rgba(255,255,255,0.8);
+  font-size: 1.2rem;
+  font-family: 'VT323', monospace;
+}
+
+
+/* ============================================
+   🎨 CHARACTER SELECTION & AUTH FORMS
+   Styling pentru Register/Login screens
+   ============================================ */
+
+/* Auth container - form holder */
+.auth-container {
+  background-color: #e6dcc0; /* Paper beige - exact ca în screenshot! */
+  width: 380px;
+  padding: 2rem;
+  text-align: center;
+  position: relative;
+  border: 4px solid #8B4513; /* Wood border */
+  box-shadow: 
+    inset 0 0 0 4px #c2b280, /* Inner paper border */
+    8px 8px 0px rgba(0,0,0,0.3); /* Drop shadow */
+  image-rendering: pixelated;
+}
+
+/* Nails în colțuri */
+.auth-container::before, 
+.auth-container::after {
+  content: ''; 
+  position: absolute; 
+  top: 10px;
+  width: 8px; 
+  height: 8px; 
+  background: #5e2f0d; /* Wood shadow color pentru nails */
+  border-radius: 50%; 
+  box-shadow: 0 0 0 2px #A0522D; /* Wood light ring */
+}
+.auth-container::before { left: 10px; }
+.auth-container::after { right: 10px; }
+
+.auth-container h2 {
+  font-family: 'OriginalSurfer', 'VT323', monospace;
+  font-size: 2.5rem;
+  text-align: center;
+  color: #8B4513; /* Wood brown */
+  margin: 0 0 30px 0;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+}
+
+/* Character Selection */
+.char-select {
+  margin-bottom: 30px;
+}
+
+.char-options { 
+  display: flex; 
+  justify-content: center; 
+  gap: 20px; 
+  margin-bottom: 20px; 
+}
+
+.char-option {
+  width: 70px; 
+  height: 70px; 
+  border: 2px dashed #8B4513; /* wood-primary */
+  border-radius: 8px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  cursor: pointer; 
+  transition: transform 0.2s; 
+  background: rgba(255,255,255,0.5);
+}
+
+.char-option img { 
+  width: 100%; 
+  height: 100%; 
+  image-rendering: pixelated; 
+}
+
+.char-option.selected {
+  border: 4px solid #6d864b; /* leaf-green */
+  background: #fff;
+  transform: scale(1.1); 
+  box-shadow: 0 0 15px #6d864b;
+}
+
+/* Remove checkmark - not in original */
+
+/* Input Group */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.input-group input,
+.auth-container input {
+  font-family: 'OriginalSurfer', 'VT323', monospace;
+  font-size: 1.4rem;
+  width: 90%;
+  padding: 10px;
+  margin: 8px 0;
+  border: 2px solid #8B4513; /* Wood border */
+  background: #fff;
+  color: #333;
+  outline: none;
+  box-shadow: inset 4px 4px 0px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+.input-group input:focus,
+.auth-container input:focus {
+  background: #fffef0; /* Slight yellow tint on focus */
+  border-color: #6d864b; /* Leaf green */
+  box-shadow: 0 0 10px rgba(109, 134, 75, 0.3);
+  transform: translateY(-2px);
+}
+
+.input-group input::placeholder,
+.auth-container input::placeholder {
+  color: #999;
+}
+
+/* Submit Button */
+.auth-container form button[type="submit"] {
+  font-family: 'VT323', monospace;
+  font-size: 2rem;
+  width: 100%;
+  padding: 15px;
+  background: #6d864b;
+  color: white;
+  border: 4px solid #2f3a22;
+  border-radius: 8px;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
+  box-shadow: 0 6px 0 #2f3a22;
+  margin-top: 10px;
+}
+
+.auth-container form button[type="submit"]:hover:not(:disabled) {
+  background: #7db85a;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 0 #2f3a22;
+}
+
+.auth-container form button[type="submit"]:active:not(:disabled) {
+  transform: translateY(6px);
+  box-shadow: 0 0 0 #2f3a22;
+}
+
+.auth-container form button[type="submit"]:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #999;
+  border-color: #666;
+}
+
+/* Error Message */
+.error {
+  background: #ff4757;
+  color: white;
+  padding: 12px;
+  border-radius: 8px;
+  text-align: center;
+  font-family: 'VT323', monospace;
+  font-size: 1.3rem;
+  margin: 15px 0;
+  border: 2px solid #c92a2a;
+}
+
+/* Link Button (Already have account?) */
+.link-btn {
+  font-family: 'VT323', monospace;
+  font-size: 1.3rem;
+  background: none;
+  border: none;
+  color: #2f3a22;
+  cursor: pointer;
+  text-decoration: underline;
+  margin-top: 20px;
+  width: 100%;
+  padding: 10px;
+  transition: all 0.2s ease;
+}
+
+.link-btn:hover {
+  color: #6d864b;
+  transform: scale(1.05);
+}
+
+/* ============================================
+   🎨 CUSTOM FONT - OriginalSurfer
+   ============================================ */
+
+@font-face {
+  font-family: 'OriginalSurfer';
+  src: url('/fonts/OriginalSurfer-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
 }
 
