@@ -1,13 +1,10 @@
+/* Import separate style modules */
+@import './styles/variables.css';
+@import './styles/themes.css';
+@import './styles/layout.css';
+@import './styles/auth.css';
 
-/* ============================================
-   🎯 GLOBAL RESET - No white corners!
-   ============================================ */
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+/* Remaining game-specific styles will stay below */
 
 html, body {
   margin: 0 !important;
