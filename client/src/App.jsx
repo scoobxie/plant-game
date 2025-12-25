@@ -2283,8 +2283,8 @@ if (viewState === 'login') {
     {/* 📅 CALENDAR - Colțul STÂNG SUS al geamului, pe marginea lui */}
     <div style={{
       position: 'absolute',
-      top: '-2%', /* Mai sus, ușor afară din geam */
-      left: '-5%', /* AFARĂ din geam, pe marginea stângă */
+      top: '10%', /* Mai sus, ușor afară din geam */
+      left: '-35%', /* AFARĂ din geam, pe marginea stângă */
       width: '70px',
       height: '80px',
       background: '#ffffffff',
@@ -2355,38 +2355,47 @@ if (viewState === 'login') {
     zIndex: 1
   }}></div>
 
-  {/* Planta și Fata: Vor sta în fața geamului */}
-  <div style={{ 
-    position: 'absolute',
-    bottom: '20%',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    display: 'flex', 
-    alignItems: 'flex-end', 
-    gap: '40px',
-    zIndex: 10 
-  }}>
-     <img 
-       src={plantType.image} 
-       className="pixel-plant-sprite"
-       style={{ 
-         width: '350px', 
-         height: 'auto', 
-         imageRendering: 'pixelated',
-         filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.3))'
-       }} 
-     />
-     <img 
-        src={user?.character === 'boy' ? "/assets/boy.png" : "/assets/girl.png"} 
-        className="char-sprite"
-        style={{ 
-          width: '250px', 
-          height: 'auto', 
-          imageRendering: 'pixelated',
-          filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.2))'
-        }} 
-     />
-</div> {/* Închide plant+character container */}
+ {/* CHARACTER - STÂNGA GEAMULUI */}
+<div style={{ 
+  position: 'absolute',
+  bottom: '10%',
+  left: '20%', // Poziționat în stânga geamului
+  display: 'flex', 
+  alignItems: 'flex-end', 
+  zIndex: 10 
+}}>
+  <img 
+    src={user?.character === 'boy' ? "/assets/boy.png" : "/assets/girl.png"} 
+    className="char-sprite"
+    style={{ 
+      width: '275px', 
+      height: 'auto', 
+      imageRendering: 'pixelated',
+      filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.2))'
+    }} 
+  />
+</div>
+
+{/* PLANTA - DREAPTA GEAMULUI */}
+<div style={{ 
+  position: 'absolute',
+  bottom: '15%', // Mai sus (era 20%)
+  right: '35%', // Mai la stânga (era 15%)
+  display: 'flex', 
+  alignItems: 'flex-end', 
+  zIndex: 10 
+}}>
+  <img 
+    src={plantType.image} 
+    className="pixel-plant-sprite"
+    style={{ 
+      width: '350px', 
+      height: 'auto', 
+      imageRendering: 'pixelated',
+      filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.3))'
+    }} 
+  />
+</div>
 
 </div> {/* Închide room-view */}
 
