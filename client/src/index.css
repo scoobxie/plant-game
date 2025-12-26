@@ -1,19 +1,3 @@
-/* Import separate style modules */
-@import './styles/variables.css';
-@import './styles/themes.css';
-@import './styles/layout.css';
-@import './styles/auth.css';
-
-/* Remaining game-specific styles will stay below */
-
-html, body {
-  margin: 0 !important;
-  padding: 0 !important;
-  width: 100%;
-  height: 100%;
-  overflow-x: hidden;
-}
-
 @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
 /* ===================================
@@ -2847,29 +2831,25 @@ color: #5e2f0d !important; /* Maro închis (în loc de gri) */
 /* --- 🏡 MAIN GAME GRID CENTRAT --- */
 .game-screen-wrapper {
   display: grid;
-  grid-template-columns: 280px 1fr 280px; /* Panouri mai mici pentru room mai mare */
-  grid-template-rows: auto 1fr auto; /* Top | Middle (ROOM) | Bottom */
+  grid-template-columns: 320px 1fr 320px;
+  /* Împărțim ecranul în 3 zone: Top (Calendar), Middle (Cameră), Bottom (Acțiuni) */
+  grid-template-rows: 140px 1fr 160px; 
   height: 100vh;
   width: 100vw;
   gap: 15px;
-  padding: 15px;
+  padding: 20px;
   box-sizing: border-box;
   overflow: hidden;
-  align-items: stretch; /* Panourile ocupă înălțimea */
+  align-items: center; /* Centrează vertical panourile și camera */
 }
 
 .room-view {
-  grid-column: 2; /* Mijloc */
-  grid-row: 2; /* Middle row - ROOM MARE AICI */
+  grid-column: 2;
   background: #ffd5d5;
   border: 8px solid #3d1f08;
   position: relative;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  box-shadow: none;
   image-rendering: pixelated;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 500px; /* Room mai înalt */
 }
 
 .room-floor {
@@ -2895,52 +2875,26 @@ color: #5e2f0d !important; /* Maro închis (în loc de gri) */
 .char-pos-door { left: 12%; }
 .char-pos-bed { left: 78%; transform: rotate(90deg); bottom: 25%; }
 
-/* Panouri laterale (inventory + stats) */
-.left-panel-wrapper {
-  grid-column: 1;
-  grid-row: 1 / -1; /* Ocupă toată înălțimea */
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  overflow-y: auto;
-}
-
-.right-panel-wrapper {
-  grid-column: 3;
-  grid-row: 1 / -1; /* Ocupă toată înălțimea */
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  overflow-y: auto;
-}
-
-/* Calendar la top (peste toate coloanele) */
-.calendar-top {
-  grid-column: 1 / -1; /* Span toate coloanele */
-  grid-row: 1;
-  display: flex;
-  justify-content: center;
-  padding: 10px;
-  z-index: 100;
-}
-
-/* Action buttons la bottom */
-.action-buttons-bottom {
-  grid-column: 1 / -1; /* Span toate coloanele */
-  grid-row: 3;
-  display: flex;
-  justify-content: center;
+.game-screen-wrapper {
+  display: grid;
+  grid-template-columns: 320px 1fr 320px; /* Panouri laterale | Centru | Panouri laterale */
+  grid-template-rows: 1fr; /* Ocupă toată înălțimea */
+  height: 100vh;
+  width: 100vw;
   gap: 20px;
-  padding: 15px;
-  z-index: 100;
+  padding: 20px;
+  box-sizing: border-box;
+  align-items: center; /* Centrează totul pe verticală */
+
+  position: fixed;
+  top: 0;
+  left: 0;
 }
 
 /* Culorile care se vor vedea prin geam */
-/* VECHILE REGULI - COMENTATE (acum folosim weather + time combined)
 .window-glass.time-morning { background: linear-gradient(to bottom, #a2d2ff 0%, #ffffff 100%) !important; }
 .window-glass.time-afternoon { background: linear-gradient(to bottom, #ffa500 0%, #ff8c69 50%, #f4ecd8 100%) !important; }
 .window-glass.time-night { background: linear-gradient(to bottom, #0a0e27 0%, #1a1a3e 50%, #0f0c29 100%) !important; }
-*/
 
 /* Efect de sticlă mată peste culori */
 .window-glass::after {
@@ -3375,719 +3329,439 @@ body.night .plant-info-modal {
 }
 
 
-/* ============================================
-   🎯 LAYOUT ÎMBUNĂTĂȚIT - ROOM CENTRAT
-   ============================================ */
 
-/* Sun în geam - mai mare și mai centrat */
-.sun-sprite {
-  position: absolute !important;
-  top: 20% !important; /* Mai sus în geam */
-  left: 50% !important;
-  transform: translateX(-50%) !important;
-  font-size: 8rem !important; /* Mai mare */
-  z-index: 50 !important;
-  filter: drop-shadow(0 0 30px rgba(255, 200, 0, 0.8)) !important;
-  animation: sunPulse 4s ease-in-out infinite !important;
+/* ========================================
+   FIREFOX & ZOOM FIX - UI Elements Fixed
+   ======================================== */
+
+/* Room view - fixed dimensions, centered */
+.room-view {
+  width: 850px !important;
+  height: 600px !important;
+  margin: 150px auto 0 !important;
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
 }
 
-@keyframes sunPulse {
-  0%, 100% { transform: translateX(-50%) scale(1); }
-  50% { transform: translateX(-50%) scale(1.1); }
-}
-
-/* Plant în mijlocul geamului */
-.pixel-plant-sprite {
+/* Window - fixed size and position */
+.window-glass {
   position: absolute !important;
-  bottom: 25% !important;
+  top: 90px !important;  /* Fixed pixels from top */
   left: 50% !important;
   transform: translateX(-50%) !important;
-  width: 180px !important; /* Mai mare */
+  width: 340px !important;  /* Fixed width */
+  height: 300px !important;  /* Fixed height */
+}
+
+/* Calendar on wall - stays put */
+.room-view > div[style*="position: absolute"][style*="top: 100px"] {
+  position: absolute !important;
+  top: 100px !important;
+  left: 60px !important;
+}
+
+/* Floor - fixed height at bottom */
+.room-floor {
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 150px !important;  /* Fixed height */
+}
+
+/* Plant and Character - fixed position */
+.room-view > div[style*="display: flex"][style*="alignItems: flex-end"] {
+  position: absolute !important;
+  bottom: 150px !important;  /* Above floor */
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 10 !important;
+}
+
+/* Plant sprite - fixed size */
+.room-view img[style*="width: 300px"] {
+  width: 300px !important;
   height: auto !important;
   image-rendering: pixelated !important;
-  filter: drop-shadow(0 8px 12px rgba(0,0,0,0.3)) !important;
-  z-index: 20 !important;
 }
 
-/* Room view mai mare */
-.room-view {
-  min-height: 600px !important;
-  max-height: 70vh !important;
-  border-radius: 12px !important;
-  overflow: hidden !important;
-}
-
-/* Panouri laterale mai compacte */
-.stats-panel,
-.inventory-panel,
-.activity-log {
-  max-height: 400px;
-  overflow-y: auto;
-  font-size: 0.9rem;
-}
-
-/* Calendar horizontal la top */
-.calendar-wrapper {
-  background: rgba(255, 255, 255, 0.95);
-  padding: 10px 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-}
-
-
-/* ============================================
-   🦊 FIREFOX SPECIFIC FIXES
-   ============================================ */
-
-/* Firefox Grid Centering Fix */
+/* Firefox centering fix */
 @-moz-document url-prefix() {
   .room-view {
     margin-left: auto !important;
     margin-right: auto !important;
   }
   
-  .game-screen-wrapper {
-    grid-template-columns: 280px 1fr 280px !important;
-    justify-items: center !important;
+  #game {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
   }
 }
 
-/* Webkit (Chrome/Safari) optimizations */
-@supports (-webkit-appearance: none) {
-  .room-view {
-    -webkit-transform: translateZ(0);
+/* Prevent zoom from moving elements */
+@media (min-resolution: 1.25dppx) {
+  .room-view,
+  .window-glass,
+  .room-floor {
+    zoom: 1;
   }
 }
 
-
-/* ============================================
-   🌤️ WEATHER BACKGROUNDS - CULORI DIFERITE
-   ============================================ */
-
-/* Smooth transitions pentru toate schimbările de culoare */
-.window-glass {
-  transition: background 2s ease-in-out !important;
+@media (min-resolution: 1.5dppx) {
+  .room-view,
+  .window-glass,
+  .room-floor {
+    zoom: 1;
+  }
 }
 
-/* SUNNY WEATHER */
-.window-glass.weather-sunny.time-morning {
-  background: linear-gradient(to bottom, #87CEEB 0%, #B0E0FF 60%, #FFE5B4 100%) !important;
-}
-.window-glass.weather-sunny.time-afternoon {
-  background: linear-gradient(to bottom, #FFD700 0%, #FFA500 40%, #FFE5B4 100%) !important;
-}
-.window-glass.weather-sunny.time-night {
-  background: linear-gradient(to bottom, #0a0e27 0%, #1a1f3e 100%) !important;
+/* Stats panels - keep fixed */
+.stats-panel.inventory-panel,
+.stats-panel.plant-panel {
+  position: fixed;
 }
 
-/* OVERCAST WEATHER */
-.window-glass.weather-overcast.time-morning {
-  background: linear-gradient(to bottom, #778899 0%, #A9A9A9 50%, #D3D3D3 100%) !important;
-}
-.window-glass.weather-overcast.time-afternoon {
-  background: linear-gradient(to bottom, #696969 0%, #A9A9A9 50%, #C0C0C0 100%) !important;
-}
-.window-glass.weather-overcast.time-night {
-  background: linear-gradient(to bottom, #2F4F4F 0%, #3d3d5c 50%, #1a1a2e 100%) !important;
+/* ========================================
+   SOARE PE GEAM + UI MARGINI FIXE
+   ======================================== */
+/* ========================================
+   FINAL FIXES - Calendar, Buttons, Weather
+   ======================================== */
+
+/* 1. CALENDAR - Rămâne centrat (NU modifica poziția originală) */
+.calendar-container-new {
+  position: fixed;
+  top: 23px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 1200px;
 }
 
-/* RAINY WEATHER */
-.window-glass.weather-rainy.time-morning {
-  background: linear-gradient(to bottom, #4682B4 0%, #6495ED 40%, #B0C4DE 100%) !important;
-}
-.window-glass.weather-rainy.time-afternoon {
-  background: linear-gradient(to bottom, #36648B 0%, #5F9EA0 50%, #8B9CAF 100%) !important;
-}
-.window-glass.weather-rainy.time-night {
-  background: linear-gradient(to bottom, #1e3a5f 0%, #2c4a6e 50%, #1a1f3e 100%) !important;
+/* 2. INVENTORY PANEL - Rămâne la poziția originală (240px) */
+.inventory-panel {
+  position: fixed !important;
+  top: 240px !important;  /* Original position */
+  left: 15px !important;
 }
 
-/* SNOWY WEATHER */
-.window-glass.weather-snowy.time-morning {
-  background: linear-gradient(to bottom, #E0FFFF 0%, #F0F8FF 50%, #FFFFFF 100%) !important;
-}
-.window-glass.weather-snowy.time-afternoon {
-  background: linear-gradient(to bottom, #B0E0E6 0%, #E0F6FF 50%, #F5F5F5 100%) !important;
-}
-.window-glass.weather-snowy.time-night {
-  background: linear-gradient(to bottom, #2F4F5F 0%, #465863 50%, #3d4a5c 100%) !important;
+/* 3. PLANT PANEL - Rămâne la poziția originală */
+.plant-panel {
+  position: fixed !important;
+  top: 240px !important;  /* Original position */
+  right: 15px !important;
 }
 
-/* THUNDERSTORM WEATHER */
-.window-glass.weather-thunderstorm.time-morning {
-  background: linear-gradient(to bottom, #2F4F4F 0%, #3d3d5c 40%, #696969 100%) !important;
-}
-.window-glass.weather-thunderstorm.time-afternoon {
-  background: linear-gradient(to bottom, #1C1C1C 0%, #363636 50%, #4F4F4F 100%) !important;
-}
-.window-glass.weather-thunderstorm.time-night {
-  background: linear-gradient(to bottom, #000000 0%, #1a1a2e 50%, #0a0a1e 100%) !important;
+/* 4. UTILITY BUTTONS - Deasupra inventory (fără suprapunere) */
+.utility-buttons-container {
+  position: fixed !important;
+  top: 20px !important;
+  left: 20px !important;
+  z-index: 1100 !important;  /* Above everything */
 }
 
-/* ============================================
-   🎨 DEPTH EFFECTS - PARALLAX & SHADOWS
-   ============================================ */
-
-/* Room View - 3D depth */
-.room-view {
-  transform: perspective(1000px) !important;
-  transform-style: preserve-3d !important;
-}
-
-/* Window glass - slightly inset */
-.window-glass {
-  box-shadow: 
-    inset 0 0 40px rgba(0,0,0,0.15),
-    inset -8px -8px 20px rgba(0,0,0,0.1),
-    0 10px 30px rgba(0,0,0,0.3) !important;
-}
-
-/* Floor - shadow depth */
-.room-floor {
-  box-shadow: 
-    inset 0 10px 20px rgba(0,0,0,0.2),
-    0 -5px 15px rgba(0,0,0,0.1) !important;
-}
-
-/* Plant sprite - parallax depth */
-.pixel-plant-sprite {
-  filter: drop-shadow(0 15px 25px rgba(0,0,0,0.4)) !important;
+/* 5. WEATHER INDICATOR - Mărit pe geam */
+.weather-indicator {
+  position: absolute !important;
+  top: 20px !important;
+  right: 20px !important;
+  font-size: 5rem !important;  /* Mărit de la 3rem */
+  z-index: 10 !important;
+  cursor: pointer !important;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4)) !important;
   transition: transform 0.3s ease !important;
 }
 
-.pixel-plant-sprite:hover {
-  transform: translateX(-50%) translateY(-5px) scale(1.02) !important;
+.weather-indicator:hover {
+  transform: scale(1.15) !important;
 }
 
-/* Character sprite - depth */
-.char-sprite {
-  filter: drop-shadow(0 12px 20px rgba(0,0,0,0.35)) !important;
+.weather-indicator.is-sun {
+  animation: sunGlowBig 5s ease-in-out infinite !important;
 }
 
-/* Calendar - floating depth */
-.room-view > div:nth-child(1) {
-  /* Calendar div */
-  box-shadow: 
-    3px 3px 0 rgba(0,0,0,0.2),
-    5px 5px 15px rgba(0,0,0,0.3) !important;
+@keyframes sunGlowBig {
+  0%, 100% { 
+    transform: scale(1); 
+    filter: drop-shadow(0 0 25px rgba(255, 190, 116, 0.9)); 
+  }
+  50% { 
+    transform: scale(1.15); 
+    filter: drop-shadow(0 0 50px rgba(255, 209, 71, 1)); 
+  }
 }
 
-/* Weather emoji - glowing effect */
-.room-view > div:nth-child(2) {
-  /* Weather indicator div */
-  text-shadow: 0 0 20px rgba(255,255,255,0.5) !important;
+/* Firefox - forțează centrarea calendarului */
+@-moz-document url-prefix() {
+  .calendar-container-new {
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
 }
 
-/* Room border - inner shadow for depth */
-.room-view::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 12px;
-  box-shadow: inset 0 0 50px rgba(0,0,0,0.2);
-  pointer-events: none;
-  z-index: 100;
+/* Zoom - păstrează pozițiile */
+@media (min-resolution: 1.25dppx) {
+  .calendar-container-new,
+  .inventory-panel,
+  .plant-panel,
+  .utility-buttons-container {
+    zoom: 1;
+  }
 }
 
+/* ========================================
+   FINAL CONSOLIDATED FIXES
+   ======================================== */
 
-/* ============================================
-   🏠 ROOM BACKGROUND - WEATHER COLORS
-   Întreaga cameră își schimbă culoarea!
-   ============================================ */
-
-/* Smooth transitions */
-.room-view {
-  transition: background 2s ease-in-out !important;
-}
-
-/* SUNNY - Cameră luminoasă, caldă */
-.room-view.weather-sunny.time-morning {
-  background: linear-gradient(to bottom, #FFE5CC 0%, #FFC8A0 100%) !important;
-}
-.room-view.weather-sunny.time-afternoon {
-  background: linear-gradient(to bottom, #FFD4A3 0%, #FFB380 100%) !important;
-}
-.room-view.weather-sunny.time-night {
-  background: linear-gradient(to bottom, #4A4A6A 0%, #2A2A4A 100%) !important;
+/* INVENTORY PANEL - Fixed position, controlled height */
+.inventory-panel {
+  position: fixed !important;
+  top: 240px !important;
+  left: 15px !important;
+  width: 280px !important;
+  max-width: 280px !important;
+  max-height: 220px !important;
+  overflow-y: auto !important;
+  padding: 18px !important;
+  z-index: 997 !important;
 }
 
-/* OVERCAST - Cameră gri, sumbră */
-.room-view.weather-overcast.time-morning {
-  background: linear-gradient(to bottom, #C8C8D0 0%, #A0A0B0 100%) !important;
-}
-.room-view.weather-overcast.time-afternoon {
-  background: linear-gradient(to bottom, #B0B0C0 0%, #909098 100%) !important;
-}
-.room-view.weather-overcast.time-night {
-  background: linear-gradient(to bottom, #3A3A4A 0%, #2A2A3A 100%) !important;
-}
-
-/* RAINY - Cameră cu nuanțe albastre */
-.room-view.weather-rainy.time-morning {
-  background: linear-gradient(to bottom, #D0E8F0 0%, #A8C8D8 100%) !important;
-}
-.room-view.weather-rainy.time-afternoon {
-  background: linear-gradient(to bottom, #B0D0E0 0%, #90B0C8 100%) !important;
-}
-.room-view.weather-rainy.time-night {
-  background: linear-gradient(to bottom, #3A4A5A 0%, #2A3A4A 100%) !important;
+/* ACTIVITY LOG - Far bottom, NO overlap */
+.log-panel {
+  position: fixed !important;
+  bottom: 100px !important;
+  left: 15px !important;
+  width: 280px !important;
+  max-width: 280px !important;
+  max-height: 140px !important;
+  padding: 15px !important;
+  overflow-y: auto !important;
+  z-index: 996 !important;
 }
 
-/* SNOWY - Cameră rece, albă-albastră */
-.room-view.weather-snowy.time-morning {
-  background: linear-gradient(to bottom, #F0F8FF 0%, #D8E8F8 100%) !important;
-}
-.room-view.weather-snowy.time-afternoon {
-  background: linear-gradient(to bottom, #E0F0FF 0%, #C0D8E8 100%) !important;
-}
-.room-view.weather-snowy.time-night {
-  background: linear-gradient(to bottom, #4A5A6A 0%, #3A4A5A 100%) !important;
-}
-
-/* THUNDERSTORM - Cameră foarte întunecată */
-.room-view.weather-thunderstorm.time-morning {
-  background: linear-gradient(to bottom, #808088 0%, #606068 100%) !important;
-}
-.room-view.weather-thunderstorm.time-afternoon {
-  background: linear-gradient(to bottom, #606068 0%, #404048 100%) !important;
-}
-.room-view.weather-thunderstorm.time-night {
-  background: linear-gradient(to bottom, #2A2A3A 0%, #1A1A2A 100%) !important;
-}
-
-
-/* ============================================
-   🌍 BODY BACKGROUND - WEATHER + TIME
-   Întregul ecran își schimbă culoarea!
-   ============================================ */
-
-/* SUNNY backgrounds */
-body.day.weather-sunny {
-  background: linear-gradient(135deg, #87CEEB 0%, #E0F6FF 50%, #FFE4B5 100%) !important;
-}
-body.afternoon.weather-sunny {
-  background: linear-gradient(135deg, #FFA500 0%, #FF8C69 50%, #FFD700 100%) !important;
-}
-body.night.weather-sunny {
-  background: linear-gradient(135deg, #0a0e27 0%, #1a1f3e 50%, #0f0c29 100%) !important;
-}
-
-/* OVERCAST backgrounds */
-body.day.weather-overcast {
-  background: linear-gradient(135deg, #778899 0%, #A9A9A9 50%, #C0C0C0 100%) !important;
-}
-body.afternoon.weather-overcast {
-  background: linear-gradient(135deg, #696969 0%, #808080 50%, #A9A9A9 100%) !important;
-}
-body.night.weather-overcast {
-  background: linear-gradient(135deg, #2F4F4F 0%, #3d3d5c 50%, #1a1a2e 100%) !important;
-}
-
-/* RAINY backgrounds */
-body.day.weather-rainy {
-  background: linear-gradient(135deg, #4682B4 0%, #5F9EA0 50%, #B0C4DE 100%) !important;
-}
-body.afternoon.weather-rainy {
-  background: linear-gradient(135deg, #36648B 0%, #4682B4 50%, #6495ED 100%) !important;
-}
-body.night.weather-rainy {
-  background: linear-gradient(135deg, #1e3a5f 0%, #2c4a6e 50%, #1a1f3e 100%) !important;
-}
-
-/* SNOWY backgrounds */
-body.day.weather-snowy {
-  background: linear-gradient(135deg, #E0FFFF 0%, #F0F8FF 50%, #FFFFFF 100%) !important;
-}
-body.afternoon.weather-snowy {
-  background: linear-gradient(135deg, #B0E0E6 0%, #D0E8F0 50%, #E6F2FF 100%) !important;
-}
-body.night.weather-snowy {
-  background: linear-gradient(135deg, #2F4F5F 0%, #3d4a5c 50%, #465863 100%) !important;
-}
-
-/* THUNDERSTORM backgrounds */
-body.day.weather-thunderstorm {
-  background: linear-gradient(135deg, #2F4F4F 0%, #3d3d5c 50%, #4F4F4F 100%) !important;
-}
-body.afternoon.weather-thunderstorm {
-  background: linear-gradient(135deg, #1C1C1C 0%, #2A2A2A 50%, #363636 100%) !important;
-}
-body.night.weather-thunderstorm {
-  background: linear-gradient(135deg, #000000 0%, #0a0a1e 50%, #1a1a2e 100%) !important;
-}
-
-
-/* ============================================
-   🎮 AUTH MENU STYLING - TITLE SCREEN
-   Special retro game menu styling
-   ============================================ */
-
-@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
-
-/* Auth wrapper - full screen background */
-.auth-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+/* Make sure there's space between them */
+body {
   min-height: 100vh;
-  width: 100vw;
-  position: fixed;
-  top: 0;
-  left: 0;
-  margin: 0;
-  background-color: #87CEEB;
-  background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.2) 2px, transparent 2px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.2) 2px, transparent 2px);
-  background-size: 40px 40px;
-  background-position: 0 0; /* Aliniat perfect de la (0,0) */
-  font-family: 'VT323', monospace;
-  gap: 20px;
-  padding: 20px;
-  overflow-y: auto; /* Scroll dacă e nevoie */
 }
 
-/* Game title - big retro text */
-.game-title {
-  font-family: 'OriginalSurfer', 'VT323', monospace;
-  font-size: 6rem;
-  color: #2f3a22;
-  margin: 0 0 1rem 0;
-  text-shadow: 
-    -2px -2px 0 #fff, 
-    2px -2px 0 #fff, 
-    -2px 2px 0 #fff, 
-    2px 2px 0 #fff, 
-    4px 4px 0 rgba(0,0,0,0.2);
-  animation: float 3s ease-in-out infinite;
-  text-align: center;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 30px;
+/* Firefox specific */
+@-moz-document url-prefix() {
+  .inventory-panel {
+    top: 240px !important;
+    left: 15px !important;
+  }
+  
+  .log-panel {
+    bottom: 100px !important;
+    left: 15px !important;
+  }
+}
+/* ========================================
+   ZOOM-INDEPENDENT POSITIONING - Bigger panels
+   Use TOP for both panels!
+   ======================================== */
+
+/* Inventory panel - BIGGER (250px height) */
+.inventory-panel,
+div.inventory-panel,
+.stats-panel.inventory-panel {
+  position: fixed !important;
+  top: 240px !important;
+  bottom: auto !important;
+  left: 15px !important;
+  width: 280px !important;
+  height: 250px !important;  /* Was 200px, now 250px (+50px) */
+  min-height: 250px !important;
+  max-height: 250px !important;
+  overflow-y: auto !important;
+  padding: 18px !important;
+  z-index: 997 !important;
+  background: #fdf5e6 !important;
+  border: 6px solid #3d1f08 !important;
+  box-shadow: 8px 8px 0px rgba(0,0,0,0.2) !important;
 }
 
-@keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
+/* Activity Log - BIGGER (200px height) */
+.log-panel,
+div.log-panel {
+  position: fixed !important;
+  top: 520px !important;  /* 240 + 250 + 30 = inventory top + height + gap */
+  bottom: auto !important;
+  left: 15px !important;
+  width: 280px !important;
+  height: 200px !important;  /* Was 150px, now 200px (+50px) */
+  min-height: 200px !important;
+  max-height: 200px !important;
+  padding: 15px !important;
+  overflow-y: auto !important;
+  z-index: 996 !important;
+  background: #fdf5e6 !important;
+  border: 6px solid #3d1f08 !important;
+  box-shadow: 8px 8px 0px rgba(0,0,0,0.2) !important;
 }
 
-/* Title icons (plant emojis) */
-.title-icon {
-  width: 150px;
-  height: auto;
-  image-rendering: pixelated;
-  animation: bounce 3s infinite alternate;
+/* Calculation:
+   Inventory: top 240px, height 250px = ends at 490px
+   Gap: 30px
+/* ========================================
+   IMPROVED WEATHER COLORS
+   Sunny = Blue skies | Afternoon = Orange tones
+   ======================================== */
+
+/* ===== MORNING - All blue skies ===== */
+
+body.time-morning.weather-sunny {
+  background: linear-gradient(135deg, #4a90e2 0%, #87ceeb 50%, #b0d9f5 100%) !important;
 }
 
-.left-icon {
-  animation-delay: 0s;
+body.time-morning.weather-rainy {
+  background: linear-gradient(135deg, #5a7a9a 0%, #7a9aba 50%, #9abadc 100%) !important;
 }
 
-.right-icon {
-  animation-delay: 0.5s;
+body.time-morning.weather-snowy {
+  background: linear-gradient(135deg, #c0d8e8 0%, #d8e8f5 50%, #f0f8ff 100%) !important;
 }
 
-@keyframes bounce {
-  0% { transform: translateY(0) rotate(-5deg); }
-  100% { transform: translateY(-15px) rotate(5deg); }
+body.time-morning.weather-overcast {
+  background: linear-gradient(135deg, #7a8a9a 0%, #9aaaba 50%, #bac8d8 100%) !important;
 }
 
-/* Game subtitle */
-.game-subtitle {
-  font-family: 'VT323', monospace;
-  font-size: 2.5rem;
-  color: #fff;
-  text-shadow: 2px 2px 0 #000;
-  margin-top: -20px;
-  text-transform: uppercase;
-  letter-spacing: 2px;
+body.time-morning.weather-thunderstorm {
+  background: linear-gradient(135deg, #3a4a5a 0%, #5a6a7a 50%, #7a8a9a 100%) !important;
 }
 
-/* Title menu container */
-.title-menu {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 25px;
-  margin-top: 40px;
-  width: 100%;
+/* ===== AFTERNOON - All orange tones ===== */
+
+body.time-afternoon.weather-sunny {
+  background: linear-gradient(135deg, #ff8c42 0%, #ffa500 50%, #ffb347 100%) !important;
 }
 
-/* Press Start button - wooden style */
-.press-start-btn {
-  font-family: 'VT323', monospace;
-  font-size: 2.8rem;
-  background: #8B4513;
-  color: #e6dcc0;
-  border: 4px solid #5e2f0d;
-  width: 340px;
-  padding: 10px 0;
-  cursor: pointer;
-  box-shadow: 
-    inset 2px 2px 0 #A0522D,
-    inset -2px -2px 0 #5e2f0d,
-    0 8px 0 #5e2f0d;
-  text-transform: uppercase;
-  text-shadow: 2px 2px 0 #5e2f0d;
-  transition: all 0.2s;
-  position: relative;
+body.time-afternoon.weather-rainy {
+  background: linear-gradient(135deg, #b8885a 0%, #c89868 50%, #d8a878 100%) !important;
 }
 
-.press-start-btn:hover {
-  background: #A0522D;
-  transform: translateY(-2px);
-  box-shadow: 
-    inset 2px 2px 0 #8B4513,
-    inset -2px -2px 0 #5e2f0d,
-    0 10px 0 #5e2f0d;
+body.time-afternoon.weather-snowy {
+  background: linear-gradient(135deg, #e8c8a8 0%, #f0d8c0 50%, #f8e8d8 100%) !important;
 }
 
-.press-start-btn:active {
-  transform: translateY(8px);
-  box-shadow: 
-    inset 2px 2px 0 #5e2f0d,
-    0 0 0 #5e2f0d;
+body.time-afternoon.weather-overcast {
+  background: linear-gradient(135deg, #a88060 0%, #b89070 50%, #c8a080 100%) !important;
 }
 
-/* New Game button - green leaf style */
-.new-game-btn {
-  font-family: 'VT323', monospace;
-  font-size: 2.2rem;
-  background: #6d864b;
-  color: white;
-  border: 4px solid #2f3a22;
-  width: 340px;
-  padding: 12px 0;
-  cursor: pointer;
-  box-shadow: 0 8px 0 #2f3a22;
-  text-transform: uppercase;
-  transition: all 0.1s;
-  text-shadow: 2px 2px 0px rgba(0,0,0,0.3);
+body.time-afternoon.weather-thunderstorm {
+  background: linear-gradient(135deg, #6a4a2a 0%, #7a5a3a 50%, #8a6a4a 100%) !important;
 }
 
-.new-game-btn:hover {
-  background: #7db85a;
-  transform: scale(1.05);
+/* ===== NIGHT - Dark blues ===== */
+
+body.time-night.weather-sunny {
+  background: linear-gradient(135deg, #1a2a4a 0%, #2a3a5a 50%, #3a4a6a 100%) !important;
 }
 
-.new-game-btn:active {
-  transform: translateY(8px);
-  box-shadow: 0 0 0 #2f3a22;
+body.time-night.weather-rainy {
+  background: linear-gradient(135deg, #0a0f1a 0%, #1a1f2a 50%, #2a2f3a 100%) !important;
 }
 
-/* Version tag */
-.version-tag {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  color: rgba(255,255,255,0.8);
-  font-size: 1.2rem;
-  font-family: 'VT323', monospace;
+body.time-night.weather-snowy {
+  background: linear-gradient(135deg, #1a2a3a 0%, #2a3a4a 50%, #3a4a5a 100%) !important;
 }
 
-
-/* ============================================
-   🎨 CHARACTER SELECTION & AUTH FORMS
-   Styling pentru Register/Login screens
-   ============================================ */
-
-/* Auth container - form holder */
-.auth-container {
-  background-color: #e6dcc0; /* Paper beige - exact ca în screenshot! */
-  width: 380px;
-  padding: 2rem;
-  text-align: center;
-  position: relative;
-  border: 4px solid #8B4513; /* Wood border */
-  box-shadow: 
-    inset 0 0 0 4px #c2b280, /* Inner paper border */
-    8px 8px 0px rgba(0,0,0,0.3); /* Drop shadow */
-  image-rendering: pixelated;
+body.time-night.weather-overcast {
+  background: linear-gradient(135deg, #0f0f1f 0%, #1f1f2f 50%, #2f2f3f 100%) !important;
 }
 
-/* Nails în colțuri */
-.auth-container::before, 
-.auth-container::after {
-  content: ''; 
-  position: absolute; 
-  top: 10px;
-  width: 8px; 
-  height: 8px; 
-  background: #5e2f0d; /* Wood shadow color pentru nails */
-  border-radius: 50%; 
-  box-shadow: 0 0 0 2px #A0522D; /* Wood light ring */
-}
-.auth-container::before { left: 10px; }
-.auth-container::after { right: 10px; }
-
-.auth-container h2 {
-  font-family: 'OriginalSurfer', 'VT323', monospace;
-  font-size: 2.5rem;
-  text-align: center;
-  color: #8B4513; /* Wood brown */
-  margin: 0 0 30px 0;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  text-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+body.time-night.weather-thunderstorm {
+  background: linear-gradient(135deg, #050510 0%, #0f0f20 50%, #1a1a30 100%) !important;
 }
 
-/* Character Selection */
-.char-select {
-  margin-bottom: 30px;
+/* ===== WINDOW GLASS - Morning blues ===== */
+
+.window-glass.time-morning.weather-sunny {
+  background: linear-gradient(to bottom, #4a90e2 0%, #87ceeb 50%, #b0d9f5 100%) !important;
 }
 
-.char-options { 
-  display: flex; 
-  justify-content: center; 
-  gap: 20px; 
-  margin-bottom: 20px; 
+.window-glass.time-morning.weather-rainy {
+  background: linear-gradient(to bottom, #5a7a9a 0%, #7a9aba 50%, #9abadc 100%) !important;
 }
 
-.char-option {
-  width: 70px; 
-  height: 70px; 
-  border: 2px dashed #8B4513; /* wood-primary */
-  border-radius: 8px; 
-  display: flex; 
-  align-items: center; 
-  justify-content: center;
-  cursor: pointer; 
-  transition: transform 0.2s; 
-  background: rgba(255,255,255,0.5);
+.window-glass.time-morning.weather-snowy {
+  background: linear-gradient(to bottom, #c0d8e8 0%, #d8e8f5 50%, #f0f8ff 100%) !important;
 }
 
-.char-option img { 
-  width: 100%; 
-  height: 100%; 
-  image-rendering: pixelated; 
+.window-glass.time-morning.weather-overcast {
+  background: linear-gradient(to bottom, #7a8a9a 0%, #9aaaba 50%, #bac8d8 100%) !important;
 }
 
-.char-option.selected {
-  border: 4px solid #6d864b; /* leaf-green */
-  background: #fff;
-  transform: scale(1.1); 
-  box-shadow: 0 0 15px #6d864b;
+.window-glass.time-morning.weather-thunderstorm {
+  background: linear-gradient(to bottom, #3a4a5a 0%, #5a6a7a 50%, #7a8a9a 100%) !important;
 }
 
-/* Remove checkmark - not in original */
+/* ===== WINDOW GLASS - Afternoon orange ===== */
 
-/* Input Group */
-.input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  margin-bottom: 20px;
+.window-glass.time-afternoon.weather-sunny {
+  background: linear-gradient(to bottom, #ff8c42 0%, #ffa500 50%, #ffb347 100%) !important;
 }
 
-.input-group input,
-.auth-container input {
-  font-family: 'OriginalSurfer', 'VT323', monospace;
-  font-size: 1.4rem;
-  width: 90%;
-  padding: 10px;
-  margin: 8px 0;
-  border: 2px solid #8B4513; /* Wood border */
-  background: #fff;
-  color: #333;
-  outline: none;
-  box-shadow: inset 4px 4px 0px rgba(0,0,0,0.1);
-  transition: all 0.3s ease;
+.window-glass.time-afternoon.weather-rainy {
+  background: linear-gradient(to bottom, #b8885a 0%, #c89868 50%, #d8a878 100%) !important;
 }
 
-.input-group input:focus,
-.auth-container input:focus {
-  background: #fffef0; /* Slight yellow tint on focus */
-  border-color: #6d864b; /* Leaf green */
-  box-shadow: 0 0 10px rgba(109, 134, 75, 0.3);
-  transform: translateY(-2px);
+.window-glass.time-afternoon.weather-snowy {
+  background: linear-gradient(to bottom, #e8c8a8 0%, #f0d8c0 50%, #f8e8d8 100%) !important;
 }
 
-.input-group input::placeholder,
-.auth-container input::placeholder {
-  color: #999;
+.window-glass.time-afternoon.weather-overcast {
+  background: linear-gradient(to bottom, #a88060 0%, #b89070 50%, #c8a080 100%) !important;
 }
 
-/* Submit Button */
-.auth-container form button[type="submit"] {
-  font-family: 'VT323', monospace;
-  font-size: 2rem;
-  width: 100%;
-  padding: 15px;
-  background: #6d864b;
-  color: white;
-  border: 4px solid #2f3a22;
-  border-radius: 8px;
-  cursor: pointer;
-  text-transform: uppercase;
-  transition: all 0.2s ease;
-  box-shadow: 0 6px 0 #2f3a22;
-  margin-top: 10px;
+.window-glass.time-afternoon.weather-thunderstorm {
+  background: linear-gradient(to bottom, #6a4a2a 0%, #7a5a3a 50%, #8a6a4a 100%) !important;
 }
 
-.auth-container form button[type="submit"]:hover:not(:disabled) {
-  background: #7db85a;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 0 #2f3a22;
+/* ===== WINDOW GLASS - Night dark ===== */
+
+.window-glass.time-night.weather-sunny {
+  background: linear-gradient(to bottom, #1a2a4a 0%, #2a3a5a 50%, #3a4a6a 100%) !important;
 }
 
-.auth-container form button[type="submit"]:active:not(:disabled) {
-  transform: translateY(6px);
-  box-shadow: 0 0 0 #2f3a22;
+.window-glass.time-night.weather-rainy {
+  background: linear-gradient(to bottom, #0a0f1a 0%, #1a1f2a 50%, #2a2f3a 100%) !important;
 }
 
-.auth-container form button[type="submit"]:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  background: #999;
-  border-color: #666;
+.window-glass.time-night.weather-snowy {
+  background: linear-gradient(to bottom, #1a2a3a 0%, #2a3a4a 50%, #3a4a5a 100%) !important;
 }
 
-/* Error Message */
-.error {
-  background: #ff4757;
-  color: white;
-  padding: 12px;
-  border-radius: 8px;
-  text-align: center;
-  font-family: 'VT323', monospace;
-  font-size: 1.3rem;
-  margin: 15px 0;
-  border: 2px solid #c92a2a;
+.window-glass.time-night.weather-overcast {
+  background: linear-gradient(to bottom, #0f0f1f 0%, #1f1f2f 50%, #2f2f3f 100%) !important;
 }
 
-/* Link Button (Already have account?) */
-.link-btn {
-  font-family: 'VT323', monospace;
-  font-size: 1.3rem;
-  background: none;
-  border: none;
-  color: #2f3a22;
-  cursor: pointer;
-  text-decoration: underline;
-  margin-top: 20px;
-  width: 100%;
-  padding: 10px;
-  transition: all 0.2s ease;
+.window-glass.time-night.weather-thunderstorm {
+  background: linear-gradient(to bottom, #050510 0%, #0f0f20 50%, #1a1a30 100%) !important;
 }
 
-.link-btn:hover {
-  color: #6d864b;
-  transform: scale(1.05);
+/* ========================================
+   WEATHER INDICATOR - Ensure clickable
+   ======================================== */
+
+.weather-indicator {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  z-index: 100 !important;
 }
 
-/* ============================================
-   🎨 CUSTOM FONT - OriginalSurfer
-   ============================================ */
-
-@font-face {
-  font-family: 'OriginalSurfer';
-  src: url('/fonts/OriginalSurfer-Regular.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
+/* Make sure window-glass doesn't block clicks */
+.window-glass {
+  pointer-events: none !important;
 }
 
+.window-glass > * {
+  pointer-events: auto !important;
+}

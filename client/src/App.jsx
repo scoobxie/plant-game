@@ -2,15 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import './index.css';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
-import { plantTypes, getStartingPlantType } from './game/plantTypes';
-import {
-  generateEnemy,
-  sortTurnQueue,
-  calculateBattleDamage,
-  checkBattleEnd,
-  calculateBattleRewards
-} from './game/battleLogic';
-
 
 function App() {
   const maxDays = 30;
@@ -18,10 +9,151 @@ function App() {
   const [authScreen, setAuthScreen] = useState('title'); // Options: 'title', 'login', 'register'
   const [charPos, setCharPos] = useState('center'); // 🟢 This creates the missing variable
 
-
+  // --- PLANT TYPES SYSTEM ---
+  const plantTypes = {
+    cactus: {
+      name: 'Cactus',
+      image: '/assets/mutations/cactus.mutation.png',
+      damageType: 'Pierce',
+      maxWater: 5,
+      maxNutrients: 15,
+      maxHealth: 15,
+      startWater: 3,
+      startNutrients: 8,
+      baseWaterConsumption: 1, // LOW - nu crește
+      baseNutrientConsumption: 2,
+      overwaterThreshold: 4, // Overwater ușor! (4/5 nu 5/5)
+      overfeedThreshold: 15,
+      // Special abilities
+      waterConsumptionGrowth: false, // NU crește water consumption
+      nutrientConsumptionGrowth: 2, // Crește cu +2 (nu +1-2)
+      immuneToDrought: true,
+      floodDamage: [5, 7], // Extra damage de la flood
+      description: 'Desert survivor - immune to drought, hates floods'
+    },
+    venusFlytrap: {
+      name: 'Venus Flytrap',
+      image: '/assets/mutations/venus.fly.trap.mutation.png',
+      damageType: 'Bite',
+      maxWater: 10,
+      maxNutrients: 0,
+      maxHealth: 6, // Fragil! (nu 8)
+      startWater: 5,
+      startNutrients: 0,
+      baseWaterConsumption: 2,
+      baseNutrientConsumption: 0,
+      overwaterThreshold: 8, // Overwater ușor! (8/10 nu 10/10)
+      overfeedThreshold: 0,
+      // Special abilities
+      expeditionWaterBonus: [2, 3], // Extra water în expeditions
+      earthquakeDamage: 2, // +2 extra damage
+      description: 'Carnivorous - finds extra water, fragile'
+    },
+    sunflower: {
+      name: 'Sunflower',
+      image: '/assets/mutations/sunflower.mutation.png',
+      damageType: 'Beam',
+      maxWater: 12,
+      maxNutrients: 12,
+      maxHealth: 8, // 8 HP (nu 10)
+      startWater: 6,
+      startNutrients: 6,
+      baseWaterConsumption: 2,
+      baseNutrientConsumption: 2,
+      overwaterThreshold: 12,
+      overfeedThreshold: 12,
+      // Special abilities
+      photosynthesis: 2, // +2 nutrients dimineața
+      morningDewChance: 0.3, // 30% chance +1 water
+      description: 'Solar powered - photosynthesis & morning dew'
+    },
+    rose: {
+      name: 'Rose',
+      image: '/assets/mutations/rose.mutation.png',
+      damageType: 'Pierce',
+      maxWater: 10,
+      maxNutrients: 15,
+      maxHealth: 8,
+      startWater: 2, // LOW start (nu 5)
+      startNutrients: 4, // LOW start (nu 8)
+      baseWaterConsumption: 2,
+      baseNutrientConsumption: 3,
+      overwaterThreshold: 10,
+      overfeedThreshold: 15,
+      // Special abilities
+      healEnergyCost: 2, // Heal costă 2 energy (thorny!)
+      fertilizeCost: 2, // Consumă 2 nutrients (picky eater!)
+      immuneToEarthquake: true,
+      description: 'Elegant aristocrat - strong roots, thorny care'
+    },
+    ivy: {
+      name: 'Ivy',
+      image: '/assets/mutations/ivy.mutation.png',
+      damageType: 'Poison',
+      maxWater: 8,
+      maxNutrients: 10,
+      maxHealth: 12,
+      startWater: 4,
+      startNutrients: 5,
+      baseWaterConsumption: 1,
+      baseNutrientConsumption: 2,
+      overwaterThreshold: 8,
+      overfeedThreshold: 10,
+      // Special abilities
+      allDisastersDamage: 2, // +2 damage de la TOATE dezastrele
+      autoHealDays: 3, // +1 HP every 3 days
+      healEnergyCost: 3, // Manual heal costă 3 energy
+      description: 'Toxic creeper - regenerates, takes extra damage'
+    },
+    mushroom: {
+      name: 'Mushroom',
+      image: '/assets/mutations/mushroom.mutation.png',
+      damageType: 'Fungi',
+      maxWater: 20, // MARE! (nu 15)
+      maxNutrients: 5,
+      maxHealth: 10,
+      startWater: 8,
+      startNutrients: 3,
+      baseWaterConsumption: 5, // MULT! (nu 3)
+      baseNutrientConsumption: 1,
+      overwaterThreshold: 20,
+      overfeedThreshold: 5,
+      // Special abilities
+      nightEnergyBonus: 2, // +2 extra energy noaptea (total 3)
+      description: 'Nocturnal fungi - loves moisture, night energy'
+    },
+    appleTree: {
+      name: 'Apple Tree',
+      image: '/assets/mutations/apple.tree.mutation.png',
+      damageType: 'Gravity',
+      maxWater: 20,
+      maxNutrients: 20,
+      maxHealth: 20,
+      startWater: 18, // Aproape maxat!
+      startNutrients: 18, // Aproape maxat!
+      baseWaterConsumption: 4,
+      baseNutrientConsumption: 4,
+      overwaterThreshold: 20,
+      overfeedThreshold: 20,
+      // Special abilities
+      description: 'Mighty tree - massive tank, huge consumption'
+    }
+  };
 
   // Random starter plant - salvat în localStorage pentru consistency
-  const [plantType] = useState(() => getStartingPlantType());
+  const [plantType] = useState(() => {
+    // Check dacă avem deja un tip salvat
+    const savedType = localStorage.getItem('currentPlantType');
+    if (savedType && plantTypes[savedType]) {
+      return plantTypes[savedType];
+    }
+    
+    // Generează nou plantType random
+    const types = Object.keys(plantTypes);
+    const randomType = types[Math.floor(Math.random() * types.length)];
+    localStorage.setItem('currentPlantType', randomType);
+    return plantTypes[randomType];
+  });
 
   // --- 1. STATE: AUTENTIFICARE ---
   const [user, setUser] = useState(null);
@@ -497,16 +629,18 @@ function App() {
     }
   }, [day, water, nutrients, energy, plant, timeOfDay, viewState, plantConsumptionRate, difficultyLevel, user]);
   
-  // Aplicăm tema (Zi/Noapte) pe body
+  // Aplicăm tema (Zi/Noapte) și weather pe body
   useEffect(() => {
     document.body.className = ''; 
-    // Time of day class
+    // Time classes (backwards compatibility)
     if (timeOfDay === 'night') document.body.classList.add('night');
     else if (timeOfDay === 'afternoon') document.body.classList.add('afternoon');
     else document.body.classList.add('day');
-    // Weather class
+    
+    // New format: time-X and weather-X
+    document.body.classList.add(`time-${timeOfDay}`);
     document.body.classList.add(`weather-${currentWeather}`);
-  }, [timeOfDay]);
+  }, [timeOfDay, currentWeather]);
 
   // --- LOGICĂ JOC ---
 
@@ -2155,6 +2289,7 @@ if (viewState === 'login') {
   </button>
 </div>
 
+
       {/* MOON CALENDAR EXPANDED */}
       {moonCalendarExpanded && (
         <div className="moon-calendar-overlay" onClick={() => setMoonCalendarExpanded(false)}>
@@ -2253,20 +2388,52 @@ if (viewState === 'login') {
       )}
 
       <div id="game" className={`${screenShake ? 'screen-shake' : ''} weather-${currentWeather} time-${timeOfDay}`}>
-<div className={`room-view weather-${currentWeather} time-${timeOfDay}`} style={{ 
+<div className="room-view" style={{ 
   gridColumn: '2', 
-  margin: '80px auto 0 auto', /* Centrare cu margin auto pentru Firefox */
+  justifySelf: 'center', 
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'flex-end',
   alignItems: 'center',
-  height: '70vh', 
+  marginTop: '150px',
+  marginRight: '30px',
+  height: '60vh', 
   width: '100%', 
-  maxWidth: '1000px',
-  borderRadius: '12px',
-  overflow: 'hidden',
-  boxShadow: '0 10px 40px rgba(0,0,0,0.4)'
+  maxWidth: '850px',
+
 }}>
+
+{/* 📅 WALL CALENDAR */}
+    <div style={{
+      position: 'absolute',
+      top: '100px',
+      left: '60px', /* Near the window */
+      width: '100px',
+      height: '110px',
+      background: '#ffffffff',
+      border: '4px solid #3d1f08',
+      boxShadow: '4px 4px 0 rgba(0,0,0,0.2)',
+      zIndex: 5,
+      display: 'flex',
+      flexDirection: 'column',
+      textAlign: 'center',
+      transform: 'rotate(-2deg)', /* Slight tilt makes it look natural */
+      transformOrigin: 'top center'
+    }}>
+      {/* Nail */}
+      <div style={{position:'absolute', top:'-8px', left:'50%', transform:'translateX(-50%)', width:'8px', height:'8px', background:'#333', borderRadius:'50%'}}></div>
+      
+      {/* Red Header */}
+      <div style={{background: '#d64545', color:'white', fontFamily:'"VT323", monospace', padding:'4px 0', borderBottom:'2px solid #3d1f08'}}>
+        {currentSeason.name.toUpperCase()}
+      </div>
+      
+      {/* Paper Body */}
+      <div style={{flex: 1, display:'flex', flexDirection:'column', justifyContent:'center', color:'#3d1f08'}}>
+        <div style={{fontSize:'3.5rem', lineHeight:'0.9', fontWeight:'bold', fontFamily:'"VT323", monospace'}}>{day}</div>
+        <div style={{fontSize:'0.8rem', fontFamily:'"VT323", monospace', color:'#888'}}>DAY OF {maxDays}</div>
+      </div>
+    </div>
 
  {/* GEAMUL: Folosește clasele dinamice pentru a vedea cerul prin el */}
   <div className={`window-glass weather-${currentWeather} time-${timeOfDay}`} style={{
@@ -2274,64 +2441,34 @@ if (viewState === 'login') {
     height: '50%',
     position: 'absolute',
     top: '15%',
-    left: '30%', /* Centrat în room */
     border: '6px solid #5c382eff',
     zIndex: 1,
     boxShadow: 'inset 0 0 20px #ffcd2881'
   }}>
 
-    {/* 📅 CALENDAR - Colțul STÂNG SUS al geamului, pe marginea lui */}
-    <div style={{
-      position: 'absolute',
-      top: '10%', /* Mai sus, ușor afară din geam */
-      left: '-35%', /* AFARĂ din geam, pe marginea stângă */
-      width: '70px',
-      height: '80px',
-      background: '#ffffffff',
-      border: '3px solid #3d1f08',
-      boxShadow: '3px 3px 0 rgba(0,0,0,0.2)',
-      zIndex: 10,
-      display: 'flex',
-      flexDirection: 'column',
-      textAlign: 'center',
-      transform: 'rotate(-6deg)',
-      transformOrigin: 'top left'
-    }}>
-      {/* Nail */}
-      <div style={{position:'absolute', top:'-6px', left:'50%', transform:'translateX(-50%)', width:'6px', height:'6px', background:'#333', borderRadius:'50%'}}></div>
-      
-      {/* Red Header */}
-      <div style={{background: '#d64545', color:'white', fontFamily:'"VT323", monospace', padding:'2px 0', fontSize:'0.6rem', borderBottom:'2px solid #3d1f08'}}>
-        {currentSeason.name.toUpperCase()}
-      </div>
-      
-      {/* Paper Body */}
-      <div style={{flex: 1, display:'flex', flexDirection:'column', justifyContent:'center', color:'#3d1f08'}}>
-        <div style={{fontSize:'2.2rem', lineHeight:'0.9', fontWeight:'bold', fontFamily:'"VT323", monospace'}}>{day}</div>
-        <div style={{fontSize:'0.55rem', fontFamily:'"VT323", monospace', color:'#888'}}>DAY {maxDays}</div>
-      </div>
-    </div>
 
-    {/* 🌤️ WEATHER/TIME INDICATOR - Floating în colțul dreapta sus */}
-    <div style={{
-      position: 'absolute',
-      top: '5%',
-      right: '5%',
-      zIndex: 10,
-      fontSize: '3rem',
-      filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
-      animation: 'float 3s ease-in-out infinite'
-    }}>
-      {timeOfDay === 'night' ? '🌙' : (
-        <>
-          {currentWeather === 'sunny' && '☀️'}
-          {currentWeather === 'overcast' && '☁️'}
-          {currentWeather === 'rainy' && '🌧️'}
-          {currentWeather === 'snowy' && '☁️'}
-          {currentWeather === 'thunderstorm' && '⛈️'}
-        </>
-      )}
-    </div>
+  {/* ☀️ SOARE/LUNĂ PE GEAM */}
+  <div 
+    className={`weather-indicator ${timeOfDay === 'morning' ? 'is-sun' : ''}`}
+    onClick={() => setMoonCalendarExpanded(!moonCalendarExpanded)}
+    style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+  >
+    {(() => {
+      // Morning & Afternoon - show weather emoji
+      if (timeOfDay === 'morning' || timeOfDay === 'afternoon') {
+        const weatherEmojis = {
+          sunny: '☀️',
+          rainy: '🌧️',
+          snowy: '🌨️',  // Cloud with snow (not just snowflake)
+          overcast: '☁️',
+          thunderstorm: '⛈️'
+        };
+        return weatherEmojis[currentWeather] || '☀️';
+      }
+      // Night - show moon phase
+      return getMoonPhase(day).emoji;
+    })()}
+  </div>
 
 {currentWeather === 'rainy' && (
       <div className="weather-overlay rain-overlay">
@@ -2355,51 +2492,21 @@ if (viewState === 'login') {
     zIndex: 1
   }}></div>
 
- {/* CHARACTER - STÂNGA GEAMULUI */}
-<div style={{ 
-  position: 'absolute',
-  bottom: '10%',
-  left: '20%', // Poziționat în stânga geamului
-  display: 'flex', 
-  alignItems: 'flex-end', 
-  zIndex: 10 
-}}>
-  <img 
-    src={user?.character === 'boy' ? "/assets/boy.png" : "/assets/girl.png"} 
-    className="char-sprite"
-    style={{ 
-      width: '275px', 
-      height: 'auto', 
-      imageRendering: 'pixelated',
-      filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.2))'
-    }} 
-  />
+  {/* Planta și Fata: Vor sta în fața geamului */}
+  <div style={{ display: 'flex', alignItems: 'flex-end', zIndex: 10, marginTop: '25%'}}>
+     <img src={plantType.image} style={{ width: '300px', height: 'auto', imageRendering: 'pixelated' }} />
+     <img 
+        src={user?.character === 'boy' ? "/assets/boy.png" : "/assets/girl.png"} 
+        style={{ width: '300px', height: 'auto', imageRendering: 'pixelated' }} 
+     />
+</div>
+  {/* Panou Dreapta */}
+  <div className="plant-panel stats-panel">...</div>
 </div>
 
-{/* PLANTA - DREAPTA GEAMULUI */}
-<div style={{ 
-  position: 'absolute',
-  bottom: '15%', // Mai sus (era 20%)
-  right: '35%', // Mai la stânga (era 15%)
-  display: 'flex', 
-  alignItems: 'flex-end', 
-  zIndex: 10 
-}}>
-  <img 
-    src={plantType.image} 
-    className="pixel-plant-sprite"
-    style={{ 
-      width: '350px', 
-      height: 'auto', 
-      imageRendering: 'pixelated',
-      filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.3))'
-    }} 
-  />
-</div>
-
-</div> {/* Închide room-view */}
 
   {/*INVENTORY */}
+  <div className="stats-panel inventory-panel"> ... </div>
         {/* INVENTORY PANEL (Left Side) */}
         <div className="stats-panel inventory-panel">
           <div className="stats-panel-section">
@@ -2489,6 +2596,29 @@ if (viewState === 'login') {
               </>
             )}
             
+            {/* WEATHER STATUS PANEL */}
+            <div className="weather-status-panel">
+              <div className="weather-status-title">
+                {currentWeatherData.emoji} {currentWeatherData.name}
+              </div>
+              <div className="weather-effects-list">
+                {currentWeather === 'sunny' && (
+                  <div className="weather-effect-item sunny">☀️ +2 🌱 daily</div>
+                )}
+                {currentWeather === 'overcast' && (
+                  <div className="weather-effect-item overcast">☁️ 2x ⚡ cost</div>
+                )}
+                {currentWeather === 'rainy' && (
+                  <div className="weather-effect-item rainy">🌧️ Fill 💧 bar</div>
+                )}
+                {currentWeather === 'snowy' && (
+                  <div className="weather-effect-item snowy">❄️ FREEZE (0 consumption)</div>
+                )}
+                {currentWeather === 'thunderstorm' && (
+                  <div className="weather-effect-item thunderstorm">⛈️ Locked inside</div>
+                )}
+              </div>
+            </div>
             
             {/* SINGLE PLANT DISPLAY WITH SWAPPING */}
             {plantHeads && plantHeads.length > 0 && (() => {

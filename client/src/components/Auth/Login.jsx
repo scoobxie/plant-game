@@ -1,13 +1,31 @@
 import React, { useState } from 'react';
+import emailjs from '@emailjs/browser';
+import '../../styles/auth.css';
 
 export default function Login({ switchToRegister, onLoginSuccess, onBack }) {
+  // Views: 'login' | 'forgot-email' | 'forgot-code' | 'forgot-password'
+  const [view, setView] = useState('login'); 
+  
+  // Login Data
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [generatedCode, setGeneratedCode] = useState(null);
+  
+  // Reset Flow Data
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetCode, setResetCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+
+  // UI States
   const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const apiUrl = import.meta.env.VITE_API_URL || 'https://plant-game.onrender.com';
 
+  // ==========================================
+  // 1. LOGIN HANDLER
+  // ==========================================
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
@@ -35,52 +53,233 @@ export default function Login({ switchToRegister, onLoginSuccess, onBack }) {
     }
   };
 
+  // ==========================================
+  // 2. FORGOT PASSWORD FLOW
+  // ==========================================
+
+  // STEP 1: SEND EMAIL (With 60s Spam Protection)
+  const handleSendCode = (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+
+    // 1. CHECK COOLDOWN (Prevent Spam)
+    const lastSent = localStorage.getItem('lastEmailSentTime');
+    const now = Date.now();
+    const cooldownTime = 60000; // 60 seconds in milliseconds
+
+    if (lastSent && (now - lastSent < cooldownTime)) {
+        const secondsLeft = Math.ceil((cooldownTime - (now - lastSent)) / 1000);
+        setError(`Please wait ${secondsLeft} seconds before sending again.`);
+        setIsLoading(false);
+        return; // Stop here! Don't send email.
+    }
+
+    // 2. Generate random 6-digit code locally
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    setGeneratedCode(code); 
+
+    // 3. Send via EmailJS
+    emailjs.send(
+      import.meta.env.VITE_SERVICE_ID,
+      import.meta.env.VITE_TEMPLATE_ID,
+      {
+        to_email: resetEmail,
+        code: code
+      },
+      import.meta.env.VITE_PUBLIC_KEY
+    )
+    .then(() => {
+       console.log("✅ Email sent successfully!");
+       
+       // SAVE TIME TO LOCAL STORAGE
+       localStorage.setItem('lastEmailSentTime', Date.now());
+
+       setSuccessMsg("Code sent! Check your inbox.");
+       setTimeout(() => {
+           setSuccessMsg('');
+           setView('forgot-code'); 
+       }, 2000);
+    })
+    .catch((err) => {
+       console.error("❌ EmailJS Failed:", err);
+       setError("Could not send email. Check console.");
+    })
+    .finally(() => {
+       setIsLoading(false);
+    });
+  };
+
+  // STEP 2: VERIFY CODE (FIXED: Local Check)
+  const handleVerifyCode = (e) => {
+    e.preventDefault();
+    setError('');
+    
+    // IMPORTANT FIX: We compare the code LOCALLY.
+    // The server doesn't know the code because we generated it here in the browser.
+    if (resetCode === generatedCode) {
+        setSuccessMsg("Code Verified!");
+        setTimeout(() => {
+            setSuccessMsg('');
+            setView('forgot-password'); 
+        }, 1000);
+    } else {
+        setError("Invalid Code. Try again.");
+    }
+  };
+
+  // STEP 3: CHANGE PASSWORD & AUTO-LOGIN
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    setError('');
+    setIsLoading(true);
+
+    try {
+        // 1. Reset the password
+        const res = await fetch(`${apiUrl}/api/reset-password-force`, { 
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+              email: resetEmail, 
+              newPassword: newPassword 
+          })
+        });
+        
+        if (res.ok) {
+          setSuccessMsg("Success! Entering garden...");
+          
+          // 2. IMMEDIATE AUTO-LOGIN
+          const loginRes = await fetch(`${apiUrl}/api/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: resetEmail, password: newPassword })
+          });
+
+          const loginData = await loginRes.json();
+          
+          if (loginRes.ok) {
+             // Save the "Key" (Token)
+             localStorage.setItem('token', loginData.token);
+             localStorage.setItem('user', JSON.stringify(loginData.user));
+             
+             // Enter the game immediately
+             setTimeout(() => {
+                 onLoginSuccess(loginData.user);
+             }, 1500);
+          } else {
+             // Fallback if auto-login fails
+             setView('login');
+          }
+
+        } else {
+          setError("Failed to update password.");
+        }
+    } catch (err) {
+        setError("Connection Error");
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
+  // ==========================================
+  // 3. RENDER
+  // ==========================================
   return (
     <div className="auth-wrapper">
-      {/* Title cu plant icons */}
       <h1 className="game-title">
-        <img src="/assets/plant.wide.open.mouth.png" alt="plant" className="title-icon left-icon" />
+        <img src="/assets/plant.wide.open.mouth.png" alt="sprout" className="title-icon left-icon" />
         Plant Game
-        <img src="/assets/plant.wide.open.mouth.png" alt="plant" className="title-icon right-icon" />
+        <img src="/assets/plant.wide.open.mouth.png" alt="sprout" className="title-icon right-icon" />
       </h1>
 
       <div className="auth-container">
-        {onBack && (
-          <button className="back-btn-login" onClick={onBack}>
-            ← Back
+        
+        {/* Back Button */}
+        {onBack && view === 'login' && (
+          <button type="button" onClick={onBack} className="back-btn-login">
+            ← Back to Title
           </button>
         )}
-        
-        <h2>Welcome Back</h2>
-        
-        <form onSubmit={handleLogin}>
-          <div className="input-group">
-            <input 
-              type="email" 
-              placeholder="Email" 
-              required 
-              value={email}
-              onChange={e => setEmail(e.target.value)} 
-            />
-            <input 
-              type="password" 
-              placeholder="Password" 
-              required 
-              value={password}
-              onChange={e => setPassword(e.target.value)} 
-            />
-          </div>
 
-          {error && <div className="error">{error}</div>}
-          
-          <button type="submit" disabled={isLoading}>
-            {isLoading ? "Logging in..." : "Login"}
-          </button>
-        </form>
-        
-        <button className="link-btn" onClick={switchToRegister}>
-          Don't have an account? Register
-        </button>
+        {/* === VIEW: LOGIN === */}
+        {view === 'login' && (
+          <>
+            <h2>Continue Game</h2>
+            <form onSubmit={handleLogin}>
+              <input type="email" placeholder="Email" required value={email} onChange={e => setEmail(e.target.value)} />
+              <input type="password" placeholder="Password" required value={password} onChange={e => setPassword(e.target.value)} />
+              
+              <div className="auth-options" style={{ justifyContent: 'flex-start' }}>
+                <span className="forgot-password" onClick={() => {setError(''); setView('forgot-email')}}>
+                  Forgot Password?
+                </span>
+              </div>
+
+              {error && <p className="error">{error}</p>}
+              {successMsg && <p className="error" style={{borderColor:'green', color:'green', background:'#e0ffe0'}}>{successMsg}</p>}
+              
+              <button type="submit" disabled={isLoading}>{isLoading ? "Loading..." : "Play"}</button>
+            </form>
+            <button className="link-btn" onClick={switchToRegister}>Don't have an account? Register</button>
+          </>
+        )}
+
+        {/* === VIEW: STEP 1 (EMAIL) === */}
+        {view === 'forgot-email' && (
+          <>
+            <h2>Step 1: Recovery</h2>
+            <p style={{color: 'var(--wood-light)'}}>Enter email to receive code.</p>
+            <form onSubmit={handleSendCode}>
+              <input type="email" placeholder="Your Email" required value={resetEmail} onChange={e => setResetEmail(e.target.value)} />
+              
+              {error && <p className="error">{error}</p>}
+              {successMsg && <p className="error" style={{borderColor:'green', color:'green', background:'#e0ffe0'}}>{successMsg}</p>}
+              
+              <button type="submit" disabled={isLoading} style={{background: 'var(--wood-light)', borderColor: '#5e2f0d'}}>
+                {isLoading ? "Sending..." : "Send Code"}
+              </button>
+            </form>
+            <button className="link-btn" onClick={() => {setError(''); setView('login')}}>Cancel</button>
+          </>
+        )}
+
+        {/* === VIEW: STEP 2 (CODE) === */}
+        {view === 'forgot-code' && (
+          <>
+            <h2>Step 2: Verify</h2>
+            <p style={{color: 'var(--wood-light)'}}>Check inbox for 6-digit code.</p>
+            <form onSubmit={handleVerifyCode}>
+              <input type="text" placeholder="Enter Code" required value={resetCode} onChange={e => setResetCode(e.target.value)} />
+              
+              {error && <p className="error">{error}</p>}
+              {successMsg && <p className="error" style={{borderColor:'green', color:'green', background:'#e0ffe0'}}>{successMsg}</p>}
+              
+              <button type="submit" disabled={isLoading} style={{background: 'var(--leaf-green)', borderColor: '#2f3a22'}}>
+                {isLoading ? "Checking..." : "Verify Code"}
+              </button>
+            </form>
+            <button className="link-btn" onClick={() => {setError(''); setView('forgot-email')}}>Back</button>
+          </>
+        )}
+
+        {/* === VIEW: STEP 3 (PASSWORD) === */}
+        {view === 'forgot-password' && (
+          <>
+            <h2>Step 3: New Password</h2>
+            <p style={{color: 'var(--wood-light)'}}>Code Verified! Set new password.</p>
+            <form onSubmit={handleChangePassword}>
+              <input type="password" placeholder="New Password" required value={newPassword} onChange={e => setNewPassword(e.target.value)} />
+              
+              {error && <p className="error">{error}</p>}
+              {successMsg && <p className="error" style={{borderColor:'green', color:'green', background:'#e0ffe0'}}>{successMsg}</p>}
+              
+              <button type="submit" disabled={isLoading} style={{background: 'var(--pixel-yellow)', color: 'var(--wood-primary)', borderColor: '#bfae16'}}>
+                {isLoading ? "Saving..." : "Change Password"}
+              </button>
+            </form>
+          </>
+        )}
+
       </div>
     </div>
   );

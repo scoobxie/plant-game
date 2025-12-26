@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import '../../styles/auth.css'; 
 
 export default function Register({ switchToLogin }) {
   const [formData, setFormData] = useState({
@@ -54,11 +55,10 @@ export default function Register({ switchToLogin }) {
 
   return (
     <div className="auth-wrapper">
-      {/* Title cu plant icons */}
       <h1 className="game-title">
-        <img src="/assets/plant.wide.open.mouth.png" alt="plant" className="title-icon left-icon" />
+        <img src="/assets/plant.wide.open.mouth.png" alt="sprout" className="title-icon left-icon" />
         Plant Game
-        <img src="/assets/plant.wide.open.mouth.png" alt="plant" className="title-icon right-icon" />
+        <img src="/assets/plant.wide.open.mouth.png" alt="sprout" className="title-icon right-icon" />
       </h1>
 
       <div className="auth-container">
@@ -66,7 +66,6 @@ export default function Register({ switchToLogin }) {
         
         <form onSubmit={handleSubmit}>
           
-          {/* CHARACTER SELECTION - ÎNAINTE DE INPUTS! */}
           <div className="char-select">
             <div className="char-options">
               <div 
@@ -84,11 +83,10 @@ export default function Register({ switchToLogin }) {
             </div>
           </div>
 
-          {/* INPUTS */}
           <div className="input-group">
             <input 
               type="text" 
-              placeholder="Gardener Name"
+              placeholder="Gardener Name" 
               required 
               value={formData.username}
               onChange={e => setFormData({...formData, username: e.target.value})} 
