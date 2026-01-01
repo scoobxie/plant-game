@@ -550,51 +550,68 @@ function App() {
 
   // --- EFECTE (Load & Save & Styles) ---
 
-// Verificăm dacă userul e logat la pornire
+/// --- SYNC FIX: Încarcă datele din CLOUD la pornire ---
   useEffect(() => {
-    // Check localStorage OR sessionStorage
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    const savedUserString = localStorage.getItem('user') || sessionStorage.getItem('user');
-    
-    if (token && savedUserString) {
-      try {
-        const parsedUser = JSON.parse(savedUserString);
-        setUser(parsedUser);
-        setViewState('game');
-        
-        // Look at the USER OBJECT for the save, not 'gardenSave'
-        if (parsedUser.gameSave) {
-          console.log("☁️ Loading Cloud Save...");
-          const save = parsedUser.gameSave;
+    const syncGame = async () => {
+      // 1. Luăm datele locale ca fallback rapid
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      const savedUserString = localStorage.getItem('user') || sessionStorage.getItem('user');
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://plant-game.onrender.com';
+
+      if (token && savedUserString) {
+        try {
+          const parsedUser = JSON.parse(savedUserString);
+          setUser(parsedUser); // Logăm userul vizual
+          setViewState('game'); // Intrăm în joc
+
+          // 2. ☁️ FETCH CRITIC: Cerem serverului ultima salvare reală
+          console.log(`☁️ Checking cloud save for ${parsedUser.email}...`);
           
-          setDay(save.day || 1); 
-          setWater(save.water !== undefined ? save.water : 10); 
-          setNutrients(save.nutrients !== undefined ? save.nutrients : 10);
-          setEnergy(save.energy !== undefined ? save.energy : 2); 
-          setPlant(save.plant || plant);
-          setTimeOfDay(save.timeOfDay || 'morning');
-          setPlantConsumptionRate(save.plantConsumptionRate || 1);
-          setDifficultyLevel(save.difficultyLevel || 1);
-          
-          // Sync Weather/Calendar if day > 1
-          if (save.day && weatherCalendar) {
-             // (Optional: logic to sync weather visual)
+          const res = await fetch(`${apiUrl}/api/load/${parsedUser.email}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+          });
+
+          if (res.ok) {
+            const cloudSave = await res.json();
+            
+            if (cloudSave && cloudSave.day) {
+              console.log("☁️ CLOUD SYNC SUCCESS! Overwriting local data.", cloudSave);
+              
+              // SUPRASCRIEM TOTUL cu datele de pe server
+              setDay(cloudSave.day);
+              setWater(cloudSave.water ?? 10);
+              setNutrients(cloudSave.nutrients ?? 10);
+              setEnergy(cloudSave.energy ?? 2);
+              setPlant(cloudSave.plant || plant); // Folosim 'plant' ca fallback
+              
+              if (cloudSave.timeOfDay) setTimeOfDay(cloudSave.timeOfDay);
+              if (cloudSave.difficultyLevel) setDifficultyLevel(cloudSave.difficultyLevel);
+              if (cloudSave.plantConsumptionRate) setPlantConsumptionRate(cloudSave.plantConsumptionRate);
+              
+              // Opțional: Actualizăm și localStorage-ul ca să fie la zi
+              parsedUser.gameSave = cloudSave;
+              localStorage.setItem('user', JSON.stringify(parsedUser));
+            } else {
+              console.log("☁️ No cloud save found. Using local data.");
+              // Fallback: Dacă nu e nimic în cloud, folosim ce aveam local
+              if (parsedUser.gameSave) {
+                 const local = parsedUser.gameSave;
+                 setDay(local.day || 1);
+                 setWater(local.water ?? 10);
+                 setNutrients(local.nutrients ?? 10);
+                 setEnergy(local.energy ?? 2);
+                 setPlant(local.plant || plant);
+              }
+            }
           }
-        } else {
-          // NO CLOUD SAVE? Start Fresh (Don't load ghost data)
-          console.log("🆕 New Game / No Save Found");
-          setDay(1);
-          setWater(10);
-          setNutrients(10);
-          setEnergy(2);
+        } catch (e) {
+          console.error("❌ Cloud Sync Error:", e);
         }
-      } catch(e) { 
-        console.error("Corrupted user data", e); 
-        // Safety: Log out if data is bad
-        localStorage.clear();
-        setUser(null);
       }
-    }
+    };
+
+    syncGame();
   }, []);
 
   // Salvăm jocul la fiecare modificare
