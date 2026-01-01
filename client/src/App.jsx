@@ -2452,14 +2452,6 @@ if (viewState === 'login') {
     boxShadow: 'inset 0 0 20px #ffcd2881'
   }}>
 
-{currentWeather === 'rainy' && (
-      <div className="weather-overlay rain-overlay">
-        {Array.from({ length: 20 }).map((_, i) => (
-          <div key={i} className="rain-drop" style={{ left: `${Math.random() * 100}%` }}></div>
-        ))}
-      </div>
-    )}
-
     {/* Grilaj geam pentru aspect mai drăguț */}
     <div style={{ position: 'absolute', top: '50%', width: '100%', height: '5px', background: '#5c382eff' }}></div>
     <div style={{ position: 'absolute', left: '50%', height: '100%', width: '5px', background: '#5c382eff' }}></div>
