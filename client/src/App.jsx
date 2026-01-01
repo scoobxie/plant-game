@@ -2104,11 +2104,28 @@ const saveToCloud = async () => {
   };
 
   const restart = () => {
+    // 1. Șterge datele vechi de configurare
     localStorage.removeItem('gardenSave');
-    localStorage.removeItem('moonDayOffset'); // Resetează faza lunară
-    localStorage.removeItem('currentPlantType'); // ȘTERGE PLANTA pentru re-roll
-    localStorage.removeItem('weatherCalendar'); // Resetează weather
-    // Forțează refresh pentru a genera o nouă plantă randomizată
+    localStorage.removeItem('moonDayOffset'); 
+    localStorage.removeItem('currentPlantType'); 
+    localStorage.removeItem('weatherCalendar'); 
+
+    // 2. FIX: Șterge și salvarea blocată din profilul utilizatorului
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      try {
+        const parsed = JSON.parse(savedUser);
+        // Dacă există o salvare veche, o ștergem ca să nu se mai încarce automat
+        if (parsed.gameSave) {
+          delete parsed.gameSave; 
+          localStorage.setItem('user', JSON.stringify(parsed));
+        }
+      } catch (e) {
+        console.error("Eroare la ștergerea salvării:", e);
+      }
+    }
+
+    // 3. Acum dăm reload, și jocul va începe de la Ziua 1 (New Game)
     window.location.reload();
   };
 
