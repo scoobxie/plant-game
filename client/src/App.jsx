@@ -6,8 +6,9 @@ import Register from './components/Auth/Register';
 function App() {
   const maxDays = 30;
   
-  const [authScreen, setAuthScreen] = useState('title'); // Options: 'title', 'login', 'register'
-  const [charPos, setCharPos] = useState('center'); // 🟢 This creates the missing variable
+  const [authScreen, setAuthScreen] = useState('title');
+  const [charPos, setCharPos] = useState('center');
+  const [isLoading, setIsLoading] = useState(true);
 
   // --- PLANT TYPES SYSTEM ---
   const plantTypes = {
@@ -550,23 +551,33 @@ function App() {
 
   // --- EFECTE (Load & Save & Styles) ---
 
-/// --- SYNC FIX: Încarcă datele din CLOUD la pornire ---
+// --- SYNC FIX: Load Cloud Data on Startup ---
   useEffect(() => {
     const syncGame = async () => {
-      // 1. Luăm datele locale ca fallback rapid
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       const savedUserString = localStorage.getItem('user') || sessionStorage.getItem('user');
       const apiUrl = import.meta.env.VITE_API_URL || 'https://plant-game.onrender.com';
 
+      // 1. Log in locally first (Visuals)
       if (token && savedUserString) {
         try {
           const parsedUser = JSON.parse(savedUserString);
-          setUser(parsedUser); // Logăm userul vizual
-          setViewState('game'); // Intrăm în joc
-
-          // 2. ☁️ FETCH CRITIC: Cerem serverului ultima salvare reală
-          console.log(`☁️ Checking cloud save for ${parsedUser.email}...`);
+          setUser(parsedUser); 
           
+          // Pre-load local data
+          if (parsedUser.gameSave) {
+             const local = parsedUser.gameSave;
+             setDay(local.day || 1);
+             setWater(local.water ?? 10);
+             setNutrients(local.nutrients ?? 10);
+             setEnergy(local.energy ?? 2);
+             setPlant(local.plant || plant);
+          }
+          
+          setViewState('game'); 
+
+          // 2. CHECK CLOUD DATA
+          console.log(`☁️ Checking cloud save...`);
           const res = await fetch(`${apiUrl}/api/load/${parsedUser.email}`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }
@@ -574,40 +585,30 @@ function App() {
 
           if (res.ok) {
             const cloudSave = await res.json();
-            
             if (cloudSave && cloudSave.day) {
-              console.log("☁️ CLOUD SYNC SUCCESS! Overwriting local data.", cloudSave);
+              console.log("☁️ Found Cloud Save (Day " + cloudSave.day + "). Syncing...");
               
-              // SUPRASCRIEM TOTUL cu datele de pe server
+              // Apply Cloud Data
               setDay(cloudSave.day);
               setWater(cloudSave.water ?? 10);
               setNutrients(cloudSave.nutrients ?? 10);
               setEnergy(cloudSave.energy ?? 2);
-              setPlant(cloudSave.plant || plant); // Folosim 'plant' ca fallback
+              setPlant(cloudSave.plant || plant);
               
               if (cloudSave.timeOfDay) setTimeOfDay(cloudSave.timeOfDay);
               if (cloudSave.difficultyLevel) setDifficultyLevel(cloudSave.difficultyLevel);
               if (cloudSave.plantConsumptionRate) setPlantConsumptionRate(cloudSave.plantConsumptionRate);
-              
-              // Opțional: Actualizăm și localStorage-ul ca să fie la zi
-              parsedUser.gameSave = cloudSave;
-              localStorage.setItem('user', JSON.stringify(parsedUser));
-            } else {
-              console.log("☁️ No cloud save found. Using local data.");
-              // Fallback: Dacă nu e nimic în cloud, folosim ce aveam local
-              if (parsedUser.gameSave) {
-                 const local = parsedUser.gameSave;
-                 setDay(local.day || 1);
-                 setWater(local.water ?? 10);
-                 setNutrients(local.nutrients ?? 10);
-                 setEnergy(local.energy ?? 2);
-                 setPlant(local.plant || plant);
-              }
             }
           }
         } catch (e) {
-          console.error("❌ Cloud Sync Error:", e);
+          console.error("❌ Sync Error:", e);
+        } finally {
+          // 🟢 FINISHED LOADING
+          console.log("✅ Loading Complete");
+          setIsLoading(false); 
         }
+      } else {
+        setIsLoading(false); // Not logged in, so we are "done loading"
       }
     };
 
@@ -617,6 +618,9 @@ function App() {
   // Salvăm jocul la fiecare modificare
   // --- CLOUD ONLY AUTO-SAVE (Replaces your old localStorage save) ---
   useEffect(() => {
+    // 🟢 SECURITY CHECK: Don't save while loading!
+    if (isLoading) return; 
+
     // Only save if we are in-game and have a valid user
     if (viewState === 'game' && user && user.email) {
       
@@ -630,7 +634,6 @@ function App() {
       const apiUrl = import.meta.env.VITE_API_URL || 'https://plant-game.onrender.com';
       const token = localStorage.getItem('token');
       
-      // Save to Cloud
       fetch(`${apiUrl}/api/save`, {
         method: 'POST',
         keepalive: true, // Ensures save finishes even if tab closes
@@ -644,7 +647,8 @@ function App() {
         })
       }).catch(err => console.warn("☁️ Save skipped:", err));
     }
-  }, [day, water, nutrients, energy, plant, timeOfDay, viewState, plantConsumptionRate, difficultyLevel, user]);
+    // ⚠️ 'isLoading' must be in the array below
+  }, [day, water, nutrients, energy, plant, timeOfDay, viewState, plantConsumptionRate, difficultyLevel, user, isLoading]);
   
   // Aplicăm tema (Zi/Noapte) pe body
   useEffect(() => {
