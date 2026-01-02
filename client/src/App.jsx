@@ -2497,12 +2497,20 @@ if (viewState === 'login') {
         onClick={() => setSelectedHeadIndex(index)}
         /* Added flexShrink and marginLeft to pull them closer */
         style={{ 
-          width: '300px', 
-          height: 'auto', 
+          // 🛠️ SCHIMBARE: Folosim vh (viewport height) în loc de px
+          // Asta înseamnă "30% din înălțimea ecranului"
+          height: '35vh', 
+          width: 'auto',  // Lățimea se ajustează automat
+          
+          minHeight: '150px', // Să nu fie prea mici pe ecrane pitice
+          maxHeight: '400px', // Să nu fie uriașe pe desktop
+          
           imageRendering: 'pixelated', 
           cursor: 'pointer',
           flexShrink: 0,
-          marginLeft: index > 0 ? '-150px' : '0' 
+          // Ajustăm overlap-ul dinamic
+          marginLeft: index > 0 ? '-15vh' : '0', 
+          zIndex: 100 - index
         }} 
       />
     ))}
@@ -2511,11 +2519,16 @@ if (viewState === 'login') {
       src={user?.character === 'boy' ? "/assets/boy.png" : "/assets/girl.png"} 
       /* Added flexShrink to prevent the girl from getting small */
       style={{ 
-        width: '300px', 
-        height: 'auto', 
+        height: '35vh',
+        width: 'auto',
+        
+        minHeight: '150px',
+        maxHeight: '400px',
+        
         imageRendering: 'pixelated', 
         flexShrink: 0,
-        marginLeft: '-100px' 
+        marginLeft: '-10vh', // Overlap dinamic
+        zIndex: 110
       }} 
     />
   </div>
@@ -2964,7 +2977,7 @@ if (viewState === 'login') {
         </div>
       )}
 
-            {/* MAIN MENU - MORNING */}
+{/* MAIN MENU - MORNING */}
             {gameView === 'normal' && timeOfDay === 'morning' && (
               <div className="action-menu-container">
                 {currentWeather === 'thunderstorm' ? (
@@ -2973,8 +2986,8 @@ if (viewState === 'login') {
                       <div className="action-menu-title">⛈️ Thunderstorm!</div>
                       <div className="action-menu-subtitle">Can't go outside - locked indoors</div>
                     </div>
-                    <div className="action-menu-item" onClick={sleep}>
-                      <div className="action-menu-title">⏭️ Wait Inside</div>
+                    <div className="action-menu-item" onClick={sleep} style={{ border: '4px solid #ffd700' }}>
+                      <div className="action-menu-title">⏳ WAIT</div>
                       <div className="action-menu-subtitle">Skip to afternoon</div>
                     </div>
                   </>
@@ -2982,22 +2995,30 @@ if (viewState === 'login') {
                   <>
                     <div className="action-menu-item" onClick={() => setGameView('plant-menu')}>
                       <div className="action-menu-title">🌿 Plant Care </div>
+                      <div className="action-menu-subtitle">Water, Heal, Fertilize</div>
                     </div>
                     <div className="action-menu-item" onClick={() => setGameView('expedition-menu')}>
                       <div className="action-menu-title">🎒 Expedition </div>
+                      <div className="action-menu-subtitle">Gather resources</div>
+                    </div>
+
+                    {/* 🔥 BUG FIX: Added WAIT button here so you are not stuck if you have energy! */}
+                    <div className="action-menu-item" onClick={sleep} style={{ border: '4px solid #ffd700' }}>
+                      <div className="action-menu-title">⏳ WAIT</div>
+                      <div className="action-menu-subtitle">Skip to afternoon</div>
                     </div>
                   </>
                 ) : (
-                  <div className="action-menu-item" onClick={sleep}>
-                    <div className="action-menu-title">⏭️ No Energy</div>
+                  <div className="action-menu-item" onClick={sleep} style={{ border: '4px solid #ffd700' }}>
+                    <div className="action-menu-title">⏳ WAIT</div>
                     <div className="action-menu-subtitle">
-                      {currentWeather === 'overcast' ? '☁️ Overcast: Need 2 energy minimum' : 'Skip to afternoon'}
+                      {currentWeather === 'overcast' ? '☁️ Too cloudy to work' : 'Recover energy (Skip)'}
                     </div>
                   </div>
                 )}
               </div>
             )}
-
+            
             {/* MAIN MENU - AFTERNOON */}
             {gameView === 'normal' && timeOfDay === 'afternoon' && (
               <div className="action-menu-container">
@@ -3044,32 +3065,25 @@ if (viewState === 'login') {
               </div>
             )}
 
-            {/* MAIN MENU - NIGHT */}
-            {gameView === 'normal' && timeOfDay === 'night' && energy >= getEnergyCost(1) && (
+           {/* MAIN MENU - NIGHT */}
+            {gameView === 'normal' && timeOfDay === 'night' && (
               <div className="action-menu-container">
-                <div className="action-menu-item" onClick={() => {
-                  setGameView('plant-menu');
-                }}>
-                  <div className="action-menu-title">🌿 Tend Plant</div>
-                  <div className="action-menu-subtitle">
-                    {currentWeather === 'overcast' ? '☁️ Overcast: 2x energy cost' : 'Use energy to care for plant'}
+                {/* Tend Plant - Only shows if you have enough energy, but doesn't block the UI */}
+                {energy >= getEnergyCost(1) && (
+                  <div className="action-menu-item" onClick={() => setGameView('plant-menu')}>
+                    <div className="action-menu-title">🌿 Tend Plant</div>
+                    <div className="action-menu-subtitle">
+                      {currentWeather === 'overcast' ? '☁️ Overcast: 2x energy cost' : 'Use energy to care for plant'}
+                    </div>
+                    <div className="action-menu-cost">-{getEnergyCost(1)} ⚡</div>
                   </div>
-                  <div className="action-menu-cost">-{getEnergyCost(1)} ⚡</div>
-                </div>
-                <div className="action-menu-item" onClick={sleep}>
-                  <div className="action-menu-title">💤 Sleep Early</div>
-                  <div className="action-menu-subtitle">Get well-rested buff (+1 max energy)</div>
-                </div>
-              </div>
-            )}
+                )}
 
-            {/* NIGHT - No energy left, must sleep */}
-            {gameView === 'normal' && timeOfDay === 'night' && energy < getEnergyCost(1) && (
-              <div className="action-menu-container">
-                <div className="action-menu-item" onClick={sleep}>
-                  <div className="action-menu-title">💤 Sleep</div>
+                {/* Sleep Button - ALWAYS VISIBLE (Fixes getting stuck at night) */}
+                <div className="action-menu-item" onClick={sleep} style={{ border: '4px solid #ffd700' }}>
+                  <div className="action-menu-title">💤 SLEEP</div>
                   <div className="action-menu-subtitle">
-                    {currentWeather === 'overcast' && energy === 1 ? '☁️ Need 2 energy (Overcast)' : 'End the day and restore energy'}
+                    {energy >= getEnergyCost(1) ? 'Get well-rested buff (+1 max energy)' : 'End the day'}
                   </div>
                 </div>
               </div>

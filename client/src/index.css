@@ -193,6 +193,7 @@ body.night {
 
 #moonlight-overlay {
   display: none !important;
+  pointer-events: none;
 }
 
 :root {
@@ -1446,6 +1447,7 @@ color: #5e2f0d !important;
   height: 100%;
   z-index: 500; /* Sub UI dar peste background */
   overflow: hidden;
+  pointer-events: none;
 }
 
 /* RAIN */
@@ -1508,6 +1510,7 @@ color: #5e2f0d !important;
   height: 100%;
   z-index: 501;
   animation: lightning 8s infinite;
+  pointer-events: none;
 }
 
 @keyframes lightning {
@@ -2805,15 +2808,15 @@ color: #5e2f0d !important; /* Maro închis (în loc de gri) */
   display: grid !important;
   height: 100vh;
   width: 100vw;
-  /* Columns: Side panels (320px) | Room (Flexible) | Side panels (320px) */
-  grid-template-columns: 320px 1fr 320px;
-  /* Rows: HUD (140px) | Room (Middle) | Actions (Bottom) */
-  grid-template-rows: 140px 1fr 180px;
-  gap: 15px;
-  padding: 15px;
-  box-sizing: border-box;
-  background-color: #2a1d15;
+  /* Desktop: 300px stânga, RESTUL centru, 300px dreapta */
+  grid-template-columns: 300px 1fr 300px; 
+  /* Rows: HUD (100px) | Game (Restul) | Actions (140px) */
+  grid-template-rows: 100px 1fr 140px;
+  gap: 0px !important;
+  padding: 0px !important;
+  background-color: #2a1d15; /* Fallback color */
   overflow: hidden;
+  position: relative; /* Important pentru straturi */
 }
 
 .room-view {
@@ -2822,7 +2825,7 @@ color: #5e2f0d !important; /* Maro închis (în loc de gri) */
   width: 100%;
   height: 100%;
   margin: 20;
-  display: flex;
+  display: block;
   flex-direction: column;
   justify-content: flex-end;
   align-items: center;
@@ -2831,7 +2834,7 @@ color: #5e2f0d !important; /* Maro închis (în loc de gri) */
   position: relative;
   box-shadow: none;
   image-rendering: pixelated;
-  
+  overflow: hidden;
 }
 
 .room-floor {
@@ -2857,62 +2860,67 @@ color: #5e2f0d !important; /* Maro închis (în loc de gri) */
 .char-pos-door { left: 12%; }
 .char-pos-bed { left: 78%; transform: rotate(90deg); bottom: 25%; }
 
-.game-screen-wrapper {
-  display: grid;
-  grid-template-columns: 320px 1fr 320px; /* Panouri laterale | Centru | Panouri laterale */
-  grid-template-rows: 1fr; /* Ocupă toată înălțimea */
-  height: 100vh;
-  width: 100vw;
-  gap: 20px;
-  padding: 20px;
-  box-sizing: border-box;
-  align-items: center; /* Centrează totul pe verticală */
-
-  position: fixed;
-  top: 0;
-  left: 0;
-}
-
 /* Culorile care se vor vedea prin geam */
 .window-glass.time-morning { background: linear-gradient(to bottom, #a2d2ff 0%, #ffffff 100%) !important; }
 .window-glass.time-afternoon { background: linear-gradient(to bottom, #ffa500 0%, #ff8c69 50%, #f4ecd8 100%) !important; }
 .window-glass.time-night { background: linear-gradient(to bottom, #0a0e27 0%, #1a1a3e 50%, #0f0c29 100%) !important; }
 
 /* Efect de sticlă mată peste culori */
-.window-glass::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%);
+/* --- GEAMUL (Container Părinte) --- */
+/* Se poziționează relativ la cameră */
+.window-glass {
+  position: absolute !important;
+  /* Poziționare procentuală = responsive */
+  top: 10% !important; 
+  left: 50% !important;
+  transform: translateX(-50%) !important; /* Centrare orizontală perfectă */
+  
+  width: 40% !important; /* Ocupă 40% din lățimea camerei */
+  height: 40% !important; /* Ocupă 40% din înălțimea camerei */
+  
+  border: 6px solid #5c382e !important;
+  z-index: 2 !important; /* Sub personaje, dar peste fundal */
+  background: transparent; /* Lasă cerul să se vadă */
+  
+  /* IMPORTANT: Orice iese din geam (colțurile soarelui) va fi tăiat */
+  overflow: visible !important; 
 }
 
-/* ===================================
-   FAZĂ LUNARĂ DISPLAY
-   =================================== */
-
+/* --- SOARELE / LUNA (Copil) --- */
+/* Se poziționează relativ la GEAM (colțul dreapta-sus al geamului) */
 .moon-phase-corner {
-  position: absolute !important; 
-  top: 27%;      
-  left: 51%;
-  transform: translateX(-50%);
-  z-index: 2;
+  position: absolute !important;
+  top: -25px !important;   /* Iese puțin în sus din ramă */
+  right: -25px !important; /* Iese puțin în dreapta din ramă */
+  left: auto !important;   /* Anulăm orice setare veche */
+  transform: none !important;
+  
+  z-index: 2 !important;  /* Peste rama geamului */
+  cursor: pointer;
+  
+  /* Asigură-te că nu are margini sau padding care să-l deplaseze */
   margin: 0 !important;
+  padding: 0 !important;
+  width: auto !important;
+  height: auto !important;
 }
 
 .moon-phase-emoji {
-  font-size: 5rem !important;
-  filter: drop-shadow(0 0 15px rgba(235, 218, 173, 0.5));
+  font-size: 4rem !important; /* Mărime fixă, mare */
+  line-height: 1;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8));
   transition: transform 0.3s ease;
 }
 
+/* Animație Soare */
 .moon-phase-emoji.is-sun {
-  animation: sunGlow 5s ease-in-out infinite;
-  filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.6));
+  animation: sunGlow 6s ease-in-out infinite;
+  filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8));
 }
 
 @keyframes sunGlow {
-  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 20px rgb(255, 190, 116)); }
-  50% { transform: scale(1.1); filter: drop-shadow(0 0 40px rgba(255, 209, 71, 0.856)); }
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 15px rgba(255, 200, 0, 0.6)); }
+  50% { transform: scale(1.15); filter: drop-shadow(0 0 30px rgba(255, 220, 50, 1)); }
 }
 
 /* Titlurile panourilor și meniurilor */
@@ -3130,7 +3138,7 @@ body.night .plant-info-modal {
   align-items: center;
   bottom: 30px;
   gap: 20px;
-  z-index: 1000;
+  z-index: 10;
 }
 
 /* Facem ca overlay-ul să nu mai fie albastru neon, ci întunecat simplu */
@@ -3338,3 +3346,106 @@ body.night .plant-info-modal {
   font-size: 1rem !important;
   border-bottom: 1px dashed rgba(255,255,255,0.1) !important;
 }
+
+/* =========================================================
+   📱 RESPONSIVE SYSTEM (PROFESSIONAL BREAKPOINTS)
+   ========================================================= */
+
+/* --- 1. TABLETE & LAPTOPURI MICI (sub 1200px) --- */
+@media (max-width: 1200px) {
+  .game-screen-wrapper {
+    /* Micșorăm coloanele laterale */
+    grid-template-columns: 220px 1fr 220px !important; 
+  }
+
+  /* Ajustăm panourile să încapă în spațiul mai mic */
+  .stats-panel, .inventory-panel, .plant-panel {
+    width: 220px !important;
+    padding: 10px !important;
+  }
+  
+  /* Micșorăm fontul în panouri */
+  .stat-label, .stat-value, .consumption-label {
+    font-size: 1rem !important;
+  }
+}
+
+/* --- 2. MOBILE & TABLETE PORTRAIT (sub 900px) --- */
+@media (max-width: 900px) {
+  .game-screen-wrapper {
+    /* TRANSFORMARE TOTALĂ: 1 singură coloană! */
+    grid-template-columns: 1fr !important; 
+    grid-template-rows: 80px 1fr 120px !important; /* HUD mai mic */
+  }
+
+  /* Ascundem panourile laterale (le vom deschide cu butoane) */
+  .inventory-panel, 
+  .plant-panel, 
+  .log-panel {
+    display: none !important; 
+    /* NOTĂ: În viitor, vom folosi o clasă .active pentru a le arăta ca popup */
+  }
+
+  /* Camera ocupă tot ecranul */
+  .room-view {
+    grid-column: 1 / -1 !important; /* De la stânga la dreapta complet */
+    width: 100% !important;
+    margin: 0 !important;
+    border: none !important; /* Scoatem bordura pe mobil pentru imersiune */
+  }
+
+  /* Repoziționăm butoanele de sus */
+  .utility-buttons-container {
+    top: 10px !important;
+    left: 10px !important;
+    gap: 5px !important;
+  }
+  
+  .utility-btn {
+    width: 100px !important;
+    font-size: 0.7rem !important;
+    padding: 5px !important;
+  }
+
+  /* Calendarul devine mai compact */
+  .calendar-container-new {
+    width: 60% !important;
+    height: 70px !important;
+    top: 10px !important;
+  }
+  
+  /* Meniul de acțiuni jos (Scrollabil orizontal) */
+  .action-menu-container {
+    width: 100% !important;
+    overflow-x: auto !important;
+    justify-content: flex-start !important;
+    padding-left: 20px !important;
+    bottom: 10px !important;
+    -webkit-overflow-scrolling: touch; /* Smooth scroll pe iOS */
+  }
+  
+  .action-menu-item {
+    min-width: 180px !important;
+    flex-shrink: 0; /* Să nu se strivească butoanele */
+  }
+}
+
+/* --- 3. MOBILE MIC (Telefoane vechi - sub 480px) --- */
+@media (max-width: 480px) {
+  .weather-indicator {
+    font-size: 3rem !important; /* Soare mai mic */
+    top: 60px !important; /* Îl mutăm mai jos să nu acopere butoanele */
+    right: 10px !important;
+  }
+  
+  .moon-phase-corner {
+    top: 15% !important;
+    left: 50% !important;
+  }
+  
+  /* Ascundem textul de pe butoane dacă e nevoie, lăsăm doar iconițe */
+  .action-menu-title {
+    font-size: 1.2rem !important;
+  }
+}
+
