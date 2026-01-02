@@ -2124,84 +2124,49 @@ const saveToCloud = async () => {
       disasterTriggeredRef.current = false;
   };
 
-const restart = async () => {
-  
-    // 🛑 SAFETY CHECK: Native browser popup
-    // This stops accidental clicks on the Red Button
-    const confirmed = window.confirm("⚠️ ARE YOU SURE?\n\nThis will wipe your save file on ALL devices and restart from Day 1.");
-    if (!confirmed) return;
+const restart = async (force = false) => {
+    // Check if we are on the death screen or if force is active
+    const isGameOver = gameView === 'dead';
 
-    // 1. Prepare FRESH Day 1 State
-    const freshState = {
-      day: 1,
-      water: 10, 
-      nutrients: 10, 
-      energy: 2,
-      plant: { 
-        water: 3, nutrients: 8, health: 15, 
-        dryDays: 0, overwateredDays: 0, damagedRootsDays: 0 
-      },
-      timeOfDay: 'morning',
-      plantConsumptionRate: 1,
-      difficultyLevel: 1
-    };
-
-    // 2. FORCE CLOUD WIPE (Send Day 1 to Server)
-    if (user && user.email) {
-      try {
-        console.log("☁️ Wiping Cloud Save...");
-        const token = localStorage.getItem('token');
-        const apiUrl = import.meta.env.VITE_API_URL || 'https://plant-game.onrender.com';
-        
-        await fetch(`${apiUrl}/api/save`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({ 
-            email: user.email, 
-            gameState: freshState // <--- Critical: Overwrites DB with Day 1
-          })
-        });
-        console.log("✅ Cloud Save Wiped.");
-      } catch (e) {
-        console.error("❌ Failed to wipe cloud save:", e);
-        alert("Error resetting cloud save. Check internet connection.");
-        return; // Stop if we couldn't wipe the cloud (prevent de-sync)
-      }
+    if (!force && !isGameOver) {
+      const confirmed = window.confirm("⚠️ RESTART FROM DAY 1?\n\nThis will wipe your progress on all devices.");
+      if (!confirmed) return;
     }
 
-    // 3. Clear Local Data
+    // --- Fresh Day 1 Reset Logic ---
+    const freshState = {
+      day: 1, water: 10, nutrients: 10, energy: 2,
+      plant: { water: 3, nutrients: 8, health: 15, dryDays: 0, overwateredDays: 0, damagedRootsDays: 0 },
+      timeOfDay: 'morning', plantConsumptionRate: 1, difficultyLevel: 1
+    };
+
+    if (user?.email) {
+      try {
+        const token = localStorage.getItem('token');
+        const apiUrl = import.meta.env.VITE_API_URL || 'https://plant-game.onrender.com';
+        await fetch(`${apiUrl}/api/save`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ email: user.email, gameState: freshState })
+        });
+      } catch (e) { console.error("Cloud wipe failed:", e); }
+    }
+
     localStorage.removeItem('gardenSave');
     localStorage.removeItem('moonDayOffset'); 
     localStorage.removeItem('currentPlantType'); 
     localStorage.removeItem('weatherCalendar'); 
 
-    // Remove gameSave from cached user to prevent auto-load
     const savedUser = localStorage.getItem('user');
     if (savedUser) {
-      const parsed = JSON.parse(savedUser);
-      delete parsed.gameSave; 
-      localStorage.setItem('user', JSON.stringify(parsed));
+      try {
+        const parsed = JSON.parse(savedUser);
+        delete parsed.gameSave; 
+        localStorage.setItem('user', JSON.stringify(parsed));
+      } catch (e) { console.error(e); }
     }
 
-    // 4. Reload (Server now has Day 1, so App will load Day 1)
     window.location.reload();
-  };
-
-  // Check if sleep/wait button should show
-  const canSleep = () => {
-    // FIX: Allow passing time even in Morning (if stuck or saving energy)
-    if (timeOfDay === 'morning') return true; 
-    
-    // Afternoon: always can pass to night
-    if (timeOfDay === 'afternoon') return true;
-    
-    // Night: always can sleep to morning
-    if (timeOfDay === 'night') return true;
-    
-    return false;
   };
 
 // --- RENDERIZARE ---
@@ -2362,9 +2327,9 @@ if (viewState === 'login') {
     LOG OUT
   </button>
   
-  <button className="utility-btn restart-btn-top" onClick={restart}>
-    RESTART
-  </button>
+  <button className="utility-btn restart-btn-top" onClick={() => restart()}>
+  RESTART
+</button>
 </div>
 
       {/* Moon Phase - Top Right Corner */}
@@ -2548,14 +2513,39 @@ if (viewState === 'login') {
     zIndex: 1
   }}></div>
 
-  {/* Planta și Fata: Vor sta în fața geamului */}
-  <div style={{ display: 'flex', alignItems: 'flex-end', zIndex: 10, marginTop: '25%'}}>
-     <img src={plantType.image} style={{ width: '300px', height: 'auto', imageRendering: 'pixelated' }} />
-     <img 
-        src={user?.character === 'boy' ? "/assets/boy.png" : "/assets/girl.png"} 
-        style={{ width: '300px', height: 'auto', imageRendering: 'pixelated' }} 
-     />
-</div>
+{/* Planta și Fata: Vor sta în fața geamului */}
+  <div style={{ display: 'flex', alignItems: 'flex-end', zIndex: 10, marginTop: '25%' }}>
+    {/* Renders all your plants next to each other */}
+    {plantHeads.map((head, index) => (
+      <img 
+        key={head.id}
+        src={head.plantTypeData?.image || plantType.image} 
+        onClick={() => setSelectedHeadIndex(index)}
+        /* Added flexShrink and marginLeft to pull them closer */
+        style={{ 
+          width: '300px', 
+          height: 'auto', 
+          imageRendering: 'pixelated', 
+          cursor: 'pointer',
+          flexShrink: 0,
+          marginLeft: index > 0 ? '-150px' : '0' 
+        }} 
+      />
+    ))}
+    
+    <img 
+      src={user?.character === 'boy' ? "/assets/boy.png" : "/assets/girl.png"} 
+      /* Added flexShrink to prevent the girl from getting small */
+      style={{ 
+        width: '300px', 
+        height: 'auto', 
+        imageRendering: 'pixelated', 
+        flexShrink: 0,
+        marginLeft: '-100px' 
+      }} 
+    />
+  </div>
+
   {/* Panou Dreapta */}
   <div className="plant-panel stats-panel">...</div>
 </div>
