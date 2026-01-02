@@ -2804,37 +2804,52 @@ color: #5e2f0d !important; /* Maro închis (în loc de gri) */
   }
 }
 /* --- 🏡 MAIN GAME GRID CENTRAT --- */
-.game-screen-wrapper {
-  display: grid !important;
-  height: 100vh;
+
+#game {
+  position: relative;
   width: 100vw;
-  /* Desktop: 300px stânga, RESTUL centru, 300px dreapta */
-  grid-template-columns: 300px 1fr 300px; 
-  /* Rows: HUD (100px) | Game (Restul) | Actions (140px) */
-  grid-template-rows: 100px 1fr 140px;
-  gap: 0px !important;
-  padding: 0px !important;
-  background-color: #2a1d15; /* Fallback color */
+  height: 100vh;
   overflow: hidden;
-  position: relative; /* Important pentru straturi */
+  
+  /* Flexbox centering magic */
+  display: flex;
+  justify-content: center; /* Center horizontally */
+  align-items: center;     /* Center vertically */
 }
 
 .room-view {
-  grid-column: 2;
-  grid-row: 2;
-  width: 100%;
-  height: 100%;
-  margin: 20;
-  display: block;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: center;
+  grid-column: auto !important;
+  grid-row: auto !important;
+  margin: 0 !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  position: relative !important; 
+  overflow: hidden !important; 
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important; 
+  align-items: center !important;
+  
+  /* Size Controls */
+  width: 85vw !important;  /* 85% of screen width */
+  height: 60vh !important; /* 60% of screen height */
+  max-width: 900px;
+  max-height: 600px;
+  
+  /* Visuals */
   background: #ffd5d5;
-  border: 8px solid #3d1f08;
+  border: 8px solid #3d1f08 !important;
   position: relative;
-  box-shadow: none;
-  image-rendering: pixelated;
-  overflow: hidden;
+  box-shadow: 0 0 50px rgba(0,0,0,0.5) !important;
+  z-index: 1;
+
+  /* Layout for plants inside */
+  display: flex !important;
+  flex-direction: row !important; /* Arrange plants side-by-side */
+  justify-content: center;
+  align-items: flex-end; /* Stand on the floor */
 }
 
 .room-floor {
@@ -2860,45 +2875,34 @@ color: #5e2f0d !important; /* Maro închis (în loc de gri) */
 .char-pos-door { left: 12%; }
 .char-pos-bed { left: 78%; transform: rotate(90deg); bottom: 25%; }
 
-/* Culorile care se vor vedea prin geam */
+/* WINDOW */
 .window-glass.time-morning { background: linear-gradient(to bottom, #a2d2ff 0%, #ffffff 100%) !important; }
 .window-glass.time-afternoon { background: linear-gradient(to bottom, #ffa500 0%, #ff8c69 50%, #f4ecd8 100%) !important; }
 .window-glass.time-night { background: linear-gradient(to bottom, #0a0e27 0%, #1a1a3e 50%, #0f0c29 100%) !important; }
 
-/* Efect de sticlă mată peste culori */
-/* --- GEAMUL (Container Părinte) --- */
-/* Se poziționează relativ la cameră */
 .window-glass {
   position: absolute !important;
-  /* Poziționare procentuală = responsive */
+  /* Poziționare responsive */
   top: 10% !important; 
   left: 50% !important;
   transform: translateX(-50%) !important; /* Centrare orizontală perfectă */
   
-  width: 40% !important; /* Ocupă 40% din lățimea camerei */
-  height: 40% !important; /* Ocupă 40% din înălțimea camerei */
+  width: 50% !important; 
+  height: 45% !important; 
   
   border: 6px solid #5c382e !important;
-  z-index: 2 !important; /* Sub personaje, dar peste fundal */
-  background: transparent; /* Lasă cerul să se vadă */
-  
-  /* IMPORTANT: Orice iese din geam (colțurile soarelui) va fi tăiat */
-  overflow: visible !important; 
+  z-index: 2 !important;
+  background: transparent;
+  overflow: hidden !important; 
 }
 
-/* --- SOARELE / LUNA (Copil) --- */
-/* Se poziționează relativ la GEAM (colțul dreapta-sus al geamului) */
 .moon-phase-corner {
   position: absolute !important;
-  top: -25px !important;   /* Iese puțin în sus din ramă */
-  right: -25px !important; /* Iese puțin în dreapta din ramă */
-  left: auto !important;   /* Anulăm orice setare veche */
+  top: 56% !important;  
+  left: 10% !important; 
   transform: none !important;
-  
-  z-index: 2 !important;  /* Peste rama geamului */
+  z-index: 2 !important;
   cursor: pointer;
-  
-  /* Asigură-te că nu are margini sau padding care să-l deplaseze */
   margin: 0 !important;
   padding: 0 !important;
   width: auto !important;
@@ -2906,13 +2910,12 @@ color: #5e2f0d !important; /* Maro închis (în loc de gri) */
 }
 
 .moon-phase-emoji {
-  font-size: 4rem !important; /* Mărime fixă, mare */
+  font-size: 5rem !important;
   line-height: 1;
   filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8));
   transition: transform 0.3s ease;
 }
 
-/* Animație Soare */
 .moon-phase-emoji.is-sun {
   animation: sunGlow 6s ease-in-out infinite;
   filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8));
@@ -3447,5 +3450,27 @@ body.night .plant-info-modal {
   .action-menu-title {
     font-size: 1.2rem !important;
   }
+}
+
+.sprites-container {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  
+  position: absolute;
+  
+  
+  bottom: 0%; 
+  
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  height: auto;
+  z-index: 10;
+  pointer-events: none; 
+}
+
+.sprites-container img {
+  pointer-events: auto; 
 }
 

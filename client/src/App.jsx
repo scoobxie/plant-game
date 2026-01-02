@@ -2421,26 +2421,36 @@ if (viewState === 'login') {
 
 {/* 📅 WALL CALENDAR */}
     <div style={{
-      position: 'absolute',
-      top: '100px',
-      left: '60px', /* Near the window */
-      width: '100px',
-      height: '110px',
-      background: '#ffffffff',
+position: 'absolute',
+      /* PERCENTAGES make it stick to the wall relative to the room size */
+      top: '15%', 
+      left: '10%', 
+      /* Scale relative to room width */
+      width: '12%',
+      minWidth: '60px', /* Never gets too small */
+      aspectRatio: '0.8', 
+      background: '#ffffff',
       border: '4px solid #3d1f08',
       boxShadow: '4px 4px 0 rgba(0,0,0,0.2)',
-      zIndex: 2,
+      zIndex: 1, 
       display: 'flex',
       flexDirection: 'column',
       textAlign: 'center',
-      transform: 'rotate(-2deg)', /* Slight tilt makes it look natural */
+      transform: 'rotate(-2deg)',
       transformOrigin: 'top center'
     }}>
       {/* Nail */}
-      <div style={{position:'absolute', top:'-8px', left:'50%', transform:'translateX(-50%)', width:'8px', height:'8px', background:'#333', borderRadius:'50%'}}></div>
+      <div style={{position:'absolute', top:'-6px', left:'50%', transform:'translateX(-50%)', 
+        width:'8px', height:'8px', background:'#333', borderRadius:'50%'}}></div>
       
       {/* Red Header */}
-      <div style={{background: '#d64545', color:'white', fontFamily:'"VT323", monospace', padding:'4px 0', borderBottom:'2px solid #3d1f08'}}>
+      <div style={{background: '#d64545', 
+        color:'white', 
+        fontFamily:'"VT323", monospace', 
+        /* Responsive Text Size */
+        fontSize: 'clamp(0.6rem, 1.2vw, 0.9rem)', 
+        padding:'4px 0', 
+        borderBottom:'2px solid #3d1f08'}}>
         {currentSeason.name.toUpperCase()}
       </div>
       
@@ -2488,7 +2498,7 @@ if (viewState === 'login') {
   }}></div>
 
 {/* Planta și Fata: Vor sta în fața geamului */}
-  <div style={{ display: 'flex', alignItems: 'flex-end', zIndex: 2, marginTop: '25%' }}>
+  <div className="sprites-container">
     {/* Renders all your plants next to each other */}
     {plantHeads.map((head, index) => (
       <img 
