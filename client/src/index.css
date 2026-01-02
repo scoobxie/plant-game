@@ -95,8 +95,9 @@
   top: 20px;
   left: 27px;
   display: flex;
+  flex-direction: column !important;
   gap: 15px;
-  z-index: 10001;
+  z-index: 1;
 }
 
 .utility-btn {
@@ -172,6 +173,7 @@
 
 body {
   transition: background-color 0.5s ease, background-image 0.5s ease;
+  min-height: 100vh;
 }
 
 /* MORNING - Soft warm tones */
@@ -205,36 +207,6 @@ body.night {
 }
 
 /* ===================================
-   FAZĂ LUNARĂ DISPLAY
-   =================================== */
-
-.moon-phase-corner {
-  position: fixed;
-  top: 230px;
-  right: 810px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  z-index: 1001; /* Peste overlay (900) */
-}
-
-.moon-phase-emoji {
-  font-size: 6rem;
-  filter: drop-shadow(0 0 15px rgb(235, 218, 173)); /* Glow mai puternic */
-  transition: transform 0.3s ease;
-}
-
-.moon-phase-emoji.is-sun {
-  animation: sunGlow 5s ease-in-out infinite;
-  filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.6));
-}
-
-@keyframes sunGlow {
-  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 20px rgb(255, 190, 116)); }
-  50% { transform: scale(1.1); filter: drop-shadow(0 0 40px rgba(255, 209, 71, 0.856)); }
-}
-/* ===================================
    CALENDAR NOU - De la Zero
    =================================== */
 
@@ -252,7 +224,7 @@ body.night {
   border-radius: 15px;
   box-shadow: 0 0 20px rgba(0, 102, 204, 0.5);
   backdrop-filter: blur(10px);
-  z-index: 1001; /* Peste overlay (900) */
+  z-index: 2;
 }
 
 /* Săgeată mobilă - se mișcă la ziua curentă */
@@ -263,7 +235,7 @@ body.night {
   font-size: 2rem;
   color: var(--p3-yellow);
   text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
-  z-index: 999;
+  z-index: 2;
   transition: left 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
@@ -391,15 +363,10 @@ body.night {
   display: flex;
   flex-direction: row; /* Aliniere orizontală */
   gap: 30px;
-  z-index: 998;
+  z-index: 2;
   padding-bottom: 20px;
   width: 100%;
   justify-content: center;
-}
-
-
-/* Containerul general pentru butoane */
-.action-menu-container {
   gap: 30px; /* Mai mult spațiu între butoane */
   padding-bottom: 20px;
 }
@@ -486,7 +453,7 @@ body.night {
   min-width: 260px;
   max-width: 280px;
   backdrop-filter: none !important; 
-  z-index: 997;
+  z-index: 2;
 }
 
 .inventory-panel {
@@ -696,7 +663,7 @@ display: flex;
   display: flex;
   align-items: center;
   gap: 20px;
-  z-index: 1000;
+  z-index: 2;
   animation: fadeIn 1s ease-out;
 }
 
@@ -1042,7 +1009,7 @@ color: #5e2f0d !important;
   height: 100%;
   background: rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(5px);
-  z-index: 900; /* Sub panels (care sunt 997-1001) */
+  z-index: 1; /* Sub panels (care sunt 997-1001) */
   animation: fadeInOverlay 0.3s ease-out;
 }
 
@@ -1251,9 +1218,14 @@ color: #5e2f0d !important;
 
 /* Moon Phase Corner - Clickable */
 .moon-phase-corner.clickable {
+  position: absolute;
+  top: 1% !important;
+  left: 60% !important;
   cursor: pointer;
   transition: all 0.3s ease;
-  z-index: 100;
+  z-index: 1 !important; 
+  transform: none !important;
+  margin: 0 !important;
 }
 
 /* Moon Calendar Overlay */
@@ -1267,7 +1239,7 @@ color: #5e2f0d !important;
   display: flex;
   justify-content: flex-end;
   align-items: flex-start;
-  z-index: 10000;
+  z-index:9999;
   animation: fadeIn 0.2s ease;
   padding: 20px;
 }
@@ -1870,7 +1842,7 @@ color: #5e2f0d !important;
   border-radius: 15px;
   padding: 20px;
   box-shadow: 0 0 40px rgba(0, 102, 204, 0.8);
-  z-index: 1003;
+  z-index: 2;
   animation: slideInRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   backdrop-filter: blur(10px);
 }
@@ -2830,26 +2802,36 @@ color: #5e2f0d !important; /* Maro închis (în loc de gri) */
 }
 /* --- 🏡 MAIN GAME GRID CENTRAT --- */
 .game-screen-wrapper {
-  display: grid;
-  grid-template-columns: 320px 1fr 320px;
-  /* Împărțim ecranul în 3 zone: Top (Calendar), Middle (Cameră), Bottom (Acțiuni) */
-  grid-template-rows: 140px 1fr 160px; 
+  display: grid !important;
   height: 100vh;
   width: 100vw;
+  /* Columns: Side panels (320px) | Room (Flexible) | Side panels (320px) */
+  grid-template-columns: 320px 1fr 320px;
+  /* Rows: HUD (140px) | Room (Middle) | Actions (Bottom) */
+  grid-template-rows: 140px 1fr 180px;
   gap: 15px;
-  padding: 20px;
+  padding: 15px;
   box-sizing: border-box;
+  background-color: #2a1d15;
   overflow: hidden;
-  align-items: center; /* Centrează vertical panourile și camera */
 }
 
 .room-view {
   grid-column: 2;
+  grid-row: 2;
+  width: 100%;
+  height: 100%;
+  margin: 20;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
   background: #ffd5d5;
   border: 8px solid #3d1f08;
   position: relative;
   box-shadow: none;
   image-rendering: pixelated;
+  
 }
 
 .room-floor {
@@ -2861,7 +2843,7 @@ color: #5e2f0d !important; /* Maro închis (în loc de gri) */
   width: 120px; height: auto;
   image-rendering: pixelated; /* 🟢 Keeps pixel art sharp */
   filter: drop-shadow(0 4px 4px rgba(0,0,0,0.2));
-  z-index: 10;
+  z-index: 2;
 }
 
 .char-sprite {
@@ -2902,6 +2884,35 @@ color: #5e2f0d !important; /* Maro închis (în loc de gri) */
   position: absolute;
   top: 0; left: 0; width: 100%; height: 100%;
   background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%);
+}
+
+/* ===================================
+   FAZĂ LUNARĂ DISPLAY
+   =================================== */
+
+.moon-phase-corner {
+  position: absolute !important; 
+  top: 27%;      
+  left: 51%;
+  transform: translateX(-50%);
+  z-index: 2;
+  margin: 0 !important;
+}
+
+.moon-phase-emoji {
+  font-size: 5rem !important;
+  filter: drop-shadow(0 0 15px rgba(235, 218, 173, 0.5));
+  transition: transform 0.3s ease;
+}
+
+.moon-phase-emoji.is-sun {
+  animation: sunGlow 5s ease-in-out infinite;
+  filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.6));
+}
+
+@keyframes sunGlow {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 20px rgb(255, 190, 116)); }
+  50% { transform: scale(1.1); filter: drop-shadow(0 0 40px rgba(255, 209, 71, 0.856)); }
 }
 
 /* Titlurile panourilor și meniurilor */
@@ -3327,4 +3338,3 @@ body.night .plant-info-modal {
   font-size: 1rem !important;
   border-bottom: 1px dashed rgba(255,255,255,0.1) !important;
 }
-

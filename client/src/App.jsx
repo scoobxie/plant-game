@@ -2126,7 +2126,7 @@ const saveToCloud = async () => {
 
 const restart = async (force = false) => {
     // Check if we are on the death screen or if force is active
-    const isGameOver = gameView === 'dead';
+    const isGameOver = gameView === 'dead';gameView === 'dead'
 
     if (!force && !isGameOver) {
       const confirmed = window.confirm("⚠️ RESTART FROM DAY 1?\n\nThis will wipe your progress on all devices.");
@@ -2332,45 +2332,6 @@ if (viewState === 'login') {
 </button>
 </div>
 
-      {/* Moon Phase - Top Right Corner */}
-{/* ☀️/🌙 Indicator dinamic în colț */}
-<div 
-  className="moon-phase-corner clickable" 
-  onClick={() => setMoonCalendarExpanded(!moonCalendarExpanded)}
->
-<div className={`moon-phase-emoji ${timeOfDay === 'morning' ? 'is-sun' : ''}`}>
-  {timeOfDay === 'morning' ? '☀️' : getMoonPhase(day).emoji}
-</div>
-</div>
-
-      {/* MOON CALENDAR EXPANDED */}
-      {moonCalendarExpanded && (
-        <div className="moon-calendar-overlay" onClick={() => setMoonCalendarExpanded(false)}>
-          <div className="moon-calendar-panel" onClick={(e) => e.stopPropagation()}>
-            <div className="moon-calendar-header">
-              <h2>🌙 Moon Phase Calendar</h2>
-              <button className="close-btn" onClick={() => setMoonCalendarExpanded(false)}>✕</button>
-            </div>
-            <div className="moon-calendar-grid">
-              {Array.from({ length: 30 }, (_, i) => i + 1).map(dayNum => {
-                const moonPhase = getMoonPhase(dayNum);
-                const isCurrentDay = dayNum === day;
-                return (
-                  <div 
-                    key={dayNum} 
-                    className={`moon-calendar-day ${isCurrentDay ? 'current' : ''}`}
-                  >
-                    <div className="moon-calendar-day-num">Day {dayNum}</div>
-                    <div className="moon-calendar-moon">{moonPhase.emoji}</div>
-                    <div className="moon-calendar-phase">{moonPhase.name}</div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* CALENDAR NOU - Hybrid scroll */}
       {gameView === 'normal' && (
         <div className="calendar-container-new">
@@ -2453,7 +2414,9 @@ if (viewState === 'login') {
   height: '60vh', 
   width: '100%', 
   maxWidth: '850px',
-
+  zIndex: 2, 
+  position: 'relative', /* Keeps them locked inside room boundaries */
+  marginBottom: '5%'     /* Adjust this to sit them perfectly on the floor */
 }}>
 
 {/* 📅 WALL CALENDAR */}
@@ -2466,7 +2429,7 @@ if (viewState === 'login') {
       background: '#ffffffff',
       border: '4px solid #3d1f08',
       boxShadow: '4px 4px 0 rgba(0,0,0,0.2)',
-      zIndex: 5,
+      zIndex: 2,
       display: 'flex',
       flexDirection: 'column',
       textAlign: 'center',
@@ -2495,13 +2458,24 @@ if (viewState === 'login') {
     position: 'absolute',
     top: '15%',
     border: '6px solid #5c382eff',
-    zIndex: 1,
+    zIndex: 2,
     boxShadow: 'inset 0 0 20px #ffcd2881'
   }}>
 
+      {/* Moon Phase - Top Right Corner */}
+{/* ☀️/🌙 Indicator dinamic în colț */}
+<div 
+  className="moon-phase-corner clickable" 
+  onClick={() => setMoonCalendarExpanded(!moonCalendarExpanded)}
+>
+<div className={`moon-phase-emoji ${timeOfDay === 'morning' ? 'is-sun' : ''}`}>
+  {timeOfDay === 'morning' ? '☀️' : getMoonPhase(day).emoji}
+</div>
+</div>
+
     {/* Grilaj geam pentru aspect mai drăguț */}
-    <div style={{ position: 'absolute', top: '50%', width: '100%', height: '5px', background: '#5c382eff' }}></div>
-    <div style={{ position: 'absolute', left: '50%', height: '100%', width: '5px', background: '#5c382eff' }}></div>
+    <div style={{ position: 'absolute', top: '50%', width: '100%', height: '5px', background: '#5c382eff', zIndex: 2 }}></div>
+    <div style={{ position: 'absolute', left: '50%', height: '100%', width: '5px', background: '#5c382eff', zIndex: 2 }}></div>
   </div>
 
   {/* 🪵 PODEAUA CAMEREI */}
@@ -2510,11 +2484,11 @@ if (viewState === 'login') {
     height: '25%', 
     background: '#b1917fff', 
     borderTop: '6px solid #c5a491ff',
-    zIndex: 1
+    zIndex: 2
   }}></div>
 
 {/* Planta și Fata: Vor sta în fața geamului */}
-  <div style={{ display: 'flex', alignItems: 'flex-end', zIndex: 10, marginTop: '25%' }}>
+  <div style={{ display: 'flex', alignItems: 'flex-end', zIndex: 2, marginTop: '25%' }}>
     {/* Renders all your plants next to each other */}
     {plantHeads.map((head, index) => (
       <img 
@@ -2707,7 +2681,7 @@ if (viewState === 'login') {
                           cursor: 'pointer',
                           transition: 'all 0.2s'
                         }}
-                        onMouseEnter={(e) => e.target.style.background = 'rgba(81, 207, 102, 0.4)'}
+                        onMouseEnter={(e) => e.target.style.background = 'rgba(207, 81, 81, 0.4)'}
                         onMouseLeave={(e) => e.target.style.background = 'rgba(81, 207, 102, 0.2)'}
                       >
                         ◀
@@ -2961,6 +2935,35 @@ if (viewState === 'login') {
           </>
         ) : (
           <>
+
+      {/* MOON CALENDAR EXPANDED */}
+      {moonCalendarExpanded && (
+        <div className="moon-calendar-overlay" onClick={() => setMoonCalendarExpanded(false)}>
+          <div className="moon-calendar-panel" onClick={(e) => e.stopPropagation()}>
+            <div className="moon-calendar-header">
+              <h2>🌙 Moon Phase Calendar</h2>
+              <button className="close-btn" onClick={() => setMoonCalendarExpanded(false)}>✕</button>
+            </div>
+            <div className="moon-calendar-grid">
+              {Array.from({ length: 30 }, (_, i) => i + 1).map(dayNum => {
+                const moonPhase = getMoonPhase(dayNum);
+                const isCurrentDay = dayNum === day;
+                return (
+                  <div 
+                    key={dayNum} 
+                    className={`moon-calendar-day ${isCurrentDay ? 'current' : ''}`}
+                  >
+                    <div className="moon-calendar-day-num">Day {dayNum}</div>
+                    <div className="moon-calendar-moon">{moonPhase.emoji}</div>
+                    <div className="moon-calendar-phase">{moonPhase.name}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
             {/* MAIN MENU - MORNING */}
             {gameView === 'normal' && timeOfDay === 'morning' && (
               <div className="action-menu-container">
