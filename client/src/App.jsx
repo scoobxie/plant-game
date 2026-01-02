@@ -2124,39 +2124,83 @@ const saveToCloud = async () => {
       disasterTriggeredRef.current = false;
   };
 
-  const restart = () => {
-    // 1. Șterge datele vechi de configurare
+const restart = async () => {
+  
+    // 🛑 SAFETY CHECK: Native browser popup
+    // This stops accidental clicks on the Red Button
+    const confirmed = window.confirm("⚠️ ARE YOU SURE?\n\nThis will wipe your save file on ALL devices and restart from Day 1.");
+    if (!confirmed) return;
+
+    // 1. Prepare FRESH Day 1 State
+    const freshState = {
+      day: 1,
+      water: 10, 
+      nutrients: 10, 
+      energy: 2,
+      plant: { 
+        water: 3, nutrients: 8, health: 15, 
+        dryDays: 0, overwateredDays: 0, damagedRootsDays: 0 
+      },
+      timeOfDay: 'morning',
+      plantConsumptionRate: 1,
+      difficultyLevel: 1
+    };
+
+    // 2. FORCE CLOUD WIPE (Send Day 1 to Server)
+    if (user && user.email) {
+      try {
+        console.log("☁️ Wiping Cloud Save...");
+        const token = localStorage.getItem('token');
+        const apiUrl = import.meta.env.VITE_API_URL || 'https://plant-game.onrender.com';
+        
+        await fetch(`${apiUrl}/api/save`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ 
+            email: user.email, 
+            gameState: freshState // <--- Critical: Overwrites DB with Day 1
+          })
+        });
+        console.log("✅ Cloud Save Wiped.");
+      } catch (e) {
+        console.error("❌ Failed to wipe cloud save:", e);
+        alert("Error resetting cloud save. Check internet connection.");
+        return; // Stop if we couldn't wipe the cloud (prevent de-sync)
+      }
+    }
+
+    // 3. Clear Local Data
     localStorage.removeItem('gardenSave');
     localStorage.removeItem('moonDayOffset'); 
     localStorage.removeItem('currentPlantType'); 
     localStorage.removeItem('weatherCalendar'); 
 
-    // 2. FIX: Șterge și salvarea blocată din profilul utilizatorului
+    // Remove gameSave from cached user to prevent auto-load
     const savedUser = localStorage.getItem('user');
     if (savedUser) {
-      try {
-        const parsed = JSON.parse(savedUser);
-        // Dacă există o salvare veche, o ștergem ca să nu se mai încarce automat
-        if (parsed.gameSave) {
-          delete parsed.gameSave; 
-          localStorage.setItem('user', JSON.stringify(parsed));
-        }
-      } catch (e) {
-        console.error("Eroare la ștergerea salvării:", e);
-      }
+      const parsed = JSON.parse(savedUser);
+      delete parsed.gameSave; 
+      localStorage.setItem('user', JSON.stringify(parsed));
     }
 
-    // 3. Acum dăm reload, și jocul va începe de la Ziua 1 (New Game)
+    // 4. Reload (Server now has Day 1, so App will load Day 1)
     window.location.reload();
   };
 
-  // Check if sleep button should show
+  // Check if sleep/wait button should show
   const canSleep = () => {
+    // FIX: Allow passing time even in Morning (if stuck or saving energy)
+    if (timeOfDay === 'morning') return true; 
+    
     // Afternoon: always can pass to night
     if (timeOfDay === 'afternoon') return true;
+    
     // Night: always can sleep to morning
     if (timeOfDay === 'night') return true;
-    // Morning: never can skip (must use actions)
+    
     return false;
   };
 
