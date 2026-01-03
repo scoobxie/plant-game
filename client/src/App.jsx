@@ -22,27 +22,30 @@ function App() {
     outfit: ""
   });
 
-// 🚑 SAFETY CHECK (FIX REFRESH & BROKEN ASSETS): 
-  useEffect(() => {
-     if (viewState === 'game' && user) {
-         // Verificăm dacă skin-ul lipsește SAU dacă părul e cel vechi ("messy")
-         const isMissingSkin = !characterLook.skin || characterLook.skin === "";
-         const isBrokenHair = characterLook.hair && characterLook.hair.includes('messy');
+// 🚑 SAFETY CHECK (VERSIUNEA NOUĂ: Așteaptă încărcarea)
+useEffect(() => {
+    // 1. Dacă jocul încă încarcă datele, nu facem nimic (nu intrăm în panică)
+    if (isLoading) return;
 
-         if (isMissingSkin || isBrokenHair) {
-             console.log("🚑 Emergency Outfit Fix: Detected broken assets. Repairing...");
-             
-             const isBoy = user.character === 'boy';
-             
-             // AICI E FIX-UL: Dacă e băiat, punem 'boy-hair-blue.png' în loc de 'messy'
-             setCharacterLook({
-                 skin: isBoy ? "/assets/character/skins/boy-skintone-medium.png" : "/assets/character/skins/girl-skintone-medium.png",
-                 hair: isBoy ? "/assets/character/hair/boy-hair-blue.png" : "/assets/character/hair/girl-hair-brunette.png",
-                 outfit: isBoy ? "/assets/character/outfits/boy-default-outfit.png" : "/assets/character/outfits/girl-default-outfit.png"
-             });
-         }
-     }
-  }, [viewState, user, characterLook]);
+    if (viewState === 'game' && user) {
+        // Verificăm dacă skin-ul lipsește SAU dacă părul e cel vechi ("messy")
+        const isMissingSkin = !characterLook.skin || characterLook.skin === "";
+        const isBrokenHair = characterLook.hair && characterLook.hair.includes('messy');
+
+        if (isMissingSkin || isBrokenHair) {
+            console.log("🚑 Emergency Outfit Fix: Detected broken assets. Repairing...");
+            
+            const isBoy = user.character === 'boy';
+            
+            // Aplicăm fix-ul doar dacă e absolut necesar
+            setCharacterLook({
+                skin: isBoy ? "/assets/character/skins/boy-skintone-medium.png" : "/assets/character/skins/girl-skintone-medium.png",
+                hair: isBoy ? "/assets/character/hair/boy-hair-blue.png" : "/assets/character/hair/girl-hair-brunette.png",
+                outfit: isBoy ? "/assets/character/outfits/boy-default-outfit.png" : "/assets/character/outfits/girl-default-outfit.png"
+            });
+        }
+    }
+}, [viewState, user, characterLook, isLoading]); // <--- isLoading e cheia aici!
 
   // --- PLANT TYPES SYSTEM ---
   const plantTypes = {
@@ -581,19 +584,19 @@ function App() {
   // --- EFECTE (Load & Save & Styles) ---
 
 // --- SYNC FIX: Load Cloud Data on Startup ---
+ // --- SYNC FIX: Load Cloud Data on Startup (VERSIUNEA NOUĂ: Încarcă și Haine) ---
   useEffect(() => {
     const syncGame = async () => {
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       const savedUserString = localStorage.getItem('user') || sessionStorage.getItem('user');
       const apiUrl = import.meta.env.VITE_API_URL || 'https://plant-game.onrender.com';
 
-      // 1. Log in locally first (Visuals)
       if (token && savedUserString) {
         try {
           const parsedUser = JSON.parse(savedUserString);
           setUser(parsedUser); 
           
-          // Pre-load local data
+          // 1. Încărcăm datele LOCALE (inclusiv hainele!)
           if (parsedUser.gameSave) {
              const local = parsedUser.gameSave;
              setDay(local.day || 1);
@@ -601,13 +604,23 @@ function App() {
              setNutrients(local.nutrients ?? 10);
              setEnergy(local.energy ?? 2);
              setPlant(local.plant || plant);
+             
+             // ✅ FIX IMPORTANT: Încărcăm hainele din LocalStorage
+             if (local.characterLook && local.characterLook.skin) {
+                 setCharacterLook(local.characterLook);
+             }
+             
+             // ✅ FIX: Încărcăm tipul plantei
+             if (local.plantTypeKey && plantTypes[local.plantTypeKey]) {
+                setPlantType(plantTypes[local.plantTypeKey]);
+             }
           }
           
           setViewState('game'); 
 
-          // 2. CHECK CLOUD DATA
+          // 2. CHECK CLOUD DATA (cu Cache Buster ?t=... ca să nu mai ai probleme la restart)
           console.log(`☁️ Checking cloud save...`);
-          const res = await fetch(`${apiUrl}/api/load/${parsedUser.email}`, {
+          const res = await fetch(`${apiUrl}/api/load/${parsedUser.email}?t=${Date.now()}`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }
           });
@@ -615,15 +628,24 @@ function App() {
           if (res.ok) {
             const cloudSave = await res.json();
             if (cloudSave && cloudSave.day) {
-              console.log("☁️ Found Cloud Save (Day " + cloudSave.day + "). Syncing...");
+              console.log("☁️ Found Cloud Save. Syncing...");
               
-              // Apply Cloud Data
               setDay(cloudSave.day);
               setWater(cloudSave.water ?? 10);
               setNutrients(cloudSave.nutrients ?? 10);
               setEnergy(cloudSave.energy ?? 2);
               setPlant(cloudSave.plant || plant);
               
+              // ✅ FIX: Încărcăm hainele și din Cloud (dacă sunt mai noi)
+              if (cloudSave.characterLook && cloudSave.characterLook.skin) {
+                  setCharacterLook(cloudSave.characterLook);
+              }
+               // ✅ FIX: Încărcăm planta din Cloud
+              if (cloudSave.plantTypeKey && plantTypes[cloudSave.plantTypeKey]) {
+                  setPlantType(plantTypes[cloudSave.plantTypeKey]);
+                  localStorage.setItem('currentPlantType', cloudSave.plantTypeKey);
+              }
+
               if (cloudSave.timeOfDay) setTimeOfDay(cloudSave.timeOfDay);
               if (cloudSave.difficultyLevel) setDifficultyLevel(cloudSave.difficultyLevel);
               if (cloudSave.plantConsumptionRate) setPlantConsumptionRate(cloudSave.plantConsumptionRate);
@@ -632,15 +654,13 @@ function App() {
         } catch (e) {
           console.error("❌ Sync Error:", e);
         } finally {
-          // 🟢 FINISHED LOADING
-          console.log("✅ Loading Complete");
+          // Gata încărcarea! Abia acum Safety Check-ul are voie să verifice
           setIsLoading(false); 
         }
       } else {
-        setIsLoading(false); // Not logged in, so we are "done loading"
+        setIsLoading(false);
       }
     };
-
     syncGame();
   }, []);
 
