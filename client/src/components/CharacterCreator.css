@@ -1,0 +1,183 @@
+.creator-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(93, 64, 55, 0.9); /* Un maro transparent, mai cald */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  backdrop-filter: blur(5px); /* Efect mișto de blur în spate */
+}
+
+.creator-window {
+  background: #fff0f5; /* Lavender blush (roz foarte pal) */
+  border: 8px solid #916f6a; /* Maro "lemn" */
+  padding: 30px;
+  border-radius: 15px;
+  text-align: center;
+  font-family: 'VT323', monospace;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  max-width: 600px;
+  width: 90%;
+}
+
+h2 {
+  color: #5d4037;
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.creator-content {
+  display: flex;
+  gap: 30px;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Wrapper pentru a da o dimensiune fixă oglinzii */
+.paperdoll-wrapper {
+  width: 180px;
+  height: 280px;
+  background: #ffe4e1; /* Misty rose background pt oglindă */
+  border: 4px solid #d2b48c; /* Ramă aurie/lemn deschis */
+  border-radius: 50% 50% 10px 10px; /* Formă de oglindă arcuită sus */
+  overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 0 20px rgba(139, 69, 19, 0.2);
+}
+
+.controls-section {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: flex-start; /* Aliniem controalele la stânga */
+}
+
+.control-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  font-size: 1.3rem;
+  color: #5d4037;
+}
+
+.buttons-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 5px;
+  background: #ffe4e1;
+  padding: 5px;
+  border-radius: 8px;
+  border: 2px solid #d2b48c;
+}
+
+.buttons-group span {
+  min-width: 50px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.buttons-group button {
+  background: #d2b48c; /* Tan color */
+  color: #5d4037;
+  border: none;
+  font-family: inherit;
+  font-size: 1rem;
+  padding: 5px 12px;
+  cursor: pointer;
+  border: 2px solid #8b4513;
+  border-radius: 5px;
+  transition: all 0.1s;
+}
+
+.buttons-group button:hover {
+  background: #e6ccb3;
+  transform: scale(1.1);
+}
+
+.buttons-group button:active {
+  transform: scale(0.95);
+}
+
+/* --- BUTONUL NOU ROZ DRĂGUȚ --- */
+.save-btn-cute {
+  margin-top: 25px;
+  width: 100%;
+  
+  /* Culoare roz drăguță */
+  background: #ffb6c1; /* Light pink */
+  color: #5d4037; /* Text maro închis pentru contrast */
+  
+  font-size: 1.8rem;
+  padding: 12px 20px;
+  
+  /* Bordură roz mai închis */
+  border: 4px solid #ff69b4; /* Hot pink */
+  border-radius: 12px;
+  
+  font-family: 'VT323', monospace;
+  cursor: pointer;
+  text-transform: uppercase;
+  box-shadow: 0 4px 0 #c71585; /* Umbră solidă dedesubt pt efect 3D */
+  transition: all 0.1s ease-in-out;
+}
+
+.save-btn-cute:hover {
+  background: #ffc0cb; /* Puțin mai deschis la hover */
+  transform: translateY(2px); /* Se apasă puțin */
+  box-shadow: 0 2px 0 #c71585; /* Umbra se micșorează */
+}
+
+.save-btn-cute:active {
+  transform: translateY(4px); /* Se apasă de tot */
+  box-shadow: none;
+}
+
+/* Asigură-te că fereastra principală are position: relative 
+   pentru ca butonul să se poziționeze în funcție de ea */
+.creator-window {
+  position: relative; 
+  /* ... restul stilurilor tale existente pentru fereastră ... */
+}
+
+/* Noul stil pentru butonul X - Cute Pink Circle */
+.close-creator-btn {
+  /* Poziționare în colțul din dreapta sus al cutiei */
+  position: absolute;
+  top: 10px;
+  right: 10px;
+
+  /* Dimensiune și formă */
+  width: 32px;
+  height: 32px;
+  border-radius: 50%; /* Cerc perfect */
+
+  /* Culori și estetică */
+  background-color: #ff85c2; /* Rozul tematic */
+  color: white; /* X alb */
+  border: 3px solid #ffffff; /* Bordură albă groasă să arate "pufos" */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); /* Mică umbră */
+
+  /* Centrarea textului X */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.1rem;
+  font-weight: bold;
+  padding: 0; /* Reset padding */
+  
+  cursor: pointer;
+  z-index: 20; /* Să fie peste tot */
+  transition: all 0.2s ease;
+}
+
+/* Efect la hover (când pui mouse-ul pe el) */
+.close-creator-btn:hover {
+  background-color: #ff5ca0; /* Un roz puțin mai închis */
+  transform: scale(1.1) rotate(90deg); /* Se mărește puțin și se rotește jucăuș */
+  box-shadow: 0 4px 8px rgba(255, 133, 194, 0.4); /* Umbră roz strălucitoare */
+}

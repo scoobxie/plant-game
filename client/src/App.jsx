@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import './index.css';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
+import PaperDoll from './components/PaperDoll';
+import CharacterCreator from './components/CharacterCreator';
 
 function App() {
   const maxDays = 30;
@@ -9,6 +11,38 @@ function App() {
   const [authScreen, setAuthScreen] = useState('title');
   const [charPos, setCharPos] = useState('center');
   const [isLoading, setIsLoading] = useState(true);
+
+  // --- AUTH ---
+  const [user, setUser] = useState(null);
+  const [viewState, setViewState] = useState('title'); 
+  const [showCreator, setShowCreator] = useState(false);
+  const [characterLook, setCharacterLook] = useState({
+    skin: "",
+    hair: "",
+    outfit: ""
+  });
+
+// 🚑 SAFETY CHECK (FIX REFRESH & BROKEN ASSETS): 
+  useEffect(() => {
+     if (viewState === 'game' && user) {
+         // Verificăm dacă skin-ul lipsește SAU dacă părul e cel vechi ("messy")
+         const isMissingSkin = !characterLook.skin || characterLook.skin === "";
+         const isBrokenHair = characterLook.hair && characterLook.hair.includes('messy');
+
+         if (isMissingSkin || isBrokenHair) {
+             console.log("🚑 Emergency Outfit Fix: Detected broken assets. Repairing...");
+             
+             const isBoy = user.character === 'boy';
+             
+             // AICI E FIX-UL: Dacă e băiat, punem 'boy-hair-blue.png' în loc de 'messy'
+             setCharacterLook({
+                 skin: isBoy ? "/assets/character/skins/boy-skintone-medium.png" : "/assets/character/skins/girl-skintone-medium.png",
+                 hair: isBoy ? "/assets/character/hair/boy-hair-blue.png" : "/assets/character/hair/girl-hair-brunette.png",
+                 outfit: isBoy ? "/assets/character/outfits/boy-default-outfit.png" : "/assets/character/outfits/girl-default-outfit.png"
+             });
+         }
+     }
+  }, [viewState, user, characterLook]);
 
   // --- PLANT TYPES SYSTEM ---
   const plantTypes = {
@@ -141,24 +175,19 @@ function App() {
     }
   };
 
-  // Random starter plant - salvat în localStorage pentru consistency
-  const [plantType] = useState(() => {
+// Random starter plant - salvat în localStorage pentru consistency
+  const [plantType, setPlantType] = useState(() => {
     // Check dacă avem deja un tip salvat
     const savedType = localStorage.getItem('currentPlantType');
     if (savedType && plantTypes[savedType]) {
       return plantTypes[savedType];
     }
-    
     // Generează nou plantType random
     const types = Object.keys(plantTypes);
     const randomType = types[Math.floor(Math.random() * types.length)];
     localStorage.setItem('currentPlantType', randomType);
     return plantTypes[randomType];
   });
-
-  // --- 1. STATE: AUTENTIFICARE ---
-  const [user, setUser] = useState(null);
-  const [viewState, setViewState] = useState('title'); 
 
   // --- SISTEM FAZĂ LUNARĂ (ciclu de 30 zile) ---
   const moonPhases = [
@@ -626,7 +655,7 @@ function App() {
       
       const gameState = { 
         day, water, nutrients, energy, plant, timeOfDay,
-        plantConsumptionRate, difficultyLevel 
+        plantConsumptionRate, difficultyLevel, characterLook, plantTypeKey: localStorage.getItem('currentPlantType')
       };
 
       // 🟢 NO localStorage here! (Prevents Ghost Data)
@@ -648,7 +677,7 @@ function App() {
       }).catch(err => console.warn("☁️ Save skipped:", err));
     }
     // ⚠️ 'isLoading' must be in the array below
-  }, [day, water, nutrients, energy, plant, timeOfDay, viewState, plantConsumptionRate, difficultyLevel, user, isLoading]);
+  }, [day, water, nutrients, energy, plant, timeOfDay, viewState, plantConsumptionRate, difficultyLevel, user, isLoading, characterLook, plantType]);
   
   // Aplicăm tema (Zi/Noapte) pe body
   useEffect(() => {
@@ -1687,7 +1716,7 @@ const saveToCloud = async () => {
 
   const gameState = { 
     day, water, nutrients, energy, plant, timeOfDay,
-    plantConsumptionRate, difficultyLevel 
+    plantConsumptionRate, difficultyLevel, plantTypeKey: localStorage.getItem('currentPlantType')
   };
 
   try {
@@ -2126,24 +2155,39 @@ const saveToCloud = async () => {
 
 const restart = async (force = false) => {
     // Check if we are on the death screen or if force is active
-    const isGameOver = gameView === 'dead';gameView === 'dead'
+    const isGameOver = gameView === 'dead'; // Sau cum ai tu variabila pentru starea "mort"
 
     if (!force && !isGameOver) {
-      const confirmed = window.confirm("⚠️ RESTART FROM DAY 1?\n\nThis will wipe your progress on all devices.");
+      const confirmed = window.confirm("⚠️ RESTART FROM DAY 1?\n\nThis will wipe your progress.");
       if (!confirmed) return;
     }
 
-    // --- Fresh Day 1 Reset Logic ---
+    // 1. ✅ SALVĂM DATELE VIZUALE CURENTE (ca să nu le pierdem la reset)
+    const currentOutfit = characterLook; 
+    const currentPlantTypeKey = localStorage.getItem('currentPlantType');
+
+    // 2. --- Fresh Day 1 Reset Logic ---
     const freshState = {
-      day: 1, water: 10, nutrients: 10, energy: 2,
+      day: 1, 
+      water: 10, 
+      nutrients: 10, 
+      energy: 2,
       plant: { water: 3, nutrients: 8, health: 15, dryDays: 0, overwateredDays: 0, damagedRootsDays: 0 },
-      timeOfDay: 'morning', plantConsumptionRate: 1, difficultyLevel: 1
+      timeOfDay: 'morning', 
+      plantConsumptionRate: 1, 
+      difficultyLevel: 1,
+      
+      // ✅ 3. ADĂUGĂM HAINELE ȘI PLANTA ÎN NOUL SAVE
+      characterLook: currentOutfit,       // <--- Asta păstrează hainele!
+      plantTypeKey: currentPlantTypeKey   // <--- Asta păstrează specia plantei!
     };
 
     if (user?.email) {
       try {
         const token = localStorage.getItem('token');
         const apiUrl = import.meta.env.VITE_API_URL || 'https://plant-game.onrender.com';
+        
+        // Trimitem noua stare (care are și hainele) la server
         await fetch(`${apiUrl}/api/save`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -2152,15 +2196,15 @@ const restart = async (force = false) => {
       } catch (e) { console.error("Cloud wipe failed:", e); }
     }
 
+    // Curățăm LocalStorage de progresul vechi
     localStorage.removeItem('gardenSave');
     localStorage.removeItem('moonDayOffset'); 
-    localStorage.removeItem('currentPlantType'); 
     localStorage.removeItem('weatherCalendar'); 
-
     const savedUser = localStorage.getItem('user');
     if (savedUser) {
       try {
         const parsed = JSON.parse(savedUser);
+        // Ștergem salvarea veche din local, dar serverul o are pe cea bună acum
         delete parsed.gameSave; 
         localStorage.setItem('user', JSON.stringify(parsed));
       } catch (e) { console.error(e); }
@@ -2208,23 +2252,56 @@ if (viewState === 'login') {
       <div className="auth-wrapper">
         <Login 
           switchToRegister={() => setViewState('register')} 
-          // This loads your save immediately when you click "Login"
           onLoginSuccess={(u) => { 
             setUser(u); 
             
-            // If the user has a save file, force the game to use it NOW
+            // Verificăm dacă userul are o salvare
             if (u.gameSave) {
-              console.log("☁️ Instant Cloud Load:", u.gameSave);
+              // 1. Încărcăm datele standard
               setDay(u.gameSave.day || 1);
               setWater(u.gameSave.water !== undefined ? u.gameSave.water : 10);
               setNutrients(u.gameSave.nutrients !== undefined ? u.gameSave.nutrients : 10);
               setEnergy(u.gameSave.energy !== undefined ? u.gameSave.energy : 2);
-              setPlant(u.gameSave.plant || plant);
-              
-              // Load extra details if they exist
-              setTimeOfDay(u.gameSave.timeOfDay || 'morning');
-              setDifficultyLevel(u.gameSave.difficultyLevel || 1);
-              setPlantConsumptionRate(u.gameSave.plantConsumptionRate || 1);
+              setPlant(u.gameSave.plant || plant); // Doar HP/Water curent, nu tipul
+
+              if (u.gameSave.timeOfDay) setTimeOfDay(u.gameSave.timeOfDay);
+              if (u.gameSave.difficultyLevel) setDifficultyLevel(u.gameSave.difficultyLevel);
+              if (u.gameSave.plantConsumptionRate) setPlantConsumptionRate(u.gameSave.plantConsumptionRate);
+
+              // ✅ 2. LOGICA NOUĂ PENTRU SPECIA PLANTEI (Cactus/Rose/etc.)
+              if (u.gameSave.plantTypeKey && plantTypes[u.gameSave.plantTypeKey]) {
+                  // Actualizăm localStorage
+                  localStorage.setItem('currentPlantType', u.gameSave.plantTypeKey);
+                  // Schimbăm planta în joc
+                  setPlantType(plantTypes[u.gameSave.plantTypeKey]);
+                  console.log("🌱 Plant Type Restored:", u.gameSave.plantTypeKey);
+              }
+
+              // ✅ 3. LOGICA PENTRU HAINE
+              if (u.gameSave.characterLook && u.gameSave.characterLook.skin && u.gameSave.characterLook.skin !== "") {
+                 // Avem haine valide -> Le încărcăm
+                 console.log("👗 Outfit valid găsit:", u.gameSave.characterLook);
+                 setCharacterLook(u.gameSave.characterLook);
+                 setShowCreator(false); 
+              } else {
+                 // Nu avem haine -> Deschidem Creatorul
+                 console.log("⚠️ Outfit lipsă -> Deschidem Creatorul!");
+                 
+                 const baseSkin = u.character === 'boy' 
+                    ? "/assets/character/skins/boy-skintone-medium.png"
+                    : "/assets/character/skins/girl-skintone-medium.png";
+                 
+                 setCharacterLook({ 
+                    skin: baseSkin, 
+                    hair: "", 
+                    outfit: u.character === 'boy' ? "/assets/character/outfits/boy-default-outfit.png" : "/assets/character/outfits/girl-default-outfit.png"
+                 });
+                 setShowCreator(true); 
+              }
+
+            } else {
+              // User nou -> Creator
+              setShowCreator(true);
             }
             
             setViewState('game'); 
@@ -2238,10 +2315,46 @@ if (viewState === 'login') {
   if (viewState === 'register') {
     return (
       <div className="auth-wrapper">
-        <Register switchToLogin={() => setViewState('login')} />
+       <Register 
+            switchToLogin={() => setViewState('login')} 
+            // --- 🆕 ADĂUGĂM ASTA: Ce se întâmplă după Register ---
+            onRegisterSuccess={(newUser) => {
+               setUser(newUser);
+               
+               // Setăm un skin de bază ca să nu fie gol creatorul
+               const defaultSkin = newUser.character === 'boy' 
+                  ? "/assets/character/skins/boy-skintone-medium.png" 
+                  : "/assets/character/skins/girl-skintone-medium.png";
+               
+               // Pregătim look-ul inițial
+               setCharacterLook(prev => ({ ...prev, skin: defaultSkin }));
+
+               // 🚀 ACTIVĂM CREATORUL!
+               setShowCreator(true); 
+               
+               // Mutăm view-ul pe joc (dar creatorul va fi peste el)
+               setViewState('game');
+            }}
+        />
       </div>
     );
   }
+
+// Dacă trebuie să arătăm creatorul, îl arătăm PE DEASUPRA jocului
+if (user && showCreator) {
+    return (
+    <CharacterCreator 
+        gender={user.character} 
+        currentLook={characterLook} 
+        
+        onSave={(newLook) => {
+            setCharacterLook(newLook);
+            setShowCreator(false);
+        }}
+        onClose={() => setShowCreator(false)}
+    />
+    );
+}
 
   // JOCUL
   return (
@@ -2525,25 +2638,33 @@ position: 'absolute',
       />
     ))}
     
-    <img 
-      src={user?.character === 'boy' ? "/assets/boy.png" : "/assets/girl.png"} 
-      /* Added flexShrink to prevent the girl from getting small */
-      style={{ 
-        height: '35vh',
-        width: 'auto',
-        
-        minHeight: '150px',
-        maxHeight: '400px',
-        
-        imageRendering: 'pixelated', 
+{/* 👇 NOUL PERSONAJ CUSTOMIZABIL & CLICKABIL */}
+<div 
+    onClick={() => setShowCreator(true)} // <--- AICI E MAGIA: Deschide meniul
+    title="Change Outfit"                // <--- Tooltip când ții mouse-ul
+    style={{ 
+        width: '30vh',     
+        height: '35vh',    
+        position: 'relative',
+        marginLeft: '-10vh', 
+        zIndex: 110,
         flexShrink: 0,
-        marginLeft: '-10vh', // Overlap dinamic
-        zIndex: 110
-      }} 
-    />
-  </div>
+        cursor: 'pointer',               // <--- Arată mânuța (click)
+        transition: 'transform 0.2s ease' // <--- Mică animație
+    }}
+    // Efect drăguț: se mărește puțin când pui mouse-ul pe el
+    onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+    onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+>
+    <PaperDoll 
+        skinSrc={characterLook.skin}
+        hairSrc={characterLook.hair}
+        outfitSrc={characterLook.outfit}
+        isBreathing={false}
+   />
 </div>
-
+</div>
+</div>
 
   {/*INVENTORY */}
   <div className="stats-panel inventory-panel"> ... </div>
