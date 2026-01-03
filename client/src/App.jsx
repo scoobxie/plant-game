@@ -2424,7 +2424,7 @@ if (viewState === 'login') {
 position: 'absolute',
       /* PERCENTAGES make it stick to the wall relative to the room size */
       top: '15%', 
-      left: '10%', 
+      left: '5%', 
       /* Scale relative to room width */
       width: '12%',
       minWidth: '60px', /* Never gets too small */
@@ -2542,9 +2542,6 @@ position: 'absolute',
       }} 
     />
   </div>
-
-  {/* Panou Dreapta */}
-  <div className="plant-panel stats-panel">...</div>
 </div>
 
 

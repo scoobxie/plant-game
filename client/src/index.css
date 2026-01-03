@@ -458,15 +458,14 @@ body.night {
 }
 
 .inventory-panel {
-top: 240px;
+  top: 240px;
   left: 15px;
-  /* Animation set globally in PAGE LOAD FIX section */
 }
 
 .plant-panel {
   top: 240px;
   right: 15px;
-  /* Animation set globally in PAGE LOAD FIX section */
+
 }
 
 @keyframes slideInLeft {
@@ -1194,22 +1193,21 @@ color: #5e2f0d !important;
 }
 
 .ability-badge.immunity {
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 165, 0, 0.3));
-  border: 2px solid rgba(255, 215, 0, 0.6);
-  color: var(--p3-yellow);
-  text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+  background: linear-gradient(135deg, rgba(43, 255, 0, 0.3), rgba(145, 255, 0, 0.3));
+  border: 2px solid rgba(72, 255, 0, 0.6);
+  color: rgb(0, 0, 0);
 }
 
 .ability-badge.buff {
   background: linear-gradient(135deg, rgba(144, 221, 183, 0.2), rgba(50, 205, 50, 0.2));
   border: 2px solid rgba(54, 126, 90, 0.5);
-  color: #16472f;
+  color: #000000;
 }
 
 .ability-badge.debuff {
   background: linear-gradient(135deg, rgba(255, 69, 0, 0.2), rgba(220, 20, 60, 0.2));
   border: 2px solid rgba(255, 69, 0, 0.5);
-  color: #ff6347;
+  color: #000000;
 }
 
 @keyframes badgePulse {
@@ -3045,15 +3043,6 @@ color: #5e2f0d !important; /* Maro închis (în loc de gri) */
   overflow-y: auto; /* Scroll dacă e prea mult text */
 }
 
-/* === COLOANA DREAPTA === */
-
-/* Status Plantă - Sus Dreapta */
-.plant-panel {
-  top: 140px !important;
-  right: 20px !important;
-  width: 280px !important;
-}
-
 /* === MODUL DE NOAPTE: Panouri de Lemn === */
 body.night .stats-panel, 
 body.night .log-panel,
@@ -3354,22 +3343,76 @@ body.night .plant-info-modal {
    📱 RESPONSIVE SYSTEM (PROFESSIONAL BREAKPOINTS)
    ========================================================= */
 
-/* --- 1. TABLETE & LAPTOPURI MICI (sub 1200px) --- */
-@media (max-width: 1200px) {
-  .game-screen-wrapper {
-    /* Micșorăm coloanele laterale */
-    grid-template-columns: 220px 1fr 220px !important; 
+/* --- 1. AJUSTARE GLOBALĂ PENTRU LAPTOP/TABLETĂ --- */
+@media (max-width: 1530px) {
+  /* Reducem dimensiunea camerei pentru a lăsa loc panourilor laterale */
+  .room-view {
+    width: 60vw !important;  /* Camera ocupă 60% din lățime */
+    height: 45vh !important; /* Înălțime redusă pentru a nu lovi calendarul */
+    max-width: 750px !important;
   }
 
-  /* Ajustăm panourile să încapă în spațiul mai mic */
-  .stats-panel, .inventory-panel, .plant-panel {
-    width: 220px !important;
-    padding: 10px !important;
+  /* Calendarul se adaptează pentru a nu lovi butoanele de Log Out/Restart */
+  .calendar-container-new {
+    width: 45vw !important; /* Mai îngust pe laptop */
+    max-width: 720px !important;
+    left: 50% !important;
+    transform: translateX(-40%) !important; /* Centrare reală */
+    top: 1.5vh !important;
   }
-  
-  /* Micșorăm fontul în panouri */
-  .stat-label, .stat-value, .consumption-label {
-    font-size: 1rem !important;
+}
+
+/* --- 2. PREVENIRE SUPRAPUNERE BUTOANE vs CALENDAR --- */
+.utility-buttons-container {
+  /* Ancorăm butoanele fix la marginea ecranului */
+  left: 2vw !important;
+  top: 2vh !important;
+  z-index: 100 !important;
+}
+
+/* Ne asigurăm că calendarul nu "fuge" peste butoane folosind lățime variabilă */
+.calendar-container-new {
+  /* Folosim clamp pentru a opri extinderea calendarului spre butoane */
+  width: clamp(1200px, 40vw, 1200px) !important;
+  left: 50% !important;
+}
+
+/* --- Panourile laterale: Scalare Proporțională & Simetrie --- */
+
+@media (max-width: 1530px) {
+  /* Toate panourile din stânga și dreapta primesc aceeași lățime dinamică */
+  .log-panel, .inventory-panel {
+    width: 18vw !important; 
+    min-width: 180px !important;
+    position: absolute !important; /* Folosim absolute în interiorul containerului main-layout */
+  }
+}
+
+@media (max-width: 1530px) {
+  .plant-panel {
+    width: 18vw !important; 
+    min-width: 180px !important;
+    position: absolute !important; /* Folosim absolute în interiorul containerului main-layout */
+  }
+
+
+  /* COLOANA STÂNGA: Aliniere verticală fluidă */
+  .inventory-panel {
+    top: 17vh !important; /* Se scalează cu înălțimea ecranului */
+    left: 0vw !important; /* Se scalează cu lățimea ecranului */
+  }
+
+  .log-panel {
+    /* Folosim o poziție care depinde de vh pentru a sta MEREU sub inventar */
+    top: 55vh !important; 
+    left: 0vw !important;
+    height: 35vh !important; /* Și înălțimea log-ului devine proporțională */
+  }
+
+  /* COLOANA DREAPTĂ: Simetrie cu Inventarul */
+  .plant-panel {
+    top: 17vh !important;
+    right: 0vw !important;
   }
 }
 
@@ -3397,25 +3440,36 @@ body.night .plant-info-modal {
     border: none !important; /* Scoatem bordura pe mobil pentru imersiune */
   }
 
-  /* Repoziționăm butoanele de sus */
-  .utility-buttons-container {
-    top: 10px !important;
-    left: 10px !important;
-    gap: 5px !important;
-  }
-  
-  .utility-btn {
-    width: 100px !important;
-    font-size: 0.7rem !important;
-    padding: 5px !important;
-  }
+/* Containerul de butoane se scalează cu ecranul */
+.utility-buttons-container {
+  position: fixed !important;
+  top: 16vh !important;
+  left: 2vw !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1.5vh !important;
+  width: auto !important; /* Nu forțăm lățimea */
+  z-index: 100 !important;
+}
 
-  /* Calendarul devine mai compact */
-  .calendar-container-new {
-    width: 60% !important;
-    height: 70px !important;
-    top: 10px !important;
-  }
+.utility-btn {
+  /* Lățimea este 10% din ecran, dar nu mai mică de 100px */
+  width: clamp(100px, 10vw, 150px) !important;
+  /* Fontul scade odată cu lățimea ecranului */
+  font-size: clamp(0.7rem, 1vw, 1rem) !important;
+  padding: 1vh 1vw !important;
+  border: 0.3vw solid #3d1f08 !important; /* Și bordura se subțiază pe ecrane mici */
+}
+
+  /* Calendarul se scalează și lasă loc butoanelor */
+.calendar-container-new {
+  position: fixed !important;
+  left: 42% !important;
+  transform: translateX(-40%) !important; /* Centrare perfectă */
+  
+  /* Lățimea se adaptează: 50% din ecran, dar nu mai mică de 300px */
+  width: clamp(250px, 50vw, 250px) !important;
+}
   
   /* Meniul de acțiuni jos (Scrollabil orizontal) */
   .action-menu-container {
@@ -3474,3 +3528,215 @@ body.night .plant-info-modal {
   pointer-events: auto; 
 }
 
+/* Fix definitiv pentru ecrane mari (2K, 4K) */
+@media (min-width: 2000px) {
+  :root {
+    /* Mărim baza de calcul a fonturilor */
+    font-size: 22px; 
+  }
+
+  .room-view {
+    /* Pe 4K, camera devine mult mai mare */
+    width: 60vw !important; 
+    height: 60vh !important;
+    border-width: 15px !important;
+  }
+
+  /* Mărim personajul și plantele pe 4K */
+  .sprites-container img {
+    height: 45vh !important; 
+  }
+
+  /* Panourile laterale se lătesc proporțional */
+  .inventory-panel, .log-panel, .plant-panel {
+    width: 15vw !important;
+  }
+}
+
+/* =========================================================
+   🕹️ SCALARE BUTOANE ACȚIUNE (CARE, WATER, NUTRIENTS)
+   ========================================================= */
+
+/* --- 1. SETĂRI DE BAZĂ (DESKTOP / 1080p) --- */
+.action-menu-container {
+  display: flex !important;
+  justify-content: center !important;
+  gap: 1.5vw !important; /* Distanța dintre ele scade odată cu ecranul */
+  width: 90vw !important;
+  margin: 0 auto !important;
+  position: fixed !important;
+  bottom: 3vh !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+}
+
+.action-menu-item {
+  /* Folosim vw pentru lățime ca să se micșoreze fluid */
+  width: clamp(140px, 12vw, 220px) !important; 
+  height: auto !important;
+  aspect-ratio: 2.2 / 1; /* Păstrează forma dreptunghiulară */
+  
+  /* Fontul se scalează și el */
+  font-size: clamp(0.8rem, 1vw, 1.2rem) !important;
+  padding: 1vh !important;
+  border-width: 0.3vw !important; /* Bordura se subțiază pe ecrane mici */
+}
+
+/* --- 2. TABLETĂ & LAPTOP MIC (sub 1200px) --- */
+@media (max-width: 1389px) {
+  .action-menu-item {
+    width: 15vw !important; /* Ocupă mai mult loc relativ pe ecrane medii */
+    min-width: 120px !important;
+  }
+}
+
+/* --- 3. MOBILE (900) --- */
+@media (max-width: 900px) {
+  .action-menu-container {
+    justify-content: flex-start !important; /* Permite scroll pe mobil */
+    overflow-x: auto !important;
+    gap: 15px !important;
+    padding: 10px 20px !important;
+    -webkit-overflow-scrolling: touch;
+    width: 100vw !important;
+  }
+
+  .action-menu-item {
+    width: 160px !important; /* Mărime fixă pentru scroll orizontal */
+    flex-shrink: 0 !important;
+  }
+}
+
+/* --- ACTION BUTTONS <1050 SCREENS --- */
+@media (max-width: 1050px) {
+  .action-menu-container {
+    flex-direction: column !important;
+    width: 90% !important;
+    gap: 10px !important;
+    align-items: center !important;
+  }
+
+  .action-menu-item {
+    /* LENGTHEN */
+    width: 100% !important;
+    max-width: 500px !important;
+    height: 46px !important; /* Scunde */
+    /* KEEP ASPECT */
+    aspect-ratio: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+}
+
+/* --- PANEL SIZE MID SCREENS --- */
+@media (min-width: 1530px) {
+  .plant-panel {
+    right:1%;
+    top:17%;
+  }
+}
+/* --- 2K SCREENS--- */
+@media (min-width: 2400px) and (max-width: 3000px) {
+  :root {
+    font-size: 22px !important;
+  }
+
+  .room-view {
+    width: 60vw !important;
+    height: 55vh !important;
+    max-width: 2000px !important;
+    max-height: 2000px !important;
+    border-width: 10px !important;
+  }
+
+  .calendar-container-new {
+    width: 80vw !important; 
+    height: 200px !important; 
+    max-width: 1400px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important; 
+    top: 2vh !important;
+    padding: 10px 0 !important;
+  }
+
+  .calendar-day-new {
+    width: 150px !important;
+    min-width: 130px !important;
+    height: 160px !important;
+  }
+
+  .calendar-moon {
+    font-size: 3rem !important; 
+  }
+
+  .inventory-panel, .plant-panel {
+    min-width: 400px !important;
+     top: 20% !important;
+  }
+
+ .log-panel {
+    width: 10vw !important;
+    min-width: 400px !important;
+    top: 40% !important;
+  }
+
+  .action-menu-item {
+    width: 11vw !important;
+    min-width: 280px !important;
+    font-size: 1.6rem !important;
+  }
+}
+
+/* --- 3K & 4K SCREENS--- */
+
+@media (min-width: 3000px) and (max-width: 5000px) {
+  :root {
+    font-size: 30px !important;
+  }
+
+  .room-view {
+    width: 70vw !important;
+    height: 55vh !important;
+    max-width: 3000px !important;
+    max-height: 3000px !important;
+    border-width: 10px !important;
+  }
+
+  .calendar-container-new {
+    width: 62vw !important; 
+    height: 300px !important; 
+    max-width: 3000px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important; 
+    top: 7vh !important;
+    padding: 10px 0 !important;
+  }
+
+  .calendar-day-new {
+    width: 250px !important;
+    min-width: 230px !important;
+    height: 260px !important;
+  }
+
+  .calendar-moon {
+    font-size: 4.2rem !important; 
+  }
+
+  .inventory-panel, .plant-panel {
+    min-width: 500px !important;
+     top: 20% !important;
+  }
+
+ .log-panel {
+    width: 10vw !important;
+    min-width: 500px !important;
+    top: 40% !important;
+  }
+
+  .action-menu-item {
+    width: 11vw !important;
+    min-width: 280px !important;
+    font-size: 1.6rem !important;
+  }
+}
