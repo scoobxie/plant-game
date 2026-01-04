@@ -3740,3 +3740,15 @@ body.night .plant-info-modal {
     font-size: 1.6rem !important;
   }
 }
+
+/* KNOB ANIMATION */
+@keyframes jiggleKnob {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(15deg); }
+  50% { transform: rotate(-15deg); }
+  75% { transform: rotate(10deg); }
+  100% { transform: rotate(0deg); }
+}
+.garden-door:hover .door-knob-pixel {
+  animation: jiggleKnob 0.4s ease-in-out infinite;
+}

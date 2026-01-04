@@ -1,9 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { io } from "socket.io-client";
 import './index.css';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import PaperDoll from './components/PaperDoll';
 import CharacterCreator from './components/CharacterCreator';
+import Park from './components/Park';
+
+const SOCKET_URL = window.location.hostname === "localhost" 
+  ? "http://localhost:5000" 
+  : "https://plant-game.onrender.com";
+
+const socket = io(SOCKET_URL);
 
 function App() {
   const maxDays = 30;
@@ -11,7 +19,31 @@ function App() {
   const [authScreen, setAuthScreen] = useState('title');
   const [charPos, setCharPos] = useState('center');
   const [isLoading, setIsLoading] = useState(true);
+  const [players, setPlayers] = useState({}); 
 
+const handlePlayerMove = (x, y) => {
+    if (socket && socket.connected) {
+      // 1. Trimitem la server
+      socket.emit('move', { id: socket.id, x, y });
+
+      // 2. Update local (cu protecție să nu pierzi hainele/numele)
+      setPlayers(prev => {
+        const existingMe = prev[socket.id] || {};
+        return {
+          ...prev,
+          [socket.id]: {
+            ...existingMe,
+            id: socket.id,
+            x: x,
+            y: y,
+            // Dacă lipsesc datele (bug-ul Guest), le punem la loc din memoria locală:
+            username: existingMe.username || user?.username || "Gardener",
+            characterLook: existingMe.characterLook || characterLook 
+          }
+        };
+      });
+    }
+  };
   // --- AUTH ---
   const [user, setUser] = useState(null);
   const [viewState, setViewState] = useState('title'); 
@@ -46,6 +78,23 @@ useEffect(() => {
         }
     }
 }, [viewState, user, characterLook, isLoading]); // <--- isLoading e cheia aici!
+
+useEffect(() => {
+    socket.on("connect", () => {
+        console.log("✨ M-am conectat la serverul MMO! ID-ul meu este:", socket.id);
+    });
+
+    return () => socket.off("connect");
+}, []);
+
+useEffect(() => {
+  // Ascultăm lista de jucători de la server
+  socket.on("update_players", (serverPlayers) => {
+    setPlayers(serverPlayers);
+  });
+
+  return () => socket.off("update_players");
+}, []);
 
   // --- PLANT TYPES SYSTEM ---
   const plantTypes = {
@@ -635,6 +684,7 @@ useEffect(() => {
               setNutrients(cloudSave.nutrients ?? 10);
               setEnergy(cloudSave.energy ?? 2);
               setPlant(cloudSave.plant || plant);
+              setPlantType(cloudSave.plantHeads || []);
               
               // ✅ FIX: Încărcăm hainele și din Cloud (dacă sunt mai noi)
               if (cloudSave.characterLook && cloudSave.characterLook.skin) {
@@ -674,7 +724,7 @@ useEffect(() => {
     if (viewState === 'game' && user && user.email) {
       
       const gameState = { 
-        day, water, nutrients, energy, plant, timeOfDay,
+        day, water, nutrients, energy, plant, plantHeads, timeOfDay, weatherCalendar, moonDayOffset,
         plantConsumptionRate, difficultyLevel, characterLook, plantTypeKey: localStorage.getItem('currentPlantType')
       };
 
@@ -2275,37 +2325,35 @@ if (viewState === 'login') {
           onLoginSuccess={(u) => { 
             setUser(u); 
             
-            // Verificăm dacă userul are o salvare
+            // Verify if the user has a save
             if (u.gameSave) {
-              // 1. Încărcăm datele standard
+              // 1. Load standard data
               setDay(u.gameSave.day || 1);
               setWater(u.gameSave.water !== undefined ? u.gameSave.water : 10);
               setNutrients(u.gameSave.nutrients !== undefined ? u.gameSave.nutrients : 10);
               setEnergy(u.gameSave.energy !== undefined ? u.gameSave.energy : 2);
-              setPlant(u.gameSave.plant || plant); // Doar HP/Water curent, nu tipul
+              setPlant(u.gameSave.plant || plant);
 
               if (u.gameSave.timeOfDay) setTimeOfDay(u.gameSave.timeOfDay);
               if (u.gameSave.difficultyLevel) setDifficultyLevel(u.gameSave.difficultyLevel);
               if (u.gameSave.plantConsumptionRate) setPlantConsumptionRate(u.gameSave.plantConsumptionRate);
 
-              // ✅ 2. LOGICA NOUĂ PENTRU SPECIA PLANTEI (Cactus/Rose/etc.)
+              //  2. PLANT TYPE
               if (u.gameSave.plantTypeKey && plantTypes[u.gameSave.plantTypeKey]) {
-                  // Actualizăm localStorage
                   localStorage.setItem('currentPlantType', u.gameSave.plantTypeKey);
-                  // Schimbăm planta în joc
                   setPlantType(plantTypes[u.gameSave.plantTypeKey]);
                   console.log("🌱 Plant Type Restored:", u.gameSave.plantTypeKey);
               }
 
-              // ✅ 3. LOGICA PENTRU HAINE
+              //  3. CHARACTER CUSTOMIZATION
               if (u.gameSave.characterLook && u.gameSave.characterLook.skin && u.gameSave.characterLook.skin !== "") {
                  // Avem haine valide -> Le încărcăm
-                 console.log("👗 Outfit valid găsit:", u.gameSave.characterLook);
+                 console.log("👗 Outfit found:", u.gameSave.characterLook);
                  setCharacterLook(u.gameSave.characterLook);
                  setShowCreator(false); 
               } else {
-                 // Nu avem haine -> Deschidem Creatorul
-                 console.log("⚠️ Outfit lipsă -> Deschidem Creatorul!");
+                 // No outfit -> Create
+                 console.log("NO outfit -> create!");
                  
                  const baseSkin = u.character === 'boy' 
                     ? "/assets/character/skins/boy-skintone-medium.png"
@@ -2324,6 +2372,12 @@ if (viewState === 'login') {
               setShowCreator(true);
             }
             
+            // 📢 MMO CONNECT: Send data to server: username & character look
+            socket.emit("setup_player", {
+                username: u.username,
+                characterLook: u.gameSave?.characterLook || characterLook 
+            });
+
             setViewState('game'); 
           }} 
           onBack={() => setViewState('title')} 
@@ -2379,8 +2433,62 @@ if (user && showCreator) {
   // JOCUL
   return (
     <>
-      <div id="moonlight-overlay"></div>
-      
+
+{viewState === 'park' && (
+  <div className="park-wrapper" style={{ 
+    position: 'fixed',
+    top: 0, 
+    left: 0, 
+    width: '100vw', 
+    height: '100vh', 
+    zIndex: 99999,  
+  }}>
+{/* 🏠 BUTONUL HOME */}
+<div 
+  className="go-home-btn"
+  onClick={() => setViewState('game')}
+  style={{
+    position: 'absolute', top: '30px', left: '30px',
+    width: '100px', height: '50px', cursor: 'pointer', zIndex: 1000000,
+    transition: 'transform 0.2s ease-in-out'
+  }}
+  onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-3px)'}
+  onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+>
+  {/* Rama exterioară (Lemn de nuc) */}
+  <div style={{
+    position: 'absolute', inset: '-4px', background: '#3d1f08',
+    borderRadius: '4px', boxShadow: '0 4px 0 rgba(0,0,0,0.2)'
+  }}></div>
+
+  {/* Corpul plăcuței (Lemn lăcuit cu border interior) */}
+  <div style={{
+    position: 'absolute', inset: '0', background: '#a67c52',
+    border: '3px solid #fdf5e6', display: 'flex', 
+    alignItems: 'center', justifyContent: 'center'
+  }}>
+    {/* Textul stilizat */}
+    <span style={{
+      fontFamily: 'VT323', color: '#fdf5e6', fontSize: '1.4rem',
+      letterSpacing: '1px', textShadow: '2px 2px 0 #3d1f08'
+    }}>
+      GO HOME
+    </span>
+  </div>
+
+  {/* Detalii decorative: "cuie" mici în colțuri */}
+  <div style={{ position: 'absolute', top: '4px', left: '4px', width: '4px', height: '4px', background: '#3d1f08', borderRadius: '50%' }}></div>
+  <div style={{ position: 'absolute', top: '4px', right: '4px', width: '4px', height: '4px', background: '#3d1f08', borderRadius: '50%' }}></div>
+</div>
+    <Park 
+      players={players} 
+      socket={socket} 
+      myId={socket.id} 
+      onMove={handlePlayerMove}
+    />
+  </div>
+)}
+
       {/* Notification Popup */}
       {notification && (
         <div className={`notification notification-${notification.type}`}>
@@ -2407,47 +2515,6 @@ if (user && showCreator) {
           {num.value}
         </div>
       ))}
-      
-      {/* WEATHER OVERLAYS */}
-      {currentWeather === 'rainy' && (
-        <div className="weather-overlay rain-overlay">
-          {Array.from({ length: 100 }).map((_, i) => (
-            <div key={i} className="rain-drop" style={{
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 2}s`,
-              animationDuration: `${0.5 + Math.random() * 0.5}s`
-            }}></div>
-          ))}
-        </div>
-      )}
-      
-      {currentWeather === 'snowy' && (
-        <div className="weather-overlay snow-overlay">
-          {Array.from({ length: 50 }).map((_, i) => (
-            <div key={i} className="snowflake" style={{
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${3 + Math.random() * 4}s`,
-              fontSize: `${10 + Math.random() * 10}px`
-            }}>❄</div>
-          ))}
-        </div>
-      )}
-      
-      {currentWeather === 'thunderstorm' && (
-        <>
-          <div className="weather-overlay rain-overlay thunderstorm-rain">
-            {Array.from({ length: 150 }).map((_, i) => (
-              <div key={i} className="rain-drop heavy" style={{
-                left: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 1}s`,
-                animationDuration: `${0.3 + Math.random() * 0.3}s`
-              }}></div>
-            ))}
-          </div>
-          <div className="lightning-overlay"></div>
-        </>
-      )}
       
       {/* Butoane Utilitare Direct pe Ecran */}
 <div className="utility-buttons-container">
@@ -2534,6 +2601,7 @@ if (user && showCreator) {
         </div>
       )}
 
+{viewState === 'game' && (
       <div id="game" className={`${screenShake ? 'screen-shake' : ''} weather-${currentWeather} time-${timeOfDay}`}>
 <div className="room-view" style={{ 
   gridColumn: '2', 
@@ -2630,6 +2698,77 @@ position: 'absolute',
     zIndex: 2
   }}></div>
 
+{/* 🚪 GARDEN DOOR */}
+<div 
+  className="garden-door"
+  onClick={() => {
+    setViewState('park');
+
+// Asigură-te că transmiți obiectul complet characterLook
+  const myData = { 
+    username: user.username, 
+    characterLook: characterLook, 
+    x: 400,
+    y: 400
+  };
+
+    socket.emit('join-park', myData);
+
+setPlayers(prev => ({
+    ...prev,
+    [socket.id]: { id: socket.id, ...myData }
+  }));
+}}
+
+  style={{
+    position: 'absolute', 
+    bottom: '24%',
+    right: '3%', 
+    width: '18%',
+    minWidth: '80px',
+    height: '50%',
+    cursor: 'pointer',
+    zIndex: 5,
+    transition: 'filter 0.2s'
+  }}
+>
+  {/* DOOR BORDER */}
+  <div style={{
+    position: 'absolute', inset: '-4px', background: '#3d1f08',
+    borderRadius: '80px 80px 10px 10px',
+    boxShadow: '4px 0 0 rgba(0,0,0,0.2)' 
+  }}></div>
+
+  {/* DOOR COLOUR */}
+  <div style={{
+    position: 'absolute', inset: '0', 
+    background: '#a58668ff', 
+    border: '3px solid #856756ff', 
+    borderRadius: '55px 55px 2px 2px',
+    backgroundImage: 'linear-gradient(90deg, rgba(61, 31, 8, 0.1) 1px, transparent 1px)',
+    backgroundSize: '25% 100%' 
+  }}>
+    
+    {/* KNOB */}
+    <div 
+    className="door-knob-pixel"
+    style={{ 
+      position: 'absolute', right: '15%', top: '55%', 
+      width: '10px', height: '10px', background: '#755140ff', 
+      border: '2px solid #3d1f08', borderRadius: '50%' 
+    }}></div>
+  </div>
+
+  {/* GARDEN */}
+  <div style={{
+    position: 'absolute', top: '-23px', left: '50%', transform: 'translateX(-50%)',
+    background: '#3d1f08', color: '#ffe2e3ff', fontFamily: 'VT323',
+    fontSize: '1rem', padding: '1px 8px', whiteSpace: 'nowrap'
+  }}>
+    GARDEN
+  </div>
+</div>
+
 {/* Planta și Fata: Vor sta în fața geamului */}
   <div className="sprites-container">
     {/* Renders all your plants next to each other */}
@@ -2719,7 +2858,7 @@ position: 'absolute',
         <div className="stats-panel plant-panel">
           <div className="stats-panel-section">
             <div className="stats-panel-title">
-              {plantType.emoji} {plantType.name}
+              {user ? plantType.name : (plantHeads[selectedHeadIndex]?.name || plantType.name)}
               <button 
                 className="plant-info-btn-inline"
                 onClick={() => setPlantInfoExpanded(!plantInfoExpanded)}
@@ -3132,7 +3271,7 @@ position: 'absolute',
                   <>
                     <div className="action-menu-item disabled">
                       <div className="action-menu-title">⛈️ Thunderstorm!</div>
-                      <div className="action-menu-subtitle">Can't go outside - locked indoors</div>
+                      <div className="action-menu-subtitle">Unsafe for trips - stay in</div>
                     </div>
                     <div className="action-menu-item" onClick={sleep} style={{ border: '4px solid #ffd700' }}>
                       <div className="action-menu-title">⏳ WAIT</div>
@@ -3532,6 +3671,57 @@ position: 'absolute',
           </>
         )}
       </div>
+      )}
+
+
+<div className="global-weather" style={{ 
+    position: 'fixed', 
+    inset: 0, 
+    zIndex: 1000000, 
+    pointerEvents: 'none'
+}}>
+      {currentWeather === 'rainy' && (
+        <div className="weather-overlay rain-overlay">
+          {Array.from({ length: 100 }).map((_, i) => (
+            <div key={i} className="rain-drop" style={{
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 2}s`,
+              animationDuration: `${0.5 + Math.random() * 0.5}s`
+            }}></div>
+          ))}
+        </div>
+      )}
+      
+      {currentWeather === 'snowy' && (
+        <div className="weather-overlay snow-overlay">
+          {Array.from({ length: 50 }).map((_, i) => (
+            <div key={i} className="snowflake" style={{
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 5}s`,
+              animationDuration: `${3 + Math.random() * 4}s`,
+              fontSize: `${10 + Math.random() * 10}px`
+            }}>❄</div>
+          ))}
+        </div>
+      )}
+      
+      {currentWeather === 'thunderstorm' && (
+        <>
+          <div className="weather-overlay rain-overlay thunderstorm-rain">
+            {Array.from({ length: 150 }).map((_, i) => (
+              <div key={i} className="rain-drop heavy" style={{
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 1}s`,
+                animationDuration: `${0.3 + Math.random() * 0.3}s`
+              }}></div>
+            ))}
+          </div>
+          <div className="lightning-overlay"></div>
+        </>
+      )}
+      </div>
+
+
     </>
   );
 }

@@ -1,4 +1,6 @@
 const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
@@ -10,6 +12,64 @@ dotenv.config();
 
 const app = express();
 app.use(express.json());
+
+// --- CONFIGURARE SOCKET.IO (MMO MAGIC) 🎀 ---
+const server = http.createServer(app); // Creăm serverul HTTP explicit
+const io = new Server(server, {
+    cors: {
+        origin: "*", // Permitem conexiunea de oriunde (esențial pt dev)
+        methods: ["GET", "POST"]
+    }
+});
+
+// =========================================
+// 🧠 SERVER MEMORY (Keeps track of players)
+// =========================================
+let onlinePlayers = {}; 
+
+io.on('connection', (socket) => {
+    console.log(`✨ New player connected! ID: ${socket.id}`);
+
+    // 1. When entering the park (JOIN)
+    socket.on('join-park', (data) => {
+        // Save player with ALL their data (name, outfit)
+        onlinePlayers[socket.id] = {
+            id: socket.id,
+            x: data.x || 400,
+            y: data.y || 400,
+            username: data.username || "Guest",
+            characterLook: data.characterLook || {} // Keeps the clothes!
+        };
+        
+        console.log(`👋 ${data.username} joined the park.`);
+        
+        // Send the list to everyone
+        io.emit('update_players', onlinePlayers);
+    });
+
+    // 2. When moving (MOVE) - THIS IS THE CRITICAL FIX
+    socket.on('move', (data) => {
+        if (onlinePlayers[socket.id]) {
+            // Update ONLY coordinates, but COPY old data (name, clothes)
+            onlinePlayers[socket.id] = {
+                ...onlinePlayers[socket.id], // 👈 This prevents them from becoming "naked" copies
+                x: data.x,
+                y: data.y
+            };
+
+            // Send updated list to everyone
+            io.emit('update_players', onlinePlayers);
+        }
+    });
+
+    // 3. When leaving (DISCONNECT)
+    socket.on('disconnect', () => {
+        console.log(`❌ Player disconnected: ${socket.id}`);
+        delete onlinePlayers[socket.id]; // Remove from memory
+        io.emit('update_players', onlinePlayers);
+    });
+});
+
 app.use(cors());
 
 app.get('/', (req, res) => {
@@ -238,7 +298,7 @@ const PORT = process.env.PORT || 5000;
 mongoose.connect(process.env.MONGO_URL)
   .then(() => {
     console.log("✅ MongoDB connected");
-    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+    server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
   })
   .catch((err) => {
     console.log("❌ Error connecting to MongoDB");
