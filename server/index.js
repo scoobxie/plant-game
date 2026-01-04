@@ -66,13 +66,11 @@ io.on('connection', (socket) => {
     // 2. When moving (MOVE) - THIS IS THE CRITICAL FIX
     socket.on('move', (data) => {
         if (onlinePlayers[socket.id]) {
-          let safeX = Math.max(0, Math.min(data.x, 950)); 
-          let safeY = Math.max(0, Math.min(data.y, 750));
             // Update ONLY coordinates, but COPY old data (name, clothes)
             onlinePlayers[socket.id] = {
-                ...onlinePlayers[socket.id], // 👈 This prevents them from becoming "naked" copies
-                x: safeX,
-                y: safeY
+                ...onlinePlayers[socket.id], 
+                x: data.x,
+                y: data.y
             };
 
             // Send updated list to everyone

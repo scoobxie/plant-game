@@ -26,24 +26,48 @@ const handlePlayerMove = (x, y) => {
       // 1. Trimitem la server
       socket.emit('move', { id: socket.id, x, y });
 
-      // 2. Update local (cu protecție să nu pierzi hainele/numele)
+      // 2. Update local cu ANIMAȚIE și DIRECȚIE
       setPlayers(prev => {
-        const existingMe = prev[socket.id] || {};
+        const myId = socket.id;
+        const existingMe = prev[myId] || {};
+
+        // A. Calculăm direcția pe baza click-ului (Unde vreau să ajung vs Unde sunt)
+        let newDirection = existingMe.direction; // Default: păstrăm vechea direcție
+        if (x > existingMe.x) newDirection = 'right'; // Click în dreapta
+        if (x < existingMe.x) newDirection = 'left';  // Click în stânga
+
         return {
           ...prev,
-          [socket.id]: {
+          [myId]: {
             ...existingMe,
-            id: socket.id,
+            id: myId,
             x: x,
             y: y,
-            // Dacă lipsesc datele (bug-ul Guest), le punem la loc din memoria locală:
+            
+            direction: newDirection, 
+            isMoving: true,
+
+            // Păstrăm fix-ul tău pentru haine/nume (Bug-ul Guest):
             username: existingMe.username || user?.username || "Gardener",
             characterLook: existingMe.characterLook || characterLook 
           }
         };
       });
+
+      // 3. Oprim animația după ce ajunge 
+      setTimeout(() => {
+        setPlayers(prev => {
+            const myP = prev[socket.id];
+            if (!myP) return prev;
+            return {
+                ...prev,
+                [socket.id]: { ...myP, isMoving: false } 
+            };
+        });
+      }, 600);
     }
   };
+
   // --- AUTH ---
   const [user, setUser] = useState(null);
   const [viewState, setViewState] = useState('title'); 
@@ -88,11 +112,65 @@ useEffect(() => {
 }, []);
 
 useEffect(() => {
-  // Ascultăm lista de jucători de la server
-  socket.on("update_players", (serverPlayers) => {
-    setPlayers(serverPlayers);
-  });
+socket.on("update_players", (serverPlayers) => {
+      setPlayers(prev => {
+        const nextState = { ...serverPlayers };
 
+        Object.keys(nextState).forEach(id => {
+          const oldP = prev[id];      // Starea veche
+          const newP = nextState[id]; // Starea nouă de la server
+
+          if (!oldP) return; // Dacă e jucător nou, ignorăm
+
+          // --- CAZUL 1: EȘTI TU (Local) ---
+          // Tu îți controlezi singur animația în handlePlayerMove, 
+          // așa că ignorăm ce zice serverul despre "isMoving" pentru tine.
+          if (id === socket.id) {
+             if (oldP.isMoving) { 
+                 newP.isMoving = true; 
+                 newP.direction = oldP.direction;
+             }
+          } 
+          
+          // --- CAZUL 2: SUNT ALȚII (Remote) ---
+          // Aici reparăm "mersul la infinit"
+          else {
+             // Verificăm dacă s-au schimbat coordonatele
+             const hasMoved = (oldP.x !== newP.x || oldP.y !== newP.y);
+             
+             if (hasMoved) {
+                 // 1. PORNIM MERSUL
+                 newP.isMoving = true;
+
+                 // 2. CALCULĂM DIRECȚIA (ca să nu meargă cu spatele)
+                 if (newP.x > oldP.x) newP.direction = 'right';
+                 else if (newP.x < oldP.x) newP.direction = 'left';
+                 else newP.direction = oldP.direction;
+
+                 // 3. 🛑 FIX CRITIC: Oprim forțat animația lor după 600ms
+                 // Chiar dacă serverul nu mai trimite nimic, noi îi oprim local.
+                 setTimeout(() => {
+                    setPlayers(curr => {
+                        if (!curr[id]) return curr; // Dacă a ieșit între timp
+                        return {
+                            ...curr,
+                            [id]: { ...curr[id], isMoving: false }
+                        };
+                    });
+                 }, 600); // 600ms este durata tranziției CSS
+
+             } else {
+                 // Dacă coordonatele sunt identice, sigur stă pe loc
+                 newP.isMoving = false;
+                 newP.direction = oldP.direction;
+             }
+          }
+        });
+
+        return nextState;
+      });
+    });
+    
 // 2. 💬 Ascultăm Chat-ul (NOU)
     socket.on('player_chat', ({ id, text }) => {
         setPlayers(prev => {
@@ -2838,8 +2916,8 @@ setPlayers(prev => ({
     
 {/* 👇 NOUL PERSONAJ CUSTOMIZABIL & CLICKABIL */}
 <div 
-    onClick={() => setShowCreator(true)} // <--- AICI E MAGIA: Deschide meniul
-    title="Change Outfit"                // <--- Tooltip când ții mouse-ul
+    onClick={() => setShowCreator(true)} 
+    title="Change Outfit"                
     style={{ 
         width: '30vh',     
         height: '35vh',    
@@ -2847,8 +2925,8 @@ setPlayers(prev => ({
         marginLeft: '-10vh', 
         zIndex: 110,
         flexShrink: 0,
-        cursor: 'pointer',               // <--- Arată mânuța (click)
-        transition: 'transform 0.2s ease' // <--- Mică animație
+        cursor: 'pointer',             
+        transition: 'transform 0.2s ease' 
     }}
     // Efect drăguț: se mărește puțin când pui mouse-ul pe el
     onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}

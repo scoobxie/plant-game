@@ -1,9 +1,20 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react'; // 👈 Avem nevoie de useState și useEffect
 import PaperDoll from './PaperDoll';
 import './Park.css';
 
-const Park = ({ players, socket, myId, onMove, user, notification }) => { 
+const Park = ({ players, socket, myId, onMove, user }) => { 
     
+    // 1. STARE PENTRU ANIMATIA DE PĂȘIT (0 sau 1)
+    // Se schimbă automat ca să creeze efectul de "mers"
+    const [stepPhase, setStepPhase] = useState(0);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setStepPhase(prev => (prev === 0 ? 1 : 0));
+        }, 200); 
+        return () => clearInterval(interval);
+    }, []);
+
     const handleMove = (e) => {
         if (e.target.closest('.no-click') || e.target.tagName === 'INPUT') return;
 
@@ -27,7 +38,7 @@ const Park = ({ players, socket, myId, onMove, user, notification }) => {
     return (
         <div className="park-container" onClick={handleMove}>
 
-            {/* 1. HUD Coins (Folosește CSS-ul nou) */}
+            {/* HUD Coins */}
             <div className="mmo-hud">
                 Coins: {user?.coins || 0}
             </div>
@@ -61,49 +72,90 @@ const Park = ({ players, socket, myId, onMove, user, notification }) => {
             ))}
 
             {/* --- PLAYERS --- */}
-            {Object.values(players).map((p) => (
-                <div key={p.id} className="no-click" style={{
-                        position: 'absolute', left: p.x, top: p.y,
-                        transition: 'left 0.5s ease-out, top 0.5s ease-out',
-                        transform: 'translate(-50%, -100%)',
-                        zIndex: Math.floor(p.y),
-                        display: 'flex', flexDirection: 'column', alignItems: 'center', pointerEvents: 'none'
-                    }}>
+            {Object.values(players).map((p) => {
+                
+                // ✅ 2. MAGIC ANIMATION: Pășit Realist
+                const getAnimSrc = (src) => {
+                    if (!src) return null;
+                    if (p.isMoving) {
+                        // Dacă stepPhase e 0 -> Arată piciorul în față (-walk)
+                        // Dacă stepPhase e 1 -> Arată piciorul strâns (normal)
+                        // Asta creează iluzia că dă din picioare!
+                        if (stepPhase === 0) {
+                            return src.replace('.png', '-walk.png');
+                        }
+                        return src; // Revenim la poziția normală între pași
+                    }
+                    return src; // Când stă pe loc
+                };
 
-                    {/* Chat Bubble */}
-                    {p.chatMessage && (
-                        <div style={{
-                            position: 'absolute', bottom: '100%', marginBottom: '10px',
-                            background: 'white', border: '3px solid #3d083dcc', padding: '5px 12px',
-                            borderRadius: '15px', fontFamily: 'VT323', fontSize: '1.2rem',
-                            whiteSpace: 'nowrap', zIndex: 100
+                // ✅ 3. OGLINDIRE (Stânga/Dreapta)
+                const isGirl = p.characterLook?.skin?.includes('girl');
+                const facing = p.direction || (isGirl ? 'left' : 'right');
+                let mirrorStyle = 'scaleX(1)'; 
+
+                if ((isGirl && facing === 'right') || (!isGirl && facing === 'left')) {
+                    mirrorStyle = 'scaleX(-1)';
+                }
+
+                return (
+                    <div key={p.id} className="no-click" style={{
+                            position: 'absolute', left: p.x, top: p.y,
+                            // Aici setezi viteza (0.6s e mai lent, ca un mers normal)
+                            transition: 'left 0.6s linear, top 0.6s linear', 
+                            transform: 'translate(-50%, -100%)',
+                            zIndex: Math.floor(p.y),
+                            display: 'flex', flexDirection: 'column', alignItems: 'center', pointerEvents: 'none'
                         }}>
-                            {p.chatMessage}
+
+                        {/* Chat Bubble */}
+                        {p.chatMessage && (
                             <div style={{
-                                position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)',
-                                borderLeft: '6px solid transparent', borderRight: '6px solid transparent',
-                                borderTop: '6px solid #3d1f08'
-                            }}></div>
+                                position: 'absolute', bottom: '100%', marginBottom: '10px',
+                                background: '#fff0f5', border: '3px solid #ff80ab', padding: '5px 12px',
+                                borderRadius: '15px', fontFamily: 'VT323', fontSize: '1.2rem',
+                                whiteSpace: 'nowrap', zIndex: 100, color: '#880e4f'
+                            }}>
+                                {p.chatMessage}
+                                <div style={{
+                                    position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)',
+                                    borderLeft: '6px solid transparent', borderRight: '6px solid transparent',
+                                    borderTop: '6px solid #ff80ab'
+                                }}></div>
+                            </div>
+                        )}
+
+                        {/* Numele */}
+                        <div style={{
+                            background: p.id === myId ? '#ff80ab' : 'white',
+                            color: p.id === myId ? 'white' : '#5d4037',
+                            padding: '2px 12px', borderRadius: '10px', border: '3px solid #5d4037',
+                            fontFamily: 'VT323', fontSize: '1.2rem', marginBottom: '4px', whiteSpace: 'nowrap'
+                        }}>
+                            {p.username || "Guest"}
                         </div>
-                    )}
 
-                    <div style={{
-                        background: p.id === myId ? '#ff80ab' : 'white',
-                        color: p.id === myId ? 'white' : '#5d4037',
-                        padding: '2px 12px', borderRadius: '10px', border: '3px solid #5d4037',
-                        fontFamily: 'VT323', fontSize: '1.2rem', marginBottom: '4px', whiteSpace: 'nowrap'
-                    }}>
-                        {p.username || "Guest"}
+                        {/* 🏃 PAPERDOLL ANIMAT */}
+                        <div style={{ 
+                            width: '80px', height: '110px',
+                            transform: mirrorStyle, // Oglindire
+                            transition: 'transform 0.1s'
+                        }}>
+                            <PaperDoll 
+                                skinSrc={getAnimSrc(p.characterLook?.skin)} 
+                                hairSrc={getAnimSrc(p.characterLook?.hair)} 
+                                outfitSrc={getAnimSrc(p.characterLook?.outfit)} 
+                                isBreathing={!p.isMoving} 
+                            />
+                        </div>
+                        
+                        {/* Umbra */}
+                        <div style={{ width: '40px', height: '10px', background: 'rgba(0,0,0,0.1)', borderRadius: '50%', marginTop: '-12px' }}></div>
                     </div>
+                );
+            })}
 
-                    <div style={{ width: '80px', height: '110px' }}>
-                        <PaperDoll skinSrc={p.characterLook?.skin} hairSrc={p.characterLook?.hair} outfitSrc={p.characterLook?.outfit} isBreathing={true} />
-                    </div>
-                    <div style={{ width: '40px', height: '10px', background: 'rgba(0,0,0,0.1)', borderRadius: '50%', marginTop: '-12px' }}></div>
-                </div>
-            ))}
-
-            {/* 👇 3. CHAT INPUT (Folosește CSS-ul nou + Accessibility) */}
+            {/* CHAT INPUT */}
             <div className="chat-input-container">
                 <input 
                     type="text" 
