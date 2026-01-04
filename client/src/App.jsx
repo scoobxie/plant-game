@@ -93,8 +93,41 @@ useEffect(() => {
     setPlayers(serverPlayers);
   });
 
-  return () => socket.off("update_players");
-}, []);
+// 2. 💬 Ascultăm Chat-ul (NOU)
+    socket.on('player_chat', ({ id, text }) => {
+        setPlayers(prev => {
+            if (!prev[id]) return prev;
+            // Punem mesajul pe jucător
+            return {
+                ...prev,
+                [id]: { ...prev[id], chatMessage: text }
+            };
+        });
+
+        // Îl ștergem automat după 5 secunde
+        setTimeout(() => {
+            setPlayers(prev => {
+                if (!prev[id]) return prev;
+                return {
+                    ...prev,
+                    [id]: { ...prev[id], chatMessage: null }
+                };
+            });
+        }, 5000);
+    });
+
+    // 3. 🔔 Notificări Globale 
+    socket.on('global_notification', ({ text }) => {
+        setNotification({ message: text, type: 'success' });
+        setTimeout(() => setNotification(null), 5000);
+    });
+
+    return () => {
+        socket.off('update_players');
+        socket.off('player_chat');
+        socket.off('global_notification');
+    };
+  }, []);
 
   // --- PLANT TYPES SYSTEM ---
   const plantTypes = {
@@ -2505,6 +2538,12 @@ if (user && showCreator) {
           </div>
         </div>
       )}
+
+      {notification && (
+    <div className="global-toast">
+      {notification.message}
+    </div>
+  )}
 
       {/* Floating Numbers */}
       {floatingNumbers.map(num => (

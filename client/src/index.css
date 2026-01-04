@@ -3752,3 +3752,25 @@ body.night .plant-info-modal {
 .garden-door:hover .door-knob-pixel {
   animation: jiggleKnob 0.4s ease-in-out infinite;
 }
+
+.global-toast {
+  position: fixed;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(50, 50, 50, 0.9); /* Negru transparent */
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 25px;
+  border: 2px solid #ff80ab; /* Bordură roz */
+  font-family: 'VT323', monospace;
+  font-size: 1.4rem;
+  z-index: 99999; /* Peste TOT (chiar și peste Login) */
+  animation: slideDown 0.5s ease-out;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+@keyframes slideDown {
+  from { top: -50px; opacity: 0; }
+  to { top: 30px; opacity: 1; }
+}

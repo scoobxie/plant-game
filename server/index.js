@@ -7,6 +7,8 @@ const dotenv = require('dotenv');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
+const Filter = require('bad-words');
+const filter = new Filter();
 
 dotenv.config();
 
@@ -31,34 +33,69 @@ io.on('connection', (socket) => {
     console.log(`✨ New player connected! ID: ${socket.id}`);
 
     // 1. When entering the park (JOIN)
+// 1. When entering the park (JOIN)
     socket.on('join-park', (data) => {
-        // Save player with ALL their data (name, outfit)
+        
+        // 👻 GHOST BUSTING: Ștergem orice alt jucător vechi cu același nume
+        for (const [id, player] of Object.entries(onlinePlayers)) {
+            if (player.username === data.username) {
+                console.log(`👻 Removing ghost of ${player.username} (ID: ${id})`);
+                delete onlinePlayers[id];
+            }
+        }
+
+        // Salvează jucătorul nou
         onlinePlayers[socket.id] = {
             id: socket.id,
             x: data.x || 400,
             y: data.y || 400,
             username: data.username || "Guest",
-            characterLook: data.characterLook || {} // Keeps the clothes!
+            characterLook: data.characterLook || {} 
         };
         
         console.log(`👋 ${data.username} joined the park.`);
         
-        // Send the list to everyone
         io.emit('update_players', onlinePlayers);
+        
+        // Notificarea o trimitem doar celorlalți
+        socket.broadcast.emit('global_notification', {
+            text: `✿ ${data.username || 'A friend'} joined the garden! ✿`
+        });
     });
 
     // 2. When moving (MOVE) - THIS IS THE CRITICAL FIX
     socket.on('move', (data) => {
         if (onlinePlayers[socket.id]) {
+          let safeX = Math.max(0, Math.min(data.x, 950)); 
+          let safeY = Math.max(0, Math.min(data.y, 750));
             // Update ONLY coordinates, but COPY old data (name, clothes)
             onlinePlayers[socket.id] = {
                 ...onlinePlayers[socket.id], // 👈 This prevents them from becoming "naked" copies
-                x: data.x,
-                y: data.y
+                x: safeX,
+                y: safeY
             };
 
             // Send updated list to everyone
             io.emit('update_players', onlinePlayers);
+        }
+    });
+
+    // 👇 3. CHAT SYSTEM 
+    socket.on('chat_message', (msg) => {
+        if (onlinePlayers[socket.id]) {
+            try {
+                // CLEAN BAD WORDS
+                const cleanMessage = filter.clean(msg);
+                
+                // SEND CLEAN MSG
+                io.emit('player_chat', {
+                    id: socket.id,
+                    text: cleanMessage
+                });
+            } catch (e) {
+                // OR THE ORIGINAL
+                io.emit('player_chat', { id: socket.id, text: msg });
+            }
         }
     });
 
@@ -85,7 +122,10 @@ const UserSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   character: { type: String, enum: ['girl', 'boy'], default: 'girl' },
-  gameSave: { type: Object, default: null }
+  gameSave: { type: Object, default: null },
+  coins: { type: Number, default: 0 },
+  isBanned: { type: Boolean, default: false }, // Pentru moderare
+  characterLook: { type: Object, default: {} } // Salvăm hainele permanent
 });
 
 const User = mongoose.model('User', UserSchema);

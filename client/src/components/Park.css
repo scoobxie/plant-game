@@ -118,3 +118,80 @@
   box-shadow: 8px -2px 0 #fff, 4px 6px 0 #ff80ab;
   transform: rotate(15deg);
 }
+
+/* --- MMO UI & CHAT --- */
+
+/* HUD pentru Bani (Sus Dreapta) */
+.mmo-hud {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 5000;
+  /* Fără background sau border */
+  background: transparent; 
+  border: none;
+  box-shadow: none;
+  
+  font-family: 'VT323', monospace;
+  font-size: 2rem; /* Puțin mai mare */
+  color: white;    /* Text alb */
+  text-shadow: 2px 2px 0 #5D4037; /* Contur maro ca să se citească */
+  pointer-events: none;
+}
+
+/* Containerul Input-ului (Jos Centru) */
+.chat-input-container {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 99999; /* Cel mai sus posibil */
+  pointer-events: auto; /* IMPORTANT: Ca să poți da click */
+}
+
+/* Bara de scris efectivă */
+.chat-input-field {
+  padding: 12px 25px;
+  border-radius: 30px;
+  border: 4px solid #5D4037;
+  font-family: 'VT323', monospace;
+  font-size: 1.5rem;
+  width: 350px;
+  background: rgba(255, 255, 255, 0.95);
+  outline: none;
+  box-shadow: 0 6px 0 rgba(0,0,0,0.2);
+  transition: transform 0.1s;
+}
+
+.chat-input-field:focus {
+  transform: translateY(2px);
+  box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+  border-color: #795548;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translate(-50%, -10px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.global-toast {
+  position: fixed;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(50, 50, 50, 0.9); /* Negru transparent */
+  color: #ffc6d9;
+  padding: 12px 24px;
+  border-radius: 25px;
+  border: 2px solid #ffa5c3; /* Bordură roz */
+  font-family: 'VT323', monospace;
+  font-size: 1.4rem;
+  z-index: 99999; /* Peste TOT (chiar și peste Login) */
+  animation: slideDown 0.5s ease-out;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+@keyframes slideDown {
+  from { top: -50px; opacity: 0; }
+  to { top: 30px; opacity: 1; }
+}
