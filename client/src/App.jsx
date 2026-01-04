@@ -739,6 +739,29 @@ socket.on("update_players", (serverPlayers) => {
   const [timeTransition, setTimeTransition] = useState(null); // For big time cards
   const [floatingNumbers, setFloatingNumbers] = useState([]); // For damage/heal numbers
 
+  // 🏃 STATE PENTRU ANIMAȚIA DE MERS
+  const [stepPhase, setStepPhase] = useState(0);
+
+  useEffect(() => {
+    // Pornim animația DOAR în timpul expediției efective
+    if (gameView !== 'expedition') {
+        setStepPhase(0); 
+        return;
+    }
+
+    const interval = setInterval(() => {
+        setStepPhase(prev => (prev === 0 ? 1 : 0));
+    }, 200); 
+    
+    return () => clearInterval(interval);
+  }, [gameView]);
+
+  const getWalkSrc = (src) => {
+      if (!src) return null;
+      if (stepPhase === 1) return src.replace('.png', '-walk.png');
+      return src;
+  };
+
   // --- EFECTE (Load & Save & Styles) ---
 
 // --- SYNC FIX: Load Cloud Data on Startup ---
@@ -1344,10 +1367,10 @@ socket.on("update_players", (serverPlayers) => {
   
   const generateEnemy = (currentDay) => {
     const personalities = {
-      aggressive: { name: 'Aggressive', surrenderChance: 0.1, fleeChance: 0.05, attackMod: 1.2, defenseMod: 0.9 },
-      cowardly: { name: 'Cowardly', surrenderChance: 0.4, fleeChance: 0.3, attackMod: 0.8, defenseMod: 1.1 },
-      greedy: { name: 'Greedy', surrenderChance: 0.15, fleeChance: 0.1, attackMod: 1.0, defenseMod: 1.0 },
-      tactical: { name: 'Tactical', surrenderChance: 0.2, fleeChance: 0.15, attackMod: 1.1, defenseMod: 1.1 }
+      aggressive: { name: 'Aggressive', surrenderChance: 0.1, fleeChance: 0.05, attackMod: 1.2, defenseMod: 0.9, sprite: 1 },
+      cowardly: { name: 'Cowardly', surrenderChance: 0.4, fleeChance: 0.3, attackMod: 0.8, defenseMod: 1.1, sprite: 3 },    
+      greedy: { name: 'Greedy', surrenderChance: 0.15, fleeChance: 0.1, attackMod: 1.0, defenseMod: 1.0, sprite: 4 },   
+      tactical: { name: 'Tactical', surrenderChance: 0.2, fleeChance: 0.15, attackMod: 1.1, defenseMod: 1.1, sprite: 2 }   
     };
     
     const firstNames = ['Grim', 'Rusty', 'Shadow', 'Blade', 'Ash', 'Vex', 'Scar', 'Thorn'];
@@ -1365,6 +1388,7 @@ socket.on("update_players", (serverPlayers) => {
       id: `enemy_${Date.now()}_${Math.random()}`,
       name: `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`,
       personality: personality,
+      image: `/assets/enemies/enemy-${personality.sprite}.png`,
       hp: Math.floor(baseHP * personality.defenseMod),
       maxHP: Math.floor(baseHP * personality.defenseMod),
       damage: Math.floor(baseDamage * personality.attackMod),
@@ -2418,6 +2442,28 @@ const restart = async (force = false) => {
 
     window.location.reload();
   };
+  
+// 📸 Avatar STATIC pentru butoane (DAR cu imaginea de 'walk')
+  // Această funcție transformă orice link 'skin.png' în 'skin-walk.png'
+  const getStaticWalkSrc = (src) => src ? src.replace('.png', '-walk.png') : null;
+
+  const miniAvatar = (
+    <div style={{ 
+        width: '40px', 
+        height: '50px', 
+        position: 'relative', 
+        display: 'inline-block', 
+        marginRight: '10px' 
+    }}>
+        <PaperDoll 
+            // 👇 Aici forțăm imaginea de walk, chiar dacă nu e animat
+            skinSrc={getStaticWalkSrc(characterLook.skin)}
+            hairSrc={getStaticWalkSrc(characterLook.hair)}
+            outfitSrc={getStaticWalkSrc(characterLook.outfit)}
+            isBreathing={false}
+        />
+    </div>
+  );
 
 // --- RENDERIZARE ---
 
@@ -3366,14 +3412,29 @@ setPlayers(prev => ({
               </div>
             </div>
           </>
-        ) : gameView === 'expedition' ? (
+) : gameView === 'expedition' ? (
           <>
             <div className="full-screen-overlay expedition-overlay">
               <div className="overlay-card">
                 <div className="overlay-icon" style={{fontSize: '8rem', animation: 'bounce 2s infinite'}}>🎒</div>
                 <div className="overlay-title">On Expedition</div>
                 <div className="overlay-subtitle">Gathering resources...</div>
-                <div style={{fontSize: '5rem', marginTop: '20px', animation: 'pulse 1s infinite'}}>🚶</div>
+                
+                {/* ANIMATED CUSTOM CHARACTER */}
+                <div style={{ 
+                    marginTop: '30px',
+                    width: '120px', 
+                    height: '160px', 
+                    position: 'relative',
+                }}>
+                    <PaperDoll 
+                        skinSrc={getWalkSrc(characterLook.skin)} 
+                        hairSrc={getWalkSrc(characterLook.hair)} 
+                        outfitSrc={getWalkSrc(characterLook.outfit)} 
+                        isBreathing={false} 
+                    />
+                </div>
+
               </div>
             </div>
           </>
@@ -3573,36 +3634,55 @@ setPlayers(prev => ({
                 <div className="submenu-panel">
                   <div className="submenu-title">🎒 Expedition</div>
                   <div className="submenu-options">
+                    
+                    {/* BUTON 1 ZI */}
                     <div 
                       className={`action-menu-item ${energy < 2 ? 'disabled' : ''}`}
                       onClick={() => {if (energy >= 2) startExpedition(1);}}
                     >
-                      <div className="action-menu-title">🚶 1-Day Trip</div>
+                      {/* 👇 Aici am scos emoji 🚶 și am pus miniAvatar */}
+                      <div className="action-menu-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                         {miniAvatar}
+                         <span>1-Day Trip</span>
+                      </div>
                       <div className="action-menu-subtitle">
                         {energy < 2 ? 'Need 2 energy!' : 'Quick resource gathering'}
                       </div>
                       <div className="action-menu-cost">-2 ⚡</div>
                     </div>
+
+                    {/* BUTON 2 ZILE */}
                     <div 
                       className={`action-menu-item ${energy < 3 ? 'disabled' : ''}`}
                       onClick={() => {if (energy >= 3) startExpedition(2);}}
                     >
-                      <div className="action-menu-title">🏃 2-Day Trip</div>
+                      {/* 👇 Aici am scos emoji 🏃 și am pus miniAvatar */}
+                      <div className="action-menu-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                         {miniAvatar}
+                         <span>2-Day Trip</span>
+                      </div>
                       <div className="action-menu-subtitle">
                         {energy < 3 ? 'Need 3 energy!' : 'Extended resource gathering'}
                       </div>
                       <div className="action-menu-cost">-3 ⚡</div>
                     </div>
+
+                    {/* BUTON 3 ZILE */}
                     <div 
                       className={`action-menu-item ${(!wellRested || energy < 4) ? 'disabled' : ''}`}
                       onClick={() => {if (wellRested && energy >= 4) startExpedition(3);}}
                     >
-                      <div className="action-menu-title">🏃‍♂️ 3-Day Trip ✨</div>
+                      {/* 👇 Aici am scos emoji 🏃‍♂️ și am pus miniAvatar */}
+                      <div className="action-menu-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                         {miniAvatar}
+                         <span>3-Day Trip ✨</span>
+                      </div>
                       <div className="action-menu-subtitle">
                         {!wellRested ? 'Need well-rested buff!' : energy < 4 ? 'Need 4 energy!' : 'Maximum resource haul!'}
                       </div>
                       <div className="action-menu-cost">-4 ⚡</div>
                     </div>
+
                     <div className="action-menu-item" onClick={() => setGameView('normal')}>
                       <div className="action-menu-title">🔙 Back</div>
                       <div className="action-menu-subtitle">Return to main menu</div>
@@ -3626,7 +3706,22 @@ setPlayers(prev => ({
                         key={p.id}
                         className={`turn-order-item ${idx === battleState.currentTurnIndex ? 'current-turn' : ''} ${p.isDead ? 'dead' : ''}`}
                       >
-                        <div className="turn-order-icon">{p.emoji || '👤'}</div>
+                            <div className="turn-order-icon">
+                              {p.isEnemy ? (
+                                <img 
+                                  src={p.image} 
+                                  alt="" 
+                                  style={{ width: '30px', height: '30px', imageRendering: 'pixelated' }} 
+                                />
+                              ) : (
+                                /* Pentru plante, folosim imaginea din plantTypeData sau fallback */
+                                <img 
+                                  src={p.plantTypeData?.image || plantType.image} 
+                                  alt="" 
+                                  style={{ width: '30px', height: '30px', imageRendering: 'pixelated' }} 
+                                />
+                              )}
+                            </div>
                         <div className="turn-order-name">{p.name}</div>
                         <div className="turn-order-hp">{p.hp}/{p.maxHP}</div>
                       </div>
@@ -3642,7 +3737,15 @@ setPlayers(prev => ({
                       className={`battle-enemy ${battleState.selectedTarget === enemy.id ? 'targeted' : ''}`}
                       onClick={() => handleTargetSelect(enemy.id)}
                     >
-                      <div className="enemy-sprite">👤</div>
+                      <div className="enemy-sprite"><img 
+                            src={enemy.image} 
+                            alt={`Inamic tip ${enemy.personality.name}`} 
+                            style={{ 
+                              width: '80px', 
+                              height: '80px', 
+                              imageRendering: 'pixelated' 
+                            }} 
+                          /></div>
                       <div className="enemy-name">{enemy.name}</div>
                       <div className="hp-bar-container">
                         <div 
