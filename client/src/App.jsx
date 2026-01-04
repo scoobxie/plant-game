@@ -24,7 +24,7 @@ function App() {
 const handlePlayerMove = (x, y) => {
     if (socket && socket.connected) {
       // 1. Trimitem la server
-      socket.emit('move', { id: socket.id, x, y });
+      socket.emit('move', { id: socket.id, x, y, isVeteran: user?.isVeteran || day >= 30, coins: user?.coins || 0});
 
       // 2. Update local cu ANIMAȚIE și DIRECȚIE
       setPlayers(prev => {
@@ -47,7 +47,6 @@ const handlePlayerMove = (x, y) => {
             direction: newDirection, 
             isMoving: true,
 
-            // Păstrăm fix-ul tău pentru haine/nume (Bug-ul Guest):
             username: existingMe.username || user?.username || "Gardener",
             characterLook: existingMe.characterLook || characterLook 
           }
@@ -117,56 +116,55 @@ socket.on("update_players", (serverPlayers) => {
         const nextState = { ...serverPlayers };
 
         Object.keys(nextState).forEach(id => {
-          const oldP = prev[id];      // Starea veche
-          const newP = nextState[id]; // Starea nouă de la server
+          const oldP = prev[id];
+          const newP = nextState[id];
 
-          if (!oldP) return; // Dacă e jucător nou, ignorăm
+          if (!oldP) return;
 
-          // --- CAZUL 1: EȘTI TU (Local) ---
-          // Tu îți controlezi singur animația în handlePlayerMove, 
-          // așa că ignorăm ce zice serverul despre "isMoving" pentru tine.
+          // Daca ești TU -> păstrezi mișcarea locală
           if (id === socket.id) {
              if (oldP.isMoving) { 
                  newP.isMoving = true; 
                  newP.direction = oldP.direction;
              }
           } 
-          
-          // --- CAZUL 2: SUNT ALȚII (Remote) ---
-          // Aici reparăm "mersul la infinit"
+          // Daca sunt ALȚII -> Logică anti-stutter
           else {
-             // Verificăm dacă s-au schimbat coordonatele
              const hasMoved = (oldP.x !== newP.x || oldP.y !== newP.y);
              
              if (hasMoved) {
-                 // 1. PORNIM MERSUL
                  newP.isMoving = true;
-
-                 // 2. CALCULĂM DIRECȚIA (ca să nu meargă cu spatele)
+                 newP.lastMoveTime = Date.now(); // Salvăm timpul
+                 
+                 // Direcția
                  if (newP.x > oldP.x) newP.direction = 'right';
                  else if (newP.x < oldP.x) newP.direction = 'left';
                  else newP.direction = oldP.direction;
 
-                 // 3. 🛑 FIX CRITIC: Oprim forțat animația lor după 600ms
-                 // Chiar dacă serverul nu mai trimite nimic, noi îi oprim local.
+                 // Oprim animația doar dacă NU s-a mai mișcat de 550ms
                  setTimeout(() => {
                     setPlayers(curr => {
-                        if (!curr[id]) return curr; // Dacă a ieșit între timp
-                        return {
-                            ...curr,
-                            [id]: { ...curr[id], isMoving: false }
-                        };
+                        if (!curr[id]) return curr;
+                        if (Date.now() - (curr[id].lastMoveTime || 0) >= 550) {
+                            return { ...curr, [id]: { ...curr[id], isMoving: false } };
+                        }
+                        return curr;
                     });
-                 }, 600); // 600ms este durata tranziției CSS
+                 }, 600);
 
              } else {
-                 // Dacă coordonatele sunt identice, sigur stă pe loc
-                 newP.isMoving = false;
-                 newP.direction = oldP.direction;
+                 // Dacă stă pe loc, dar abia s-a mișcat, îl mai lăsăm puțin
+                 if (oldP.isMoving && (Date.now() - (oldP.lastMoveTime || 0) < 600)) {
+                     newP.isMoving = true;
+                     newP.direction = oldP.direction;
+                     newP.lastMoveTime = oldP.lastMoveTime;
+                 } else {
+                     newP.isMoving = false;
+                     newP.direction = oldP.direction;
+                 }
              }
           }
         });
-
         return nextState;
       });
     });
@@ -1929,6 +1927,33 @@ const saveToCloud = async () => {
     if (newDay > 30) {
       setGameView('victory');
       playSound('success');
+      // LOCAL UPDATE - BADGE 
+      const updatedUser = { ...user, isVeteran: true };
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser)); // Păstrăm și la refresh
+
+      // SERVER UPDATE - isVeteran
+      const token = localStorage.getItem('token');
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://plant-game.onrender.com';
+      
+      fetch(`${apiUrl}/api/save`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ 
+          email: user.email, 
+          isVeteran: true, 
+          gameState: { 
+             day: 30, 
+             plant, 
+             water, 
+             nutrients, 
+             energy,
+             plantTypeKey: localStorage.getItem('currentPlantType'),
+             characterLook
+          } 
+        })
+      }).then(() => console.log("🏆 Veteran status saved to DB!"));
+
       return;
     }
     
@@ -2531,7 +2556,7 @@ if (user && showCreator) {
     <CharacterCreator 
         gender={user.character} 
         currentLook={characterLook} 
-        
+        userCoins={user.coins || 0}
         onSave={(newLook) => {
             setCharacterLook(newLook);
             setShowCreator(false);
@@ -2826,7 +2851,9 @@ position: 'absolute',
     username: user.username, 
     characterLook: characterLook, 
     x: 400,
-    y: 400
+    y: 400, 
+    isVeteran: user?.isVeteran || day >= 30,
+    coins: user?.coins || 0 
   };
 
     socket.emit('join-park', myData);

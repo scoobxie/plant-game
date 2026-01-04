@@ -5,10 +5,17 @@ const PaperDoll = ({
   skinSrc,   
   outfitSrc, 
   hairSrc,
-  faceSrc, // (Opțional, pentru viitor)
-  isBreathing = true 
+  faceSrc, 
+  isBreathing = true,
+  showLeaf = false
 }) => {
   
+// BOY OR GIRL LEAF ACCESSORY
+  const isBoy = skinSrc && skinSrc.includes('boy');
+  const leafImage = isBoy 
+      ? "/assets/accessories/leaf-accessory-boy.png" 
+      : "/assets/accessories/leaf-accessory-girl.png";
+
   return (
     <div className={`paper-doll-container ${isBreathing ? 'breathing' : ''}`}>
       
@@ -47,7 +54,16 @@ const PaperDoll = ({
           className="doll-layer layer-hair" 
         />
       )}
-      
+
+      {/* 5. LEAF ACCESSORY (VETERAN REWARD) */}
+      {showLeaf && (
+        <img 
+          src={leafImage} 
+          alt="Veteran Leaf" 
+          className="doll-layer"
+          style={{ zIndex: 35 }} // Peste păr
+        />
+      )}
     </div>
   );
 };

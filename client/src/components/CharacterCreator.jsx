@@ -45,7 +45,7 @@ const BOY_OUTFITS = [
 
 
 // ⬇️ AICI ERA PROBLEMA: Am adăugat currentLook și onClose
-const CharacterCreator = ({ gender, currentLook, onSave, onClose }) => {
+const CharacterCreator = ({ gender, currentLook, onSave, onClose, userCoins }) => {
   
   const isBoy = gender === 'boy';
   const currentSkins = isBoy ? BOY_SKINS : GIRL_SKINS;
@@ -78,6 +78,11 @@ const CharacterCreator = ({ gender, currentLook, onSave, onClose }) => {
   return (
     <div className="creator-overlay">
       <div className="creator-window">
+
+      <div className="creator-coins-display">
+            Coins: {userCoins || 0}
+        </div>
+        
         {/* ❌ BUTONUL DE ÎNCHIDERE (Acum va funcționa) */}
         <button className="close-creator-btn" onClick={onClose}>✕</button>
 

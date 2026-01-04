@@ -181,3 +181,23 @@ h2 {
   transform: scale(1.1) rotate(90deg); /* Se mărește puțin și se rotește jucăuș */
   box-shadow: 0 4px 8px rgba(255, 133, 194, 0.4); /* Umbră roz strălucitoare */
 }
+
+/* --- COINS --- */
+.creator-coins-display {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  
+  /* Arată ca butoanele de control pentru consistență */
+  background: #d2b48c; /* Tan color */
+  color: #5d4037;
+  padding: 5px 12px;
+  border-radius: 8px;
+  border: 2px solid #8b4513;
+  
+  font-family: 'VT323', monospace;
+  font-size: 1.5rem;
+  font-weight: bold;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  z-index: 25;
+}

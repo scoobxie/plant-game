@@ -121,24 +121,6 @@
 
 /* --- MMO UI & CHAT --- */
 
-/* HUD pentru Bani (Sus Dreapta) */
-.mmo-hud {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 5000;
-  /* Fără background sau border */
-  background: transparent; 
-  border: none;
-  box-shadow: none;
-  
-  font-family: 'VT323', monospace;
-  font-size: 2rem; /* Puțin mai mare */
-  color: white;    /* Text alb */
-  text-shadow: 2px 2px 0 #5D4037; /* Contur maro ca să se citească */
-  pointer-events: none;
-}
-
 /* Containerul Input-ului (Jos Centru) */
 .chat-input-container {
   position: fixed;

@@ -32,17 +32,26 @@ let onlinePlayers = {};
 io.on('connection', (socket) => {
     console.log(`✨ New player connected! ID: ${socket.id}`);
 
-    // 1. When entering the park (JOIN)
 // 1. When entering the park (JOIN)
-    socket.on('join-park', (data) => {
+        socket.on('join-park', (data) => {
+        const username = data.username || "Guest";
         
-        // 👻 GHOST BUSTING: Ștergem orice alt jucător vechi cu același nume
+        console.log(`🔍 Attempting join: ${username} (ID: ${socket.id})`);
+
+        // GHOST BUSTERS
+        const ghostIDs = [];
         for (const [id, player] of Object.entries(onlinePlayers)) {
-            if (player.username === data.username) {
-                console.log(`👻 Removing ghost of ${player.username} (ID: ${id})`);
-                delete onlinePlayers[id];
+            // Dacă găsim același nume...
+            if (player.username === username) {
+                ghostIDs.push(id);
             }
         }
+
+        // Ștergem toate fantomele găsite
+        ghostIDs.forEach(ghostId => {
+            console.log(`👻 Kicking ghost ID: ${ghostId} for user: ${username}`);
+            delete onlinePlayers[ghostId];
+        });
 
         // Salvează jucătorul nou
         onlinePlayers[socket.id] = {
@@ -50,6 +59,8 @@ io.on('connection', (socket) => {
             x: data.x || 400,
             y: data.y || 400,
             username: data.username || "Guest",
+            isVeteran: data.isVeteran || false, 
+            coins: data.coins || 0,
             characterLook: data.characterLook || {} 
         };
         
@@ -166,9 +177,15 @@ app.post('/api/register', async (req, res) => {
   try {
     const { username, email, password, character } = req.body;
     
-    // Check if user exists
+    // Check if email
     const existingUser = await User.findOne({ email });
     if (existingUser) return res.status(400).json({ message: "User already exists!" });
+
+    // 2. Check if USERNAME exists
+    const userWithName = await User.findOne({ username });
+    if (userWithName) {
+        return res.status(400).json({ message: "Username already taken!" });
+    }
 
     // Hash password
     const salt = await bcrypt.genSalt(10);

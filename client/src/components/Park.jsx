@@ -35,13 +35,10 @@ const Park = ({ players, socket, myId, onMove, user }) => {
         { id: 'p1', type: 'picnic', x: '72%', y: 200 },
     ];
 
+
+    
     return (
         <div className="park-container" onClick={handleMove}>
-
-            {/* HUD Coins */}
-            <div className="mmo-hud">
-                Coins: {user?.coins || 0}
-            </div>
             
             {/* --- DECOR --- */}
             <div className="grass-patch" style={{ top: '20%', left: '40%' }}></div>
