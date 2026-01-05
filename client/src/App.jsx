@@ -7,10 +7,7 @@ import PaperDoll from './components/PaperDoll';
 import CharacterCreator from './components/CharacterCreator';
 import Park from './components/Park';
 
-const SOCKET_URL = window.location.hostname === "localhost" 
-  ? "http://localhost:5000" 
-  : "https://plant-game.onrender.com";
-
+const SOCKET_URL = "https://plant-game.onrender.com";
 const socket = io(SOCKET_URL);
 
 function App() {
@@ -22,51 +19,54 @@ function App() {
   const [players, setPlayers] = useState({}); 
 
 const handlePlayerMove = (x, y) => {
-    if (socket && socket.connected) {
-      // 1. Trimitem la server
-      socket.emit('move', { id: socket.id, x, y, isVeteran: user?.isVeteran || day >= 30, coins: user?.coins || 0});
+  if (socket && socket.connected) {
+    // 1. Verificăm proximitatea pentru DANS
+    const isNearAnyone = Object.values(players).some(other => {
+      if (other.id === socket.id) return false;
+      const dist = Math.sqrt(Math.pow(other.x - x, 2) + Math.pow(other.y - y, 2));
+      return dist < 80; 
+    });
 
-      // 2. Update local cu ANIMAȚIE și DIRECȚIE
+    // 2. Pregătim datele (Inclusiv VETERAN status)
+    const moveData = { 
+      id: socket.id, 
+      x, y, 
+      isVeteran: user?.isVeteran || day >= 30, //
+      isDancing: isNearAnyone, 
+      coins: user?.coins || 0
+    };
+
+    // 3. Trimitem UN SINGUR pachet la server
+    socket.emit('move', moveData);
+
+    // 4. Update local pentru animație fluidă
+    setPlayers(prev => {
+      const myId = socket.id;
+      const existingMe = prev[myId] || {};
+      let newDirection = x > existingMe.x ? 'right' : (x < existingMe.x ? 'left' : existingMe.direction);
+
+      return {
+        ...prev,
+        [myId]: {
+          ...existingMe,
+          ...moveData,
+          direction: newDirection,
+          isMoving: true,
+          username: existingMe.username || user?.username || "Gardener",
+          characterLook: existingMe.characterLook || characterLook 
+        }
+      };
+    });
+
+    // 5. Oprim animația de mers
+    setTimeout(() => {
       setPlayers(prev => {
-        const myId = socket.id;
-        const existingMe = prev[myId] || {};
-
-        // A. Calculăm direcția pe baza click-ului (Unde vreau să ajung vs Unde sunt)
-        let newDirection = existingMe.direction; // Default: păstrăm vechea direcție
-        if (x > existingMe.x) newDirection = 'right'; // Click în dreapta
-        if (x < existingMe.x) newDirection = 'left';  // Click în stânga
-
-        return {
-          ...prev,
-          [myId]: {
-            ...existingMe,
-            id: myId,
-            x: x,
-            y: y,
-            
-            direction: newDirection, 
-            isMoving: true,
-
-            username: existingMe.username || user?.username || "Gardener",
-            characterLook: existingMe.characterLook || characterLook 
-          }
-        };
+        const myP = prev[socket.id];
+        return myP ? { ...prev, [socket.id]: { ...myP, isMoving: false } } : prev;
       });
-
-      // 3. Oprim animația după ce ajunge 
-      setTimeout(() => {
-        setPlayers(prev => {
-            const myP = prev[socket.id];
-            if (!myP) return prev;
-            return {
-                ...prev,
-                [socket.id]: { ...myP, isMoving: false } 
-            };
-        });
-      }, 600);
-    }
-  };
-
+    }, 600);
+  }
+};
   // --- AUTH ---
   const [user, setUser] = useState(null);
   const [viewState, setViewState] = useState('title'); 
@@ -2393,8 +2393,10 @@ const restart = async (force = false) => {
     }
 
     // 1. ✅ SALVĂM DATELE VIZUALE CURENTE (ca să nu le pierdem la reset)
+    const plantKeys = Object.keys(plantTypes); 
+    const randomType = plantKeys[Math.floor(Math.random() * plantKeys.length)];
     const currentOutfit = characterLook; 
-    const currentPlantTypeKey = localStorage.getItem('currentPlantType');
+    
 
     // 2. --- Fresh Day 1 Reset Logic ---
     const freshState = {
@@ -2406,11 +2408,12 @@ const restart = async (force = false) => {
       timeOfDay: 'morning', 
       plantConsumptionRate: 1, 
       difficultyLevel: 1,
-      
-      // ✅ 3. ADĂUGĂM HAINELE ȘI PLANTA ÎN NOUL SAVE
-      characterLook: currentOutfit,       // <--- Asta păstrează hainele!
-      plantTypeKey: currentPlantTypeKey   // <--- Asta păstrează specia plantei!
+      characterLook: currentOutfit,   
+      plantTypeKey: randomType
+    
     };
+
+    localStorage.removeItem('currentPlantType');
 
     if (user?.email) {
       try {

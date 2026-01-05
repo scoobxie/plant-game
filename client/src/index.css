@@ -3478,7 +3478,7 @@ body.night .plant-info-modal {
     justify-content: flex-start !important;
     padding-left: 20px !important;
     bottom: 10px !important;
-    -webkit-overflow-scrolling: touch; /* Smooth scroll pe iOS */
+    -webkit-overflow-scrolling: touch;
   }
   
   .action-menu-item {
@@ -3561,7 +3561,7 @@ body.night .plant-info-modal {
 .action-menu-container {
   display: flex !important;
   justify-content: center !important;
-  gap: 1.5vw !important; /* Distanța dintre ele scade odată cu ecranul */
+  gap: 1.5vw !important; 
   width: 90vw !important;
   margin: 0 auto !important;
   position: fixed !important;
@@ -3574,18 +3574,18 @@ body.night .plant-info-modal {
   /* Folosim vw pentru lățime ca să se micșoreze fluid */
   width: clamp(140px, 12vw, 220px) !important; 
   height: auto !important;
-  aspect-ratio: 2.2 / 1; /* Păstrează forma dreptunghiulară */
+  aspect-ratio: 2.2 / 1;
   
   /* Fontul se scalează și el */
   font-size: clamp(0.8rem, 1vw, 1.2rem) !important;
   padding: 1vh !important;
-  border-width: 0.3vw !important; /* Bordura se subțiază pe ecrane mici */
+  border-width: 0.3vw !important;
 }
 
 /* --- 2. TABLETĂ & LAPTOP MIC (sub 1200px) --- */
 @media (max-width: 1389px) {
   .action-menu-item {
-    width: 15vw !important; /* Ocupă mai mult loc relativ pe ecrane medii */
+    width: 15vw !important;
     min-width: 120px !important;
   }
 }
@@ -3593,7 +3593,7 @@ body.night .plant-info-modal {
 /* --- 3. MOBILE (900) --- */
 @media (max-width: 900px) {
   .action-menu-container {
-    justify-content: flex-start !important; /* Permite scroll pe mobil */
+    justify-content: flex-start !important;
     overflow-x: auto !important;
     gap: 15px !important;
     padding: 10px 20px !important;
@@ -3602,7 +3602,7 @@ body.night .plant-info-modal {
   }
 
   .action-menu-item {
-    width: 160px !important; /* Mărime fixă pentru scroll orizontal */
+    width: 160px !important;
     flex-shrink: 0 !important;
   }
 }
@@ -3758,14 +3758,14 @@ body.night .plant-info-modal {
   top: 30px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(50, 50, 50, 0.9); /* Negru transparent */
+  background: rgba(50, 50, 50, 0.9);
   color: #fff;
   padding: 12px 24px;
   border-radius: 25px;
-  border: 2px solid #ff80ab; /* Bordură roz */
+  border: 2px solid #ff80ab;
   font-family: 'VT323', monospace;
   font-size: 1.4rem;
-  z-index: 99999; /* Peste TOT (chiar și peste Login) */
+  z-index: 99999;
   animation: slideDown 0.5s ease-out;
   box-shadow: 0 5px 15px rgba(0,0,0,0.3);
 }
@@ -3773,4 +3773,20 @@ body.night .plant-info-modal {
 @keyframes slideDown {
   from { top: -50px; opacity: 0; }
   to { top: 30px; opacity: 1; }
+}
+
+/* VETERAN BADGE */
+.name-badge {
+  size: 0.2rem;
+  margin-left: 1px;
+}
+
+/* DANCE */
+@keyframes jiggleDance {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1) translateY(-5px); }
+}
+
+.dancing-active {
+  animation: jiggleDance 0.4s ease-in-out infinite !important;
 }

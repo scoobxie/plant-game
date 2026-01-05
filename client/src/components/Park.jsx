@@ -129,7 +129,18 @@ const Park = ({ players, socket, myId, onMove, user }) => {
                             padding: '2px 12px', borderRadius: '10px', border: '3px solid #5d4037',
                             fontFamily: 'VT323', fontSize: '1.2rem', marginBottom: '4px', whiteSpace: 'nowrap'
                         }}>
-                            {p.username || "Guest"}
+                            {p.username || "Gardener"}
+                        {(p.isVeteran) && (
+                        <img 
+                            src="/assets/plant.wide.open.mouth.png" 
+                            alt="Veteran Badge" 
+                            style={{ 
+                                width: '20px', 
+                                height: '20px', 
+                                imageRendering: 'pixelated' 
+                            }} 
+                        />
+                    )}
                         </div>
 
                         {/* 🏃 PAPERDOLL ANIMAT */}
