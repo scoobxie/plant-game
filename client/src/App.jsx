@@ -17,6 +17,7 @@ function App() {
   const [charPos, setCharPos] = useState('center');
   const [isLoading, setIsLoading] = useState(true);
   const [players, setPlayers] = useState({}); 
+  const [isRestarting, setIsRestarting] = useState(false);
 
 const handlePlayerMove = (x, y) => {
   if (socket && socket.connected) {
@@ -115,6 +116,24 @@ socket.on("update_players", (serverPlayers) => {
       setPlayers(prev => {
         const nextState = { ...serverPlayers };
 
+  // 🛡️ FILTRARE: Nu lăsăm jucători cu același nume dar ID diferit
+          const seenUsernames = new Set();
+          
+          Object.keys(serverPlayers).forEach(id => {
+              const p = serverPlayers[id];
+              
+              // Dacă e ID-ul meu, îl pun mereu
+              if (id === socket.id) {
+                  nextState[id] = p;
+                  seenUsernames.add(p.username);
+              } 
+              // Dacă e altul, verificăm dacă am mai văzut numele ăsta deja (clonă)
+              else if (!seenUsernames.has(p.username)) {
+                  nextState[id] = p;
+                  seenUsernames.add(p.username);
+              }
+          });
+
         Object.keys(nextState).forEach(id => {
           const oldP = prev[id];
           const newP = nextState[id];
@@ -189,13 +208,22 @@ socket.on("update_players", (serverPlayers) => {
                     [id]: { ...prev[id], chatMessage: null }
                 };
             });
-        }, 5000);
+        }, 10000);
     });
 
     // 3. 🔔 Notificări Globale 
     socket.on('global_notification', ({ text }) => {
         setNotification({ message: text, type: 'success' });
         setTimeout(() => setNotification(null), 5000);
+    });
+
+    // 4. 🌦️ Sync Weather de la Server (MMO)
+    socket.on('weather_update', (serverWeather) => {
+        // serverWeather vine de la server: 'sunny', 'rainy', 'cloudy', etc.
+        if (serverWeather) {
+            setCurrentWeather(serverWeather);
+            console.log("🌦️ Server synced weather:", serverWeather);
+        }
     });
 
     return () => {
@@ -764,20 +792,23 @@ socket.on("update_players", (serverPlayers) => {
 
   // --- EFECTE (Load & Save & Styles) ---
 
-// --- SYNC FIX: Load Cloud Data on Startup ---
- // --- SYNC FIX: Load Cloud Data on Startup (VERSIUNEA NOUĂ: Încarcă și Haine) ---
+// --- SYNC FIX: Load Cloud Data on Startup (VERSIUNEA FINALĂ: Haine + BANI) ---
+ // --- SYNC FIX: Verifică steagul de restart ---
   useEffect(() => {
     const syncGame = async () => {
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       const savedUserString = localStorage.getItem('user') || sessionStorage.getItem('user');
       const apiUrl = import.meta.env.VITE_API_URL || 'https://plant-game.onrender.com';
 
+      // Verificăm dacă tocmai am dat restart
+      const isFreshRestart = localStorage.getItem('restart_pending') === 'true';
+
       if (token && savedUserString) {
         try {
           const parsedUser = JSON.parse(savedUserString);
           setUser(parsedUser); 
           
-          // 1. Încărcăm datele LOCALE (inclusiv hainele!)
+          // 1. Încărcăm datele LOCALE (Acestea sunt corecte - Day 1 - dacă am dat restart)
           if (parsedUser.gameSave) {
              const local = parsedUser.gameSave;
              setDay(local.day || 1);
@@ -786,20 +817,20 @@ socket.on("update_players", (serverPlayers) => {
              setEnergy(local.energy ?? 2);
              setPlant(local.plant || plant);
              
-             // ✅ FIX IMPORTANT: Încărcăm hainele din LocalStorage
-             if (local.characterLook && local.characterLook.skin) {
-                 setCharacterLook(local.characterLook);
-             }
-             
-             // ✅ FIX: Încărcăm tipul plantei
-             if (local.plantTypeKey && plantTypes[local.plantTypeKey]) {
-                setPlantType(plantTypes[local.plantTypeKey]);
-             }
+             if (local.characterLook?.skin) setCharacterLook(local.characterLook);
           }
           
           setViewState('game'); 
 
-          // 2. CHECK CLOUD DATA (cu Cache Buster ?t=... ca să nu mai ai probleme la restart)
+          // 🛑 STOP! Dacă e Fresh Restart, NU mai citim din Cloud (ca să nu ne strice ziua 1)
+          if (isFreshRestart) {
+              console.log("🚩 Fresh Restart detected! Using Local Data (Day 1) and ignoring Cloud.");
+              localStorage.removeItem('restart_pending'); // Ștergem steagul pentru data viitoare
+              setIsLoading(false);
+              return; // Ieșim din funcție, nu mai facem fetch
+          }
+
+          // 2. CHECK CLOUD DATA (Doar dacă nu e restart proaspăt)
           console.log(`☁️ Checking cloud save...`);
           const res = await fetch(`${apiUrl}/api/load/${parsedUser.email}?t=${Date.now()}`, {
             method: 'GET',
@@ -808,35 +839,30 @@ socket.on("update_players", (serverPlayers) => {
 
           if (res.ok) {
             const cloudSave = await res.json();
-            if (cloudSave && cloudSave.day) {
+            
+            if (cloudSave) {
               console.log("☁️ Found Cloud Save. Syncing...");
               
-              setDay(cloudSave.day);
+              if (cloudSave.coins !== undefined) {
+                  setUser(prev => ({ ...prev, coins: cloudSave.coins }));
+              }
+
+              if (cloudSave.day) setDay(cloudSave.day);
               setWater(cloudSave.water ?? 10);
               setNutrients(cloudSave.nutrients ?? 10);
               setEnergy(cloudSave.energy ?? 2);
               setPlant(cloudSave.plant || plant);
-              setPlantType(cloudSave.plantHeads || []);
               
-              // ✅ FIX: Încărcăm hainele și din Cloud (dacă sunt mai noi)
-              if (cloudSave.characterLook && cloudSave.characterLook.skin) {
-                  setCharacterLook(cloudSave.characterLook);
-              }
-               // ✅ FIX: Încărcăm planta din Cloud
+              if (cloudSave.characterLook?.skin) setCharacterLook(cloudSave.characterLook);
               if (cloudSave.plantTypeKey && plantTypes[cloudSave.plantTypeKey]) {
                   setPlantType(plantTypes[cloudSave.plantTypeKey]);
                   localStorage.setItem('currentPlantType', cloudSave.plantTypeKey);
               }
-
-              if (cloudSave.timeOfDay) setTimeOfDay(cloudSave.timeOfDay);
-              if (cloudSave.difficultyLevel) setDifficultyLevel(cloudSave.difficultyLevel);
-              if (cloudSave.plantConsumptionRate) setPlantConsumptionRate(cloudSave.plantConsumptionRate);
             }
           }
         } catch (e) {
           console.error("❌ Sync Error:", e);
         } finally {
-          // Gata încărcarea! Abia acum Safety Check-ul are voie să verifice
           setIsLoading(false); 
         }
       } else {
@@ -846,10 +872,8 @@ socket.on("update_players", (serverPlayers) => {
     syncGame();
   }, []);
 
-  // Salvăm jocul la fiecare modificare
-  // --- CLOUD ONLY AUTO-SAVE (Replaces your old localStorage save) ---
+ 
   useEffect(() => {
-    // 🟢 SECURITY CHECK: Don't save while loading!
     if (isLoading) return; 
 
     // Only save if we are in-game and have a valid user
@@ -857,10 +881,8 @@ socket.on("update_players", (serverPlayers) => {
       
       const gameState = { 
         day, water, nutrients, energy, plant, plantHeads, timeOfDay, weatherCalendar, moonDayOffset,
-        plantConsumptionRate, difficultyLevel, characterLook, plantTypeKey: localStorage.getItem('currentPlantType')
+        plantConsumptionRate, difficultyLevel, characterLook, coins: (user && user.coins !== undefined) ? user.coins : 0, plantTypeKey: localStorage.getItem('currentPlantType')
       };
-
-      // 🟢 NO localStorage here! (Prevents Ghost Data)
       
       const apiUrl = import.meta.env.VITE_API_URL || 'https://plant-game.onrender.com';
       const token = localStorage.getItem('token');
@@ -1913,40 +1935,47 @@ socket.on("update_players", (serverPlayers) => {
     }
   };
 
-// NEW FUNCTION: Send save data to backend
 const saveToCloud = async () => {
-  if (!user || !user.email) return; // Don't save if not logged in
+
+  if (!user || !user.email || isRestarting) return; 
 
   const gameState = { 
     day, water, nutrients, energy, plant, timeOfDay,
-    plantConsumptionRate, difficultyLevel, plantTypeKey: localStorage.getItem('currentPlantType')
+    plantConsumptionRate, difficultyLevel, 
+    coins: (user && user.coins !== undefined) ? user.coins : 0,
+    characterLook: user.characterLook, 
+    plantTypeKey: localStorage.getItem('currentPlantType')
   };
 
   try {
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    const apiUrl = import.meta.env.VITE_API_URL || 'https://plant-game.onrender.com';
     
-    // This sends the data to your Node.js server
-   const apiUrl = import.meta.env.VITE_API_URL || 'https://plant-game.onrender.com';
-   await fetch(`${apiUrl}/api/save`, {
+    // ✅ Folosim await fetch ca să fim siguri că se termină
+    await fetch(`${apiUrl}/api/save`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}` // 🔐 This is the "Key" for the lock
+        'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({ 
-        email: user.email, 
-        gameState: gameState 
-      })
+      body: JSON.stringify({ email: user.email, gameState })
     });
     console.log("☁️ Cloud Save Complete");
   } catch (error) {
     console.error("❌ Cloud Save Failed:", error);
   }
 };
-
   const startNewDay = () => {
     const newDay = day + 1;
     
+    const dailyReward = 25; 
+    setUser(prev => ({
+        ...prev,
+        coins: (prev?.coins || 0) + dailyReward
+    }));
+    addLog(`☀️ Day ${newDay} reward: +${dailyReward} Coins!`);
+    addFloatingNumber(`+${dailyReward} 💰`, 'success', 'center');
+
     // VICTORY CHECK - Day 30 completed!
     if (newDay > 30) {
       setGameView('victory');
@@ -1973,7 +2002,8 @@ const saveToCloud = async () => {
              nutrients, 
              energy,
              plantTypeKey: localStorage.getItem('currentPlantType'),
-             characterLook
+             characterLook,
+             coins: user.coins
           } 
         })
       }).then(() => console.log("🏆 Veteran status saved to DB!"));
@@ -2383,68 +2413,65 @@ const saveToCloud = async () => {
       disasterTriggeredRef.current = false;
   };
 
-const restart = async (force = false) => {
-    // Check if we are on the death screen or if force is active
-    const isGameOver = gameView === 'dead'; // Sau cum ai tu variabila pentru starea "mort"
+// ✅ RESTART FINAL (Cu protecție la suprascriere)
+const restart = async (force = false, bonusCoins = 0) => {
 
-    if (!force && !isGameOver) {
-      const confirmed = window.confirm("⚠️ RESTART FROM DAY 1?\n\nThis will wipe your progress.");
-      if (!confirmed) return;
-    }
-
-    // 1. ✅ SALVĂM DATELE VIZUALE CURENTE (ca să nu le pierdem la reset)
     const plantKeys = Object.keys(plantTypes); 
     const randomType = plantKeys[Math.floor(Math.random() * plantKeys.length)];
-    const currentOutfit = characterLook; 
-    
+    const currentOwnedCoins = user?.coins ? Number(user.coins) : 0;
+    const finalCoins = currentOwnedCoins + bonusCoins;
 
-    // 2. --- Fresh Day 1 Reset Logic ---
+    console.log(`💰 RESTART: Total ${finalCoins} (Bonus: ${bonusCoins})`);
+
+   localStorage.removeItem('currentPlantType');
+   localStorage.removeItem('currentPlantType');
+   localStorage.removeItem('weatherCalendar');
+   localStorage.removeItem('seasonConfig');  
+
+    if (!force && gameView !== 'dead') {
+      if (!window.confirm(`⚠️ Are you sure you want to start over?`)) return;
+    }
+
     const freshState = {
       day: 1, 
-      water: 10, 
-      nutrients: 10, 
-      energy: 2,
+      water: 10, nutrients: 10, energy: 2,
       plant: { water: 3, nutrients: 8, health: 15, dryDays: 0, overwateredDays: 0, damagedRootsDays: 0 },
-      timeOfDay: 'morning', 
-      plantConsumptionRate: 1, 
-      difficultyLevel: 1,
-      characterLook: currentOutfit,   
-      plantTypeKey: randomType
-    
+      timeOfDay: 'morning',
+      plantTypeKey: randomType,
+      characterLook: user.characterLook || characterLook, 
+      coins: finalCoins
     };
 
-    localStorage.removeItem('currentPlantType');
+    // 1. Salvăm local
+    const updatedUser = { ...user, coins: finalCoins, gameSave: freshState };
+    localStorage.setItem('user', JSON.stringify(updatedUser)); 
+    
+    // 🚩 PUNEM STEAGUL: "Tocmai am dat restart, nu citi din cloud la pornire!"
+    localStorage.setItem('restart_pending', 'true');
 
+    setUser(updatedUser); 
+
+    // 2. Trimitem la server (Backup)
     if (user?.email) {
       try {
         const token = localStorage.getItem('token');
         const apiUrl = import.meta.env.VITE_API_URL || 'https://plant-game.onrender.com';
         
-        // Trimitem noua stare (care are și hainele) la server
         await fetch(`${apiUrl}/api/save`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({ email: user.email, gameState: freshState })
         });
-      } catch (e) { console.error("Cloud wipe failed:", e); }
-    }
+        
+        window.location.reload();
 
-    // Curățăm LocalStorage de progresul vechi
-    localStorage.removeItem('gardenSave');
-    localStorage.removeItem('moonDayOffset'); 
-    localStorage.removeItem('weatherCalendar'); 
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      try {
-        const parsed = JSON.parse(savedUser);
-        // Ștergem salvarea veche din local, dar serverul o are pe cea bună acum
-        delete parsed.gameSave; 
-        localStorage.setItem('user', JSON.stringify(parsed));
-      } catch (e) { console.error(e); }
+      } catch (e) { 
+        window.location.reload(); 
+      }
+    } else {
+      window.location.reload();
     }
-
-    window.location.reload();
-  };
+};
   
 // 📸 Avatar STATIC pentru butoane (DAR cu imaginea de 'walk')
   // Această funcție transformă orice link 'skin.png' în 'skin-walk.png'
@@ -2709,15 +2736,53 @@ if (user && showCreator) {
       
       {/* Butoane Utilitare Direct pe Ecran */}
 <div className="utility-buttons-container">
-  <button className="utility-btn" onClick={() => {
+{/* - BUTON LOGOUT CORECTAT (Salvează datele REALE, nu cele vechi) */}
+<button className="utility-btn" onClick={async (e) => {
+    const btn = e.target;
+    btn.innerText = "Saving...";
+    btn.disabled = true;
+
+    if (user && user.email) {
+       const token = localStorage.getItem('token');
+       const apiUrl = 'https://plant-game.onrender.com';
+       
+       // ✅ 1. CONSTRUIM STAREA CURENTĂ (LIVE)
+       // Nu folosim user.gameSave pentru că e vechi! Luăm variabilele de pe ecran:
+       const currentGameState = { 
+          day, water, nutrients, energy, plant, plantHeads, timeOfDay, 
+          weatherCalendar, moonDayOffset, plantConsumptionRate, difficultyLevel, 
+          characterLook, 
+          plantTypeKey: localStorage.getItem('currentPlantType'),
+          
+          // ✅ MONEDELE CURENTE (Convertite sigur în număr)
+          coins: Number(user.coins || 0) 
+       };
+
+       // 2. Trimitem la server
+       try {
+           await fetch(`${apiUrl}/api/save`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+              body: JSON.stringify({ 
+                 email: user.email, 
+                 gameState: currentGameState 
+              })
+           });
+           console.log("✅ Logout Save Success!");
+       } catch (err) {
+           console.error("❌ Logout Save Failed:", err);
+           alert("Warning: Save failed. Check internet connection.");
+       }
+    }
+
+    // 3. Ștergem și ieșim
     localStorage.clear();
     sessionStorage.clear();
-    // FORCE RELOAD: This guarantees no "ghost data" stays in memory
     window.location.reload(); 
-  }}>
-    LOG OUT
-  </button>
-  
+}}>
+  LOG OUT
+</button>
+
   <button className="utility-btn restart-btn-top" onClick={() => restart()}>
   RESTART
 </button>
@@ -3695,6 +3760,54 @@ setPlayers(prev => ({
               </>
             )}
 
+<div className="global-weather" style={{ 
+    position: 'fixed', 
+    inset: 0, 
+    zIndex: 1000000, 
+    pointerEvents: 'none'
+}}>
+      {currentWeather === 'rainy' && (
+        <div className="weather-overlay rain-overlay">
+          {Array.from({ length: 100 }).map((_, i) => (
+            <div key={i} className="rain-drop" style={{
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 2}s`,
+              animationDuration: `${0.5 + Math.random() * 0.5}s`
+            }}></div>
+          ))}
+        </div>
+      )}
+      
+      {currentWeather === 'snowy' && (
+        <div className="weather-overlay snow-overlay">
+          {Array.from({ length: 50 }).map((_, i) => (
+            <div key={i} className="snowflake" style={{
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 5}s`,
+              animationDuration: `${3 + Math.random() * 4}s`,
+              fontSize: `${10 + Math.random() * 10}px`
+            }}>❄</div>
+          ))}
+        </div>
+      )}
+      
+      {currentWeather === 'thunderstorm' && (
+        <>
+          <div className="weather-overlay rain-overlay thunderstorm-rain">
+            {Array.from({ length: 150 }).map((_, i) => (
+              <div key={i} className="rain-drop heavy" style={{
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 1}s`,
+                animationDuration: `${0.3 + Math.random() * 0.3}s`
+              }}></div>
+            ))}
+          </div>
+          <div className="lightning-overlay"></div>
+        </>
+      )}
+      </div>
+
+
             {/* BATTLE UI */}
             {battleState && gameView === 'battle' && (
               <div className="battle-screen">
@@ -3922,59 +4035,8 @@ setPlayers(prev => ({
         )}
       </div>
       )}
-
-
-<div className="global-weather" style={{ 
-    position: 'fixed', 
-    inset: 0, 
-    zIndex: 1000000, 
-    pointerEvents: 'none'
-}}>
-      {currentWeather === 'rainy' && (
-        <div className="weather-overlay rain-overlay">
-          {Array.from({ length: 100 }).map((_, i) => (
-            <div key={i} className="rain-drop" style={{
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 2}s`,
-              animationDuration: `${0.5 + Math.random() * 0.5}s`
-            }}></div>
-          ))}
-        </div>
-      )}
-      
-      {currentWeather === 'snowy' && (
-        <div className="weather-overlay snow-overlay">
-          {Array.from({ length: 50 }).map((_, i) => (
-            <div key={i} className="snowflake" style={{
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${3 + Math.random() * 4}s`,
-              fontSize: `${10 + Math.random() * 10}px`
-            }}>❄</div>
-          ))}
-        </div>
-      )}
-      
-      {currentWeather === 'thunderstorm' && (
-        <>
-          <div className="weather-overlay rain-overlay thunderstorm-rain">
-            {Array.from({ length: 150 }).map((_, i) => (
-              <div key={i} className="rain-drop heavy" style={{
-                left: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 1}s`,
-                animationDuration: `${0.3 + Math.random() * 0.3}s`
-              }}></div>
-            ))}
-          </div>
-          <div className="lightning-overlay"></div>
-        </>
-      )}
-      </div>
-
-
     </>
   );
 }
-
 
 export default App;

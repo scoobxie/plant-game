@@ -77,13 +77,13 @@ const CharacterCreator = ({ gender, currentLook, onSave, onClose, userCoins }) =
 
   return (
     <div className="creator-overlay">
-      <div className="creator-window">
-
-      <div className="creator-coins-display">
+      
+       <div className="creator-coins-display">
             Coins: {userCoins || 0}
         </div>
-        
-        {/* ❌ BUTONUL DE ÎNCHIDERE (Acum va funcționa) */}
+
+      <div className="creator-window">
+        {/* ❌ BUTONUL DE ÎNCHIDERE  */}
         <button className="close-creator-btn" onClick={onClose}>✕</button>
 
         <h2>Modify Your Look</h2>
