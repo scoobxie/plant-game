@@ -257,18 +257,36 @@ setInterval(() => {
 // --- SAVE GAME (VERSIUNEA REPARATĂ) ---
 app.post('/api/save', verifyToken, async (req, res) => {
   try {
-    const { email, gameState } = req.body;
-    let updateData = { $set: { gameSave: gameState } };
+    const { email, gameState, coins } = req.body; // 👈 Citim și 'coins' explicit dacă vine separat
+
+    // Pregătim update-ul
+    let updateData = { 
+        $set: { 
+            gameSave: gameState,
+            // Actualizăm data ultimei salvări ca să știm cine e activ
+            "gameSave.lastSeen": Date.now() 
+        } 
+    };
     
-    // ✅ FIX: Acceptăm orice format și îl transformăm în Număr
-    if (gameState && gameState.coins !== undefined) {
-      const coinValue = Number(gameState.coins);
-      if (!isNaN(coinValue)) updateData.$set.coins = coinValue;
+    // 💰 LOGICĂ BANI (Prioritate: 1. Coins expliciți, 2. Coins din gameState)
+    let coinsToSave = undefined;
+
+    if (coins !== undefined) {
+        coinsToSave = Number(coins);
+    } else if (gameState && gameState.coins !== undefined) {
+        coinsToSave = Number(gameState.coins);
+    }
+
+    if (coinsToSave !== undefined && !isNaN(coinsToSave)) {
+        updateData.$set.coins = coinsToSave;
+        console.log(`💰 Saving coins for ${email}: ${coinsToSave}`);
     }
 
     await User.findOneAndUpdate({ email }, updateData, { upsert: true });
-    res.status(200).json({ message: "Game saved!" });
+    res.status(200).json({ message: "Game saved!", savedCoins: coinsToSave });
+
   } catch (err) {
+    console.error("❌ Save Error:", err);
     res.status(500).json({ error: err.message });
   }
 });
