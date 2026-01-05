@@ -61,12 +61,24 @@ const Park = ({ players, socket, myId, onMove, user }) => {
                         </div>
                     )}
                     {obj.type === 'picnic' && (
-                        <div className="mistria-picnic">
-                            <div style={{ position: 'absolute', top: '-15px', right: '20px', width: '40px', height: '30px', background: '#d7ccc8', border: '3px solid #8d6e63', borderRadius: '5px' }}></div>
-                        </div>
-                    )}
-                </div>
-            ))}
+            <div className="mistria-picnic">
+                {/* Am înlocuit div-ul maro cu imaginea ta */}
+                <img 
+                    src="/assets/decor/picnic-basket.png" 
+                    alt="Picnic Basket" 
+                    style={{ 
+                        position: 'absolute', 
+                        top: '-30px', /* Ajustat pentru a sta pe pătură */
+                        right: '10px', 
+                        width: '60px', 
+                        height: 'auto',
+                        imageRendering: 'pixelated'
+                    }} 
+                />
+            </div>
+        )}
+    </div>
+))}
 
             {/* --- PLAYERS --- */}
             {Object.values(players).map((p) => {
