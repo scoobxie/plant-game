@@ -22,7 +22,6 @@ const GIRL_HAIRSTYLES = [
 
 const GIRL_OUTFITS = [
   "/assets/character/outfits/girl-default-outfit.png",
-  "/assets/character/outfits/girl-cozy-outfit.png"
 ];
 
 
@@ -42,7 +41,6 @@ const BOY_HAIRSTYLES = [
 
 const BOY_OUTFITS = [
     "/assets/character/outfits/boy-default-outfit.png",
-    "/assets/character/outfits/boy-basic-outfit.png"
 ];
 
 
