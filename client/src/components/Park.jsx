@@ -55,16 +55,29 @@ const Park = ({ players, socket, myId, onMove, user }) => {
                 <div key={obj.id} className="no-click" style={{ position: 'absolute', left: obj.x, top: obj.y, zIndex: Math.floor(obj.y) }}>
                     {obj.type === 'tree' && (
                         <div className="mistria-tree">
-                            <div className="tree-shadow-floor"></div>
+                            <div className="tree-shadow-floogit add .r"></div>
                             <div className="mistria-leaves"></div>
                             <div className="mistria-trunk"></div>
                         </div>
                     )}
-                    {obj.type === 'picnic' && (
-                        <div className="mistria-picnic">
-                            <div style={{ position: 'absolute', top: '-15px', right: '20px', width: '40px', height: '30px', background: '#d7ccc8', border: '3px solid #8d6e63', borderRadius: '5px' }}></div>
-                        </div>
-                    )}
+            {obj.type === 'picnic' && (
+                <div className="mistria-picnic">
+                    {/* PICNIC BASKET */}
+                    <img 
+                        src="/assets/props/picnic-basket.png" 
+                        alt="Picnic Basket" 
+                        style={{ 
+                            position: 'absolute', 
+                            top: '-25px',
+                            right: '15px', 
+                            width: '55px', 
+                            height: 'auto',
+                            imageRendering: 'pixelated',
+                            zIndex: 10
+                        }} 
+                    />
+                </div>
+            )}
                 </div>
             ))}
 
