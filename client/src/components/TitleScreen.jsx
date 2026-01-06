@@ -9,7 +9,7 @@ export default function TitleScreen({ onStartGame, onContinueGame }) {
       <h1 className="game-title">
         {/* Make sure these images exist in public/assets/ */}
        <img src="/assets/plant.wide.open.mouth.png" alt="sprout" className="title-icon left-icon" />
-        Plant Game
+        Rootlify
         <img src="/assets/plant.wide.open.mouth.png" alt="sprout" className="title-icon right-icon" />
       </h1>
 

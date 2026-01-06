@@ -261,9 +261,9 @@ app.post('/api/forgot-password', async (req, res) => {
     });
 
     const mailOptions = {
-      from: `"Plant Game" <${process.env.EMAIL_USER}>`,
+      from: `"Rootlify" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: '🌱 Plant Game - Reset Code',
+      subject: '🌱 Rootlify - Reset Code',
       text: `Hello Gardener!\n\nYour Password Reset Code is: ${code}\n\nGood luck!`
     };
 

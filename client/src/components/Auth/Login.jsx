@@ -188,7 +188,7 @@ export default function Login({ switchToRegister, onLoginSuccess, onBack }) {
     <div className="auth-wrapper">
       <h1 className="game-title">
         <img src="/assets/plant.wide.open.mouth.png" alt="sprout" className="title-icon left-icon" />
-        Plant Game
+        Rootlify
         <img src="/assets/plant.wide.open.mouth.png" alt="sprout" className="title-icon right-icon" />
       </h1>
 

@@ -2483,7 +2483,7 @@ const restart = async (force = false) => {
       <div className="auth-wrapper">
         <h1 className="game-title">
           <img src="/assets/plant.wide.open.mouth.png" alt="" className="title-icon left-icon" />
-          PLANT GAME
+          ROOTLIFY
           <img src="/assets/plant.wide.open.mouth.png" alt="" className="title-icon right-icon" />
         </h1>
         
