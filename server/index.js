@@ -25,19 +25,6 @@ const io = new Server(server, {
 });
 
 // =========================================
-// 🌦️ GLOBAL WEATHER SYSTEM
-// =========================================
-const weathers = ['sunny', 'rainy', 'cloudy', 'snowy'];
-let currentGlobalWeather = 'sunny';
-
-// Schimbăm vremea la fiecare 10 minute
-setInterval(() => {
-  currentGlobalWeather = weathers[Math.floor(Math.random() * weathers.length)];
-  io.emit('weather_update', currentGlobalWeather);
-  console.log(`🌦️ Server changed weather to: ${currentGlobalWeather}`);
-}, 600000);
-
-// =========================================
 // 🧠 SERVER MEMORY (Keeps track of players)
 // =========================================
 let onlinePlayers = {}; 
@@ -45,26 +32,17 @@ let onlinePlayers = {};
 io.on('connection', (socket) => {
     console.log(`✨ New player connected! ID: ${socket.id}`);
 
+    // 1. When entering the park (JOIN)
 // 1. When entering the park (JOIN)
-        socket.on('join-park', (data) => {
-        const username = data.username || "Gardener";
+    socket.on('join-park', (data) => {
         
-        console.log(`🔍 Attempting join: ${username} (ID: ${socket.id})`);
-
-        // GHOST BUSTERS
-        const ghostIDs = [];
+        // 👻 GHOST BUSTING: Ștergem orice alt jucător vechi cu același nume
         for (const [id, player] of Object.entries(onlinePlayers)) {
-            // Dacă găsim același nume...
-            if (player.username === username) {
-                ghostIDs.push(id);
+            if (player.username === data.username) {
+                console.log(`👻 Removing ghost of ${player.username} (ID: ${id})`);
+                delete onlinePlayers[id];
             }
         }
-
-        // Ștergem toate fantomele găsite
-        ghostIDs.forEach(ghostId => {
-            console.log(`👻 Kicking ghost ID: ${ghostId} for user: ${username}`);
-            delete onlinePlayers[ghostId];
-        });
 
         // Salvează jucătorul nou
         onlinePlayers[socket.id] = {
@@ -72,15 +50,11 @@ io.on('connection', (socket) => {
             x: data.x || 400,
             y: data.y || 400,
             username: data.username || "Guest",
-            isVeteran: data.isVeteran || false, 
-            characterLook: data.characterLook || {} ,
-            lastSeen: Date.now()
+            characterLook: data.characterLook || {} 
         };
-
-        socket.emit('weather_update', currentGlobalWeather);
-
+        
         console.log(`👋 ${data.username} joined the park.`);
-
+        
         io.emit('update_players', onlinePlayers);
         
         // Notificarea o trimitem doar celorlalți
@@ -89,16 +63,17 @@ io.on('connection', (socket) => {
         });
     });
 
-    // 2. When moving (MOVE)
+    // 2. When moving (MOVE) - THIS IS THE CRITICAL FIX
     socket.on('move', (data) => {
         if (onlinePlayers[socket.id]) {
             // Update ONLY coordinates, but COPY old data (name, clothes)
             onlinePlayers[socket.id] = {
                 ...onlinePlayers[socket.id], 
                 x: data.x,
-                y: data.y,
-                lastSeen: Date.now()
+                y: data.y
             };
+
+            // Send updated list to everyone
             io.emit('update_players', onlinePlayers);
         }
     });
@@ -147,8 +122,8 @@ const UserSchema = new mongoose.Schema({
   character: { type: String, enum: ['girl', 'boy'], default: 'girl' },
   gameSave: { type: Object, default: null },
   coins: { type: Number, default: 0 },
-  isBanned: { type: Boolean, default: false },
-  characterLook: { type: Object, default: {} }
+  isBanned: { type: Boolean, default: false }, // Pentru moderare
+  characterLook: { type: Object, default: {} } // Salvăm hainele permanent
 });
 
 const User = mongoose.model('User', UserSchema);
@@ -191,15 +166,9 @@ app.post('/api/register', async (req, res) => {
   try {
     const { username, email, password, character } = req.body;
     
-    // Check if email
+    // Check if user exists
     const existingUser = await User.findOne({ email });
     if (existingUser) return res.status(400).json({ message: "User already exists!" });
-
-    // 2. Check if USERNAME exists
-    const userWithName = await User.findOne({ username });
-    if (userWithName) {
-        return res.status(400).json({ message: "Username already taken!" });
-    }
 
     // Hash password
     const salt = await bcrypt.genSalt(10);
@@ -239,54 +208,23 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// =========================================
-// 🛠️ FIX CLEANUP (Folosim onlinePlayers, nu players)
-// =========================================
-setInterval(() => {
-  const now = Date.now();
-  // ✅ MODIFICARE: onlinePlayers, nu players
-  Object.keys(onlinePlayers).forEach(id => {
-    if (onlinePlayers[id].lastSeen && now - onlinePlayers[id].lastSeen > 30000) {
-      console.log(`👻 Cleanup inactive player: ${onlinePlayers[id].username}`);
-      delete onlinePlayers[id];
-      io.emit('update_players', onlinePlayers);
-    }
-  });
-}, 10000);
-
-// --- SAVE GAME (VERSIUNEA REPARATĂ) ---
+// --- SAVE GAME ---
 app.post('/api/save', verifyToken, async (req, res) => {
   try {
-    const { email, gameState, coins } = req.body; // 👈 Citim și 'coins' explicit dacă vine separat
-
-    // Pregătim update-ul
-    let updateData = { 
-        $set: { 
-            gameSave: gameState,
-            // Actualizăm data ultimei salvări ca să știm cine e activ
-            "gameSave.lastSeen": Date.now() 
-        } 
-    };
-    
-    // 💰 LOGICĂ BANI (Prioritate: 1. Coins expliciți, 2. Coins din gameState)
-    let coinsToSave = undefined;
-
-    if (coins !== undefined) {
-        coinsToSave = Number(coins);
-    } else if (gameState && gameState.coins !== undefined) {
-        coinsToSave = Number(gameState.coins);
-    }
-
-    if (coinsToSave !== undefined && !isNaN(coinsToSave)) {
-        updateData.$set.coins = coinsToSave;
-        console.log(`💰 Saving coins for ${email}: ${coinsToSave}`);
-    }
-
-    await User.findOneAndUpdate({ email }, updateData, { upsert: true });
-    res.status(200).json({ message: "Game saved!", savedCoins: coinsToSave });
-
+    const { email, gameState } = req.body;
+    await User.findOneAndUpdate({ email }, { gameSave: gameState });
+    res.status(200).json({ message: "Game saved!" });
   } catch (err) {
-    console.error("❌ Save Error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- LOAD GAME ---
+app.get('/api/load/:email', async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.params.email });
+    res.status(200).json(user.gameSave);
+  } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
@@ -390,28 +328,6 @@ app.post('/api/reset-password', async (req, res) => {
   }
 });
 
-// ✅ ROUTE TO LOAD GAME & COINS (Fixes the Logout/Login wipe)
-app.get('/api/load/:email', verifyToken, async (req, res) => {
-  try {
-    const { email } = req.params;
-    
-    const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    // ✅ CRITICAL: This pulls the coins YOU saved in the database
-    // It does NOT force 125. It uses 'user.coins'.
-    const responseData = {
-      ...user.gameSave, 
-      coins: user.coins, // <--- This is your REAL money
-      characterLook: user.characterLook || user.gameSave?.characterLook
-    };
-
-    res.status(200).json(responseData);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
 // ==========================================
 // 4. START SERVER
 // ==========================================
@@ -444,12 +360,4 @@ app.post('/api/reset-password-force', async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
-
-  // Schimbă vremea global la 10 minute
-setInterval(() => {
-    const weathers = ['sunny', 'rainy', 'cloudy', 'snowy'];
-    currentGlobalWeather = weathers[Math.floor(Math.random() * weathers.length)];
-    io.emit('weather_update', currentGlobalWeather);
-}, 600000);
-
 });

@@ -7,7 +7,10 @@ import PaperDoll from './components/PaperDoll';
 import CharacterCreator from './components/CharacterCreator';
 import Park from './components/Park';
 
-const SOCKET_URL = "https://plant-game.onrender.com";
+const SOCKET_URL = window.location.hostname === "localhost" 
+  ? "http://localhost:5000" 
+  : "https://plant-game.onrender.com";
+
 const socket = io(SOCKET_URL);
 
 function App() {
@@ -17,57 +20,54 @@ function App() {
   const [charPos, setCharPos] = useState('center');
   const [isLoading, setIsLoading] = useState(true);
   const [players, setPlayers] = useState({}); 
-  const [isRestarting, setIsRestarting] = useState(false);
 
 const handlePlayerMove = (x, y) => {
-  if (socket && socket.connected) {
-    // 1. Verificăm proximitatea pentru DANS
-    const isNearAnyone = Object.values(players).some(other => {
-      if (other.id === socket.id) return false;
-      const dist = Math.sqrt(Math.pow(other.x - x, 2) + Math.pow(other.y - y, 2));
-      return dist < 80; 
-    });
+    if (socket && socket.connected) {
+      // 1. Trimitem la server
+      socket.emit('move', { id: socket.id, x, y });
 
-    // 2. Pregătim datele (Inclusiv VETERAN status)
-    const moveData = { 
-      id: socket.id, 
-      x, y, 
-      isVeteran: user?.isVeteran || day >= 30, //
-      isDancing: isNearAnyone, 
-      coins: user?.coins || 0
-    };
-
-    // 3. Trimitem UN SINGUR pachet la server
-    socket.emit('move', moveData);
-
-    // 4. Update local pentru animație fluidă
-    setPlayers(prev => {
-      const myId = socket.id;
-      const existingMe = prev[myId] || {};
-      let newDirection = x > existingMe.x ? 'right' : (x < existingMe.x ? 'left' : existingMe.direction);
-
-      return {
-        ...prev,
-        [myId]: {
-          ...existingMe,
-          ...moveData,
-          direction: newDirection,
-          isMoving: true,
-          username: existingMe.username || user?.username || "Gardener",
-          characterLook: existingMe.characterLook || characterLook 
-        }
-      };
-    });
-
-    // 5. Oprim animația de mers
-    setTimeout(() => {
+      // 2. Update local cu ANIMAȚIE și DIRECȚIE
       setPlayers(prev => {
-        const myP = prev[socket.id];
-        return myP ? { ...prev, [socket.id]: { ...myP, isMoving: false } } : prev;
+        const myId = socket.id;
+        const existingMe = prev[myId] || {};
+
+        // A. Calculăm direcția pe baza click-ului (Unde vreau să ajung vs Unde sunt)
+        let newDirection = existingMe.direction; // Default: păstrăm vechea direcție
+        if (x > existingMe.x) newDirection = 'right'; // Click în dreapta
+        if (x < existingMe.x) newDirection = 'left';  // Click în stânga
+
+        return {
+          ...prev,
+          [myId]: {
+            ...existingMe,
+            id: myId,
+            x: x,
+            y: y,
+            
+            direction: newDirection, 
+            isMoving: true,
+
+            // Păstrăm fix-ul tău pentru haine/nume (Bug-ul Guest):
+            username: existingMe.username || user?.username || "Gardener",
+            characterLook: existingMe.characterLook || characterLook 
+          }
+        };
       });
-    }, 600);
-  }
-};
+
+      // 3. Oprim animația după ce ajunge 
+      setTimeout(() => {
+        setPlayers(prev => {
+            const myP = prev[socket.id];
+            if (!myP) return prev;
+            return {
+                ...prev,
+                [socket.id]: { ...myP, isMoving: false } 
+            };
+        });
+      }, 600);
+    }
+  };
+
   // --- AUTH ---
   const [user, setUser] = useState(null);
   const [viewState, setViewState] = useState('title'); 
@@ -116,74 +116,57 @@ socket.on("update_players", (serverPlayers) => {
       setPlayers(prev => {
         const nextState = { ...serverPlayers };
 
-  // 🛡️ FILTRARE: Nu lăsăm jucători cu același nume dar ID diferit
-          const seenUsernames = new Set();
-          
-          Object.keys(serverPlayers).forEach(id => {
-              const p = serverPlayers[id];
-              
-              // Dacă e ID-ul meu, îl pun mereu
-              if (id === socket.id) {
-                  nextState[id] = p;
-                  seenUsernames.add(p.username);
-              } 
-              // Dacă e altul, verificăm dacă am mai văzut numele ăsta deja (clonă)
-              else if (!seenUsernames.has(p.username)) {
-                  nextState[id] = p;
-                  seenUsernames.add(p.username);
-              }
-          });
-
         Object.keys(nextState).forEach(id => {
-          const oldP = prev[id];
-          const newP = nextState[id];
+          const oldP = prev[id];      // Starea veche
+          const newP = nextState[id]; // Starea nouă de la server
 
-          if (!oldP) return;
+          if (!oldP) return; // Dacă e jucător nou, ignorăm
 
-          // Daca ești TU -> păstrezi mișcarea locală
+          // --- CAZUL 1: EȘTI TU (Local) ---
+          // Tu îți controlezi singur animația în handlePlayerMove, 
+          // așa că ignorăm ce zice serverul despre "isMoving" pentru tine.
           if (id === socket.id) {
              if (oldP.isMoving) { 
                  newP.isMoving = true; 
                  newP.direction = oldP.direction;
              }
           } 
-          // Daca sunt ALȚII -> Logică anti-stutter
+          
+          // --- CAZUL 2: SUNT ALȚII (Remote) ---
+          // Aici reparăm "mersul la infinit"
           else {
+             // Verificăm dacă s-au schimbat coordonatele
              const hasMoved = (oldP.x !== newP.x || oldP.y !== newP.y);
              
              if (hasMoved) {
+                 // 1. PORNIM MERSUL
                  newP.isMoving = true;
-                 newP.lastMoveTime = Date.now(); // Salvăm timpul
-                 
-                 // Direcția
+
+                 // 2. CALCULĂM DIRECȚIA (ca să nu meargă cu spatele)
                  if (newP.x > oldP.x) newP.direction = 'right';
                  else if (newP.x < oldP.x) newP.direction = 'left';
                  else newP.direction = oldP.direction;
 
-                 // Oprim animația doar dacă NU s-a mai mișcat de 550ms
+                 // 3. 🛑 FIX CRITIC: Oprim forțat animația lor după 600ms
+                 // Chiar dacă serverul nu mai trimite nimic, noi îi oprim local.
                  setTimeout(() => {
                     setPlayers(curr => {
-                        if (!curr[id]) return curr;
-                        if (Date.now() - (curr[id].lastMoveTime || 0) >= 550) {
-                            return { ...curr, [id]: { ...curr[id], isMoving: false } };
-                        }
-                        return curr;
+                        if (!curr[id]) return curr; // Dacă a ieșit între timp
+                        return {
+                            ...curr,
+                            [id]: { ...curr[id], isMoving: false }
+                        };
                     });
-                 }, 600);
+                 }, 600); // 600ms este durata tranziției CSS
 
              } else {
-                 // Dacă stă pe loc, dar abia s-a mișcat, îl mai lăsăm puțin
-                 if (oldP.isMoving && (Date.now() - (oldP.lastMoveTime || 0) < 600)) {
-                     newP.isMoving = true;
-                     newP.direction = oldP.direction;
-                     newP.lastMoveTime = oldP.lastMoveTime;
-                 } else {
-                     newP.isMoving = false;
-                     newP.direction = oldP.direction;
-                 }
+                 // Dacă coordonatele sunt identice, sigur stă pe loc
+                 newP.isMoving = false;
+                 newP.direction = oldP.direction;
              }
           }
         });
+
         return nextState;
       });
     });
@@ -208,22 +191,13 @@ socket.on("update_players", (serverPlayers) => {
                     [id]: { ...prev[id], chatMessage: null }
                 };
             });
-        }, 10000);
+        }, 5000);
     });
 
     // 3. 🔔 Notificări Globale 
     socket.on('global_notification', ({ text }) => {
         setNotification({ message: text, type: 'success' });
         setTimeout(() => setNotification(null), 5000);
-    });
-
-    // 4. 🌦️ Sync Weather de la Server (MMO)
-    socket.on('weather_update', (serverWeather) => {
-        // serverWeather vine de la server: 'sunny', 'rainy', 'cloudy', etc.
-        if (serverWeather) {
-            setCurrentWeather(serverWeather);
-            console.log("🌦️ Server synced weather:", serverWeather);
-        }
     });
 
     return () => {
@@ -767,48 +741,22 @@ socket.on("update_players", (serverPlayers) => {
   const [timeTransition, setTimeTransition] = useState(null); // For big time cards
   const [floatingNumbers, setFloatingNumbers] = useState([]); // For damage/heal numbers
 
-  // 🏃 STATE PENTRU ANIMAȚIA DE MERS
-  const [stepPhase, setStepPhase] = useState(0);
-
-  useEffect(() => {
-    // Pornim animația DOAR în timpul expediției efective
-    if (gameView !== 'expedition') {
-        setStepPhase(0); 
-        return;
-    }
-
-    const interval = setInterval(() => {
-        setStepPhase(prev => (prev === 0 ? 1 : 0));
-    }, 200); 
-    
-    return () => clearInterval(interval);
-  }, [gameView]);
-
-  const getWalkSrc = (src) => {
-      if (!src) return null;
-      if (stepPhase === 1) return src.replace('.png', '-walk.png');
-      return src;
-  };
-
   // --- EFECTE (Load & Save & Styles) ---
 
-// --- SYNC FIX: Load Cloud Data on Startup (VERSIUNEA FINALĂ: Haine + BANI) ---
- // --- SYNC FIX: Verifică steagul de restart ---
+// --- SYNC FIX: Load Cloud Data on Startup ---
+ // --- SYNC FIX: Load Cloud Data on Startup (VERSIUNEA NOUĂ: Încarcă și Haine) ---
   useEffect(() => {
     const syncGame = async () => {
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       const savedUserString = localStorage.getItem('user') || sessionStorage.getItem('user');
       const apiUrl = import.meta.env.VITE_API_URL || 'https://plant-game.onrender.com';
 
-      // Verificăm dacă tocmai am dat restart
-      const isFreshRestart = localStorage.getItem('restart_pending') === 'true';
-
       if (token && savedUserString) {
         try {
           const parsedUser = JSON.parse(savedUserString);
           setUser(parsedUser); 
           
-          // 1. Încărcăm datele LOCALE (Acestea sunt corecte - Day 1 - dacă am dat restart)
+          // 1. Încărcăm datele LOCALE (inclusiv hainele!)
           if (parsedUser.gameSave) {
              const local = parsedUser.gameSave;
              setDay(local.day || 1);
@@ -817,20 +765,20 @@ socket.on("update_players", (serverPlayers) => {
              setEnergy(local.energy ?? 2);
              setPlant(local.plant || plant);
              
-             if (local.characterLook?.skin) setCharacterLook(local.characterLook);
+             // ✅ FIX IMPORTANT: Încărcăm hainele din LocalStorage
+             if (local.characterLook && local.characterLook.skin) {
+                 setCharacterLook(local.characterLook);
+             }
+             
+             // ✅ FIX: Încărcăm tipul plantei
+             if (local.plantTypeKey && plantTypes[local.plantTypeKey]) {
+                setPlantType(plantTypes[local.plantTypeKey]);
+             }
           }
           
           setViewState('game'); 
 
-          // 🛑 STOP! Dacă e Fresh Restart, NU mai citim din Cloud (ca să nu ne strice ziua 1)
-          if (isFreshRestart) {
-              console.log("🚩 Fresh Restart detected! Using Local Data (Day 1) and ignoring Cloud.");
-              localStorage.removeItem('restart_pending'); // Ștergem steagul pentru data viitoare
-              setIsLoading(false);
-              return; // Ieșim din funcție, nu mai facem fetch
-          }
-
-          // 2. CHECK CLOUD DATA (Doar dacă nu e restart proaspăt)
+          // 2. CHECK CLOUD DATA (cu Cache Buster ?t=... ca să nu mai ai probleme la restart)
           console.log(`☁️ Checking cloud save...`);
           const res = await fetch(`${apiUrl}/api/load/${parsedUser.email}?t=${Date.now()}`, {
             method: 'GET',
@@ -839,30 +787,35 @@ socket.on("update_players", (serverPlayers) => {
 
           if (res.ok) {
             const cloudSave = await res.json();
-            
-            if (cloudSave) {
+            if (cloudSave && cloudSave.day) {
               console.log("☁️ Found Cloud Save. Syncing...");
               
-              if (cloudSave.coins !== undefined) {
-                  setUser(prev => ({ ...prev, coins: cloudSave.coins }));
-              }
-
-              if (cloudSave.day) setDay(cloudSave.day);
+              setDay(cloudSave.day);
               setWater(cloudSave.water ?? 10);
               setNutrients(cloudSave.nutrients ?? 10);
               setEnergy(cloudSave.energy ?? 2);
               setPlant(cloudSave.plant || plant);
+              setPlantType(cloudSave.plantHeads || []);
               
-              if (cloudSave.characterLook?.skin) setCharacterLook(cloudSave.characterLook);
+              // ✅ FIX: Încărcăm hainele și din Cloud (dacă sunt mai noi)
+              if (cloudSave.characterLook && cloudSave.characterLook.skin) {
+                  setCharacterLook(cloudSave.characterLook);
+              }
+               // ✅ FIX: Încărcăm planta din Cloud
               if (cloudSave.plantTypeKey && plantTypes[cloudSave.plantTypeKey]) {
                   setPlantType(plantTypes[cloudSave.plantTypeKey]);
                   localStorage.setItem('currentPlantType', cloudSave.plantTypeKey);
               }
+
+              if (cloudSave.timeOfDay) setTimeOfDay(cloudSave.timeOfDay);
+              if (cloudSave.difficultyLevel) setDifficultyLevel(cloudSave.difficultyLevel);
+              if (cloudSave.plantConsumptionRate) setPlantConsumptionRate(cloudSave.plantConsumptionRate);
             }
           }
         } catch (e) {
           console.error("❌ Sync Error:", e);
         } finally {
+          // Gata încărcarea! Abia acum Safety Check-ul are voie să verifice
           setIsLoading(false); 
         }
       } else {
@@ -872,8 +825,10 @@ socket.on("update_players", (serverPlayers) => {
     syncGame();
   }, []);
 
- 
+  // Salvăm jocul la fiecare modificare
+  // --- CLOUD ONLY AUTO-SAVE (Replaces your old localStorage save) ---
   useEffect(() => {
+    // 🟢 SECURITY CHECK: Don't save while loading!
     if (isLoading) return; 
 
     // Only save if we are in-game and have a valid user
@@ -881,8 +836,10 @@ socket.on("update_players", (serverPlayers) => {
       
       const gameState = { 
         day, water, nutrients, energy, plant, plantHeads, timeOfDay, weatherCalendar, moonDayOffset,
-        plantConsumptionRate, difficultyLevel, characterLook, coins: (user && user.coins !== undefined) ? user.coins : 0, plantTypeKey: localStorage.getItem('currentPlantType')
+        plantConsumptionRate, difficultyLevel, characterLook, plantTypeKey: localStorage.getItem('currentPlantType')
       };
+
+      // 🟢 NO localStorage here! (Prevents Ghost Data)
       
       const apiUrl = import.meta.env.VITE_API_URL || 'https://plant-game.onrender.com';
       const token = localStorage.getItem('token');
@@ -1389,10 +1346,10 @@ socket.on("update_players", (serverPlayers) => {
   
   const generateEnemy = (currentDay) => {
     const personalities = {
-      aggressive: { name: 'Aggressive', surrenderChance: 0.1, fleeChance: 0.05, attackMod: 1.2, defenseMod: 0.9, sprite: 1 },
-      cowardly: { name: 'Cowardly', surrenderChance: 0.4, fleeChance: 0.3, attackMod: 0.8, defenseMod: 1.1, sprite: 3 },    
-      greedy: { name: 'Greedy', surrenderChance: 0.15, fleeChance: 0.1, attackMod: 1.0, defenseMod: 1.0, sprite: 4 },   
-      tactical: { name: 'Tactical', surrenderChance: 0.2, fleeChance: 0.15, attackMod: 1.1, defenseMod: 1.1, sprite: 2 }   
+      aggressive: { name: 'Aggressive', surrenderChance: 0.1, fleeChance: 0.05, attackMod: 1.2, defenseMod: 0.9 },
+      cowardly: { name: 'Cowardly', surrenderChance: 0.4, fleeChance: 0.3, attackMod: 0.8, defenseMod: 1.1 },
+      greedy: { name: 'Greedy', surrenderChance: 0.15, fleeChance: 0.1, attackMod: 1.0, defenseMod: 1.0 },
+      tactical: { name: 'Tactical', surrenderChance: 0.2, fleeChance: 0.15, attackMod: 1.1, defenseMod: 1.1 }
     };
     
     const firstNames = ['Grim', 'Rusty', 'Shadow', 'Blade', 'Ash', 'Vex', 'Scar', 'Thorn'];
@@ -1410,7 +1367,6 @@ socket.on("update_players", (serverPlayers) => {
       id: `enemy_${Date.now()}_${Math.random()}`,
       name: `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`,
       personality: personality,
-      image: `/assets/enemies/enemy-${personality.sprite}.png`,
       hp: Math.floor(baseHP * personality.defenseMod),
       maxHP: Math.floor(baseHP * personality.defenseMod),
       damage: Math.floor(baseDamage * personality.attackMod),
@@ -1935,79 +1891,44 @@ socket.on("update_players", (serverPlayers) => {
     }
   };
 
+// NEW FUNCTION: Send save data to backend
 const saveToCloud = async () => {
-
-  if (!user || !user.email || isRestarting) return; 
+  if (!user || !user.email) return; // Don't save if not logged in
 
   const gameState = { 
     day, water, nutrients, energy, plant, timeOfDay,
-    plantConsumptionRate, difficultyLevel, 
-    coins: (user && user.coins !== undefined) ? user.coins : 0,
-    characterLook: user.characterLook, 
-    plantTypeKey: localStorage.getItem('currentPlantType')
+    plantConsumptionRate, difficultyLevel, plantTypeKey: localStorage.getItem('currentPlantType')
   };
 
   try {
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    const apiUrl = import.meta.env.VITE_API_URL || 'https://plant-game.onrender.com';
     
-    // ✅ Folosim await fetch ca să fim siguri că se termină
-    await fetch(`${apiUrl}/api/save`, {
+    // This sends the data to your Node.js server
+   const apiUrl = import.meta.env.VITE_API_URL || 'https://plant-game.onrender.com';
+   await fetch(`${apiUrl}/api/save`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        'Authorization': `Bearer ${token}` // 🔐 This is the "Key" for the lock
       },
-      body: JSON.stringify({ email: user.email, gameState })
+      body: JSON.stringify({ 
+        email: user.email, 
+        gameState: gameState 
+      })
     });
     console.log("☁️ Cloud Save Complete");
   } catch (error) {
     console.error("❌ Cloud Save Failed:", error);
   }
 };
+
   const startNewDay = () => {
     const newDay = day + 1;
     
-    const dailyReward = 25; 
-    setUser(prev => ({
-        ...prev,
-        coins: (prev?.coins || 0) + dailyReward
-    }));
-    addLog(`☀️ Day ${newDay} reward: +${dailyReward} Coins!`);
-    addFloatingNumber(`+${dailyReward} 💰`, 'success', 'center');
-
     // VICTORY CHECK - Day 30 completed!
     if (newDay > 30) {
       setGameView('victory');
       playSound('success');
-      // LOCAL UPDATE - BADGE 
-      const updatedUser = { ...user, isVeteran: true };
-      setUser(updatedUser);
-      localStorage.setItem('user', JSON.stringify(updatedUser)); // Păstrăm și la refresh
-
-      // SERVER UPDATE - isVeteran
-      const token = localStorage.getItem('token');
-      const apiUrl = import.meta.env.VITE_API_URL || 'https://plant-game.onrender.com';
-      
-      fetch(`${apiUrl}/api/save`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ 
-          email: user.email, 
-          isVeteran: true, 
-          gameState: { 
-             day: 30, 
-             plant, 
-             water, 
-             nutrients, 
-             energy,
-             plantTypeKey: localStorage.getItem('currentPlantType'),
-             characterLook,
-             coins: user.coins
-          } 
-        })
-      }).then(() => console.log("🏆 Veteran status saved to DB!"));
-
       return;
     }
     
@@ -2413,87 +2334,65 @@ const saveToCloud = async () => {
       disasterTriggeredRef.current = false;
   };
 
-// ✅ RESTART FINAL (Cu protecție la suprascriere)
-const restart = async (force = false, bonusCoins = 0) => {
+const restart = async (force = false) => {
+    // Check if we are on the death screen or if force is active
+    const isGameOver = gameView === 'dead'; // Sau cum ai tu variabila pentru starea "mort"
 
-    const plantKeys = Object.keys(plantTypes); 
-    const randomType = plantKeys[Math.floor(Math.random() * plantKeys.length)];
-    const currentOwnedCoins = user?.coins ? Number(user.coins) : 0;
-    const finalCoins = currentOwnedCoins + bonusCoins;
-
-    console.log(`💰 RESTART: Total ${finalCoins} (Bonus: ${bonusCoins})`);
-
-   localStorage.removeItem('currentPlantType');
-   localStorage.removeItem('currentPlantType');
-   localStorage.removeItem('weatherCalendar');
-   localStorage.removeItem('seasonConfig');  
-
-    if (!force && gameView !== 'dead') {
-      if (!window.confirm(`⚠️ Are you sure you want to start over?`)) return;
+    if (!force && !isGameOver) {
+      const confirmed = window.confirm("⚠️ RESTART FROM DAY 1?\n\nThis will wipe your progress.");
+      if (!confirmed) return;
     }
 
+    // 1. ✅ SALVĂM DATELE VIZUALE CURENTE (ca să nu le pierdem la reset)
+    const currentOutfit = characterLook; 
+    const currentPlantTypeKey = localStorage.getItem('currentPlantType');
+
+    // 2. --- Fresh Day 1 Reset Logic ---
     const freshState = {
       day: 1, 
-      water: 10, nutrients: 10, energy: 2,
+      water: 10, 
+      nutrients: 10, 
+      energy: 2,
       plant: { water: 3, nutrients: 8, health: 15, dryDays: 0, overwateredDays: 0, damagedRootsDays: 0 },
-      timeOfDay: 'morning',
-      plantTypeKey: randomType,
-      characterLook: user.characterLook || characterLook, 
-      coins: finalCoins
+      timeOfDay: 'morning', 
+      plantConsumptionRate: 1, 
+      difficultyLevel: 1,
+      
+      // ✅ 3. ADĂUGĂM HAINELE ȘI PLANTA ÎN NOUL SAVE
+      characterLook: currentOutfit,       // <--- Asta păstrează hainele!
+      plantTypeKey: currentPlantTypeKey   // <--- Asta păstrează specia plantei!
     };
 
-    // 1. Salvăm local
-    const updatedUser = { ...user, coins: finalCoins, gameSave: freshState };
-    localStorage.setItem('user', JSON.stringify(updatedUser)); 
-    
-    // 🚩 PUNEM STEAGUL: "Tocmai am dat restart, nu citi din cloud la pornire!"
-    localStorage.setItem('restart_pending', 'true');
-
-    setUser(updatedUser); 
-
-    // 2. Trimitem la server (Backup)
     if (user?.email) {
       try {
         const token = localStorage.getItem('token');
         const apiUrl = import.meta.env.VITE_API_URL || 'https://plant-game.onrender.com';
         
+        // Trimitem noua stare (care are și hainele) la server
         await fetch(`${apiUrl}/api/save`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({ email: user.email, gameState: freshState })
         });
-        
-        window.location.reload();
-
-      } catch (e) { 
-        window.location.reload(); 
-      }
-    } else {
-      window.location.reload();
+      } catch (e) { console.error("Cloud wipe failed:", e); }
     }
-};
-  
-// 📸 Avatar STATIC pentru butoane (DAR cu imaginea de 'walk')
-  // Această funcție transformă orice link 'skin.png' în 'skin-walk.png'
-  const getStaticWalkSrc = (src) => src ? src.replace('.png', '-walk.png') : null;
 
-  const miniAvatar = (
-    <div style={{ 
-        width: '40px', 
-        height: '50px', 
-        position: 'relative', 
-        display: 'inline-block', 
-        marginRight: '10px' 
-    }}>
-        <PaperDoll 
-            // 👇 Aici forțăm imaginea de walk, chiar dacă nu e animat
-            skinSrc={getStaticWalkSrc(characterLook.skin)}
-            hairSrc={getStaticWalkSrc(characterLook.hair)}
-            outfitSrc={getStaticWalkSrc(characterLook.outfit)}
-            isBreathing={false}
-        />
-    </div>
-  );
+    // Curățăm LocalStorage de progresul vechi
+    localStorage.removeItem('gardenSave');
+    localStorage.removeItem('moonDayOffset'); 
+    localStorage.removeItem('weatherCalendar'); 
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      try {
+        const parsed = JSON.parse(savedUser);
+        // Ștergem salvarea veche din local, dar serverul o are pe cea bună acum
+        delete parsed.gameSave; 
+        localStorage.setItem('user', JSON.stringify(parsed));
+      } catch (e) { console.error(e); }
+    }
+
+    window.location.reload();
+  };
 
 // --- RENDERIZARE ---
 
@@ -2632,7 +2531,7 @@ if (user && showCreator) {
     <CharacterCreator 
         gender={user.character} 
         currentLook={characterLook} 
-        userCoins={user.coins || 0}
+        
         onSave={(newLook) => {
             setCharacterLook(newLook);
             setShowCreator(false);
@@ -2736,53 +2635,15 @@ if (user && showCreator) {
       
       {/* Butoane Utilitare Direct pe Ecran */}
 <div className="utility-buttons-container">
-{/* - BUTON LOGOUT CORECTAT (Salvează datele REALE, nu cele vechi) */}
-<button className="utility-btn" onClick={async (e) => {
-    const btn = e.target;
-    btn.innerText = "Saving...";
-    btn.disabled = true;
-
-    if (user && user.email) {
-       const token = localStorage.getItem('token');
-       const apiUrl = 'https://plant-game.onrender.com';
-       
-       // ✅ 1. CONSTRUIM STAREA CURENTĂ (LIVE)
-       // Nu folosim user.gameSave pentru că e vechi! Luăm variabilele de pe ecran:
-       const currentGameState = { 
-          day, water, nutrients, energy, plant, plantHeads, timeOfDay, 
-          weatherCalendar, moonDayOffset, plantConsumptionRate, difficultyLevel, 
-          characterLook, 
-          plantTypeKey: localStorage.getItem('currentPlantType'),
-          
-          // ✅ MONEDELE CURENTE (Convertite sigur în număr)
-          coins: Number(user.coins || 0) 
-       };
-
-       // 2. Trimitem la server
-       try {
-           await fetch(`${apiUrl}/api/save`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-              body: JSON.stringify({ 
-                 email: user.email, 
-                 gameState: currentGameState 
-              })
-           });
-           console.log("✅ Logout Save Success!");
-       } catch (err) {
-           console.error("❌ Logout Save Failed:", err);
-           alert("Warning: Save failed. Check internet connection.");
-       }
-    }
-
-    // 3. Ștergem și ieșim
+  <button className="utility-btn" onClick={() => {
     localStorage.clear();
     sessionStorage.clear();
+    // FORCE RELOAD: This guarantees no "ghost data" stays in memory
     window.location.reload(); 
-}}>
-  LOG OUT
-</button>
-
+  }}>
+    LOG OUT
+  </button>
+  
   <button className="utility-btn restart-btn-top" onClick={() => restart()}>
   RESTART
 </button>
@@ -2965,9 +2826,7 @@ position: 'absolute',
     username: user.username, 
     characterLook: characterLook, 
     x: 400,
-    y: 400, 
-    isVeteran: user?.isVeteran || day >= 30,
-    coins: user?.coins || 0 
+    y: 400
   };
 
     socket.emit('join-park', myData);
@@ -3480,29 +3339,14 @@ setPlayers(prev => ({
               </div>
             </div>
           </>
-) : gameView === 'expedition' ? (
+        ) : gameView === 'expedition' ? (
           <>
             <div className="full-screen-overlay expedition-overlay">
               <div className="overlay-card">
                 <div className="overlay-icon" style={{fontSize: '8rem', animation: 'bounce 2s infinite'}}>🎒</div>
                 <div className="overlay-title">On Expedition</div>
                 <div className="overlay-subtitle">Gathering resources...</div>
-                
-                {/* ANIMATED CUSTOM CHARACTER */}
-                <div style={{ 
-                    marginTop: '30px',
-                    width: '120px', 
-                    height: '160px', 
-                    position: 'relative',
-                }}>
-                    <PaperDoll 
-                        skinSrc={getWalkSrc(characterLook.skin)} 
-                        hairSrc={getWalkSrc(characterLook.hair)} 
-                        outfitSrc={getWalkSrc(characterLook.outfit)} 
-                        isBreathing={false} 
-                    />
-                </div>
-
+                <div style={{fontSize: '5rem', marginTop: '20px', animation: 'pulse 1s infinite'}}>🚶</div>
               </div>
             </div>
           </>
@@ -3702,55 +3546,36 @@ setPlayers(prev => ({
                 <div className="submenu-panel">
                   <div className="submenu-title">🎒 Expedition</div>
                   <div className="submenu-options">
-                    
-                    {/* BUTON 1 ZI */}
                     <div 
                       className={`action-menu-item ${energy < 2 ? 'disabled' : ''}`}
                       onClick={() => {if (energy >= 2) startExpedition(1);}}
                     >
-                      {/* 👇 Aici am scos emoji 🚶 și am pus miniAvatar */}
-                      <div className="action-menu-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                         {miniAvatar}
-                         <span>1-Day Trip</span>
-                      </div>
+                      <div className="action-menu-title">🚶 1-Day Trip</div>
                       <div className="action-menu-subtitle">
                         {energy < 2 ? 'Need 2 energy!' : 'Quick resource gathering'}
                       </div>
                       <div className="action-menu-cost">-2 ⚡</div>
                     </div>
-
-                    {/* BUTON 2 ZILE */}
                     <div 
                       className={`action-menu-item ${energy < 3 ? 'disabled' : ''}`}
                       onClick={() => {if (energy >= 3) startExpedition(2);}}
                     >
-                      {/* 👇 Aici am scos emoji 🏃 și am pus miniAvatar */}
-                      <div className="action-menu-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                         {miniAvatar}
-                         <span>2-Day Trip</span>
-                      </div>
+                      <div className="action-menu-title">🏃 2-Day Trip</div>
                       <div className="action-menu-subtitle">
                         {energy < 3 ? 'Need 3 energy!' : 'Extended resource gathering'}
                       </div>
                       <div className="action-menu-cost">-3 ⚡</div>
                     </div>
-
-                    {/* BUTON 3 ZILE */}
                     <div 
                       className={`action-menu-item ${(!wellRested || energy < 4) ? 'disabled' : ''}`}
                       onClick={() => {if (wellRested && energy >= 4) startExpedition(3);}}
                     >
-                      {/* 👇 Aici am scos emoji 🏃‍♂️ și am pus miniAvatar */}
-                      <div className="action-menu-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                         {miniAvatar}
-                         <span>3-Day Trip ✨</span>
-                      </div>
+                      <div className="action-menu-title">🏃‍♂️ 3-Day Trip ✨</div>
                       <div className="action-menu-subtitle">
                         {!wellRested ? 'Need well-rested buff!' : energy < 4 ? 'Need 4 energy!' : 'Maximum resource haul!'}
                       </div>
                       <div className="action-menu-cost">-4 ⚡</div>
                     </div>
-
                     <div className="action-menu-item" onClick={() => setGameView('normal')}>
                       <div className="action-menu-title">🔙 Back</div>
                       <div className="action-menu-subtitle">Return to main menu</div>
@@ -3759,54 +3584,6 @@ setPlayers(prev => ({
                 </div>
               </>
             )}
-
-<div className="global-weather" style={{ 
-    position: 'fixed', 
-    inset: 0, 
-    zIndex: 1000000, 
-    pointerEvents: 'none'
-}}>
-      {currentWeather === 'rainy' && (
-        <div className="weather-overlay rain-overlay">
-          {Array.from({ length: 100 }).map((_, i) => (
-            <div key={i} className="rain-drop" style={{
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 2}s`,
-              animationDuration: `${0.5 + Math.random() * 0.5}s`
-            }}></div>
-          ))}
-        </div>
-      )}
-      
-      {currentWeather === 'snowy' && (
-        <div className="weather-overlay snow-overlay">
-          {Array.from({ length: 50 }).map((_, i) => (
-            <div key={i} className="snowflake" style={{
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${3 + Math.random() * 4}s`,
-              fontSize: `${10 + Math.random() * 10}px`
-            }}>❄</div>
-          ))}
-        </div>
-      )}
-      
-      {currentWeather === 'thunderstorm' && (
-        <>
-          <div className="weather-overlay rain-overlay thunderstorm-rain">
-            {Array.from({ length: 150 }).map((_, i) => (
-              <div key={i} className="rain-drop heavy" style={{
-                left: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 1}s`,
-                animationDuration: `${0.3 + Math.random() * 0.3}s`
-              }}></div>
-            ))}
-          </div>
-          <div className="lightning-overlay"></div>
-        </>
-      )}
-      </div>
-
 
             {/* BATTLE UI */}
             {battleState && gameView === 'battle' && (
@@ -3822,22 +3599,7 @@ setPlayers(prev => ({
                         key={p.id}
                         className={`turn-order-item ${idx === battleState.currentTurnIndex ? 'current-turn' : ''} ${p.isDead ? 'dead' : ''}`}
                       >
-                            <div className="turn-order-icon">
-                              {p.isEnemy ? (
-                                <img 
-                                  src={p.image} 
-                                  alt="" 
-                                  style={{ width: '30px', height: '30px', imageRendering: 'pixelated' }} 
-                                />
-                              ) : (
-                                /* Pentru plante, folosim imaginea din plantTypeData sau fallback */
-                                <img 
-                                  src={p.plantTypeData?.image || plantType.image} 
-                                  alt="" 
-                                  style={{ width: '30px', height: '30px', imageRendering: 'pixelated' }} 
-                                />
-                              )}
-                            </div>
+                        <div className="turn-order-icon">{p.emoji || '👤'}</div>
                         <div className="turn-order-name">{p.name}</div>
                         <div className="turn-order-hp">{p.hp}/{p.maxHP}</div>
                       </div>
@@ -3853,15 +3615,7 @@ setPlayers(prev => ({
                       className={`battle-enemy ${battleState.selectedTarget === enemy.id ? 'targeted' : ''}`}
                       onClick={() => handleTargetSelect(enemy.id)}
                     >
-                      <div className="enemy-sprite"><img 
-                            src={enemy.image} 
-                            alt={`Inamic tip ${enemy.personality.name}`} 
-                            style={{ 
-                              width: '80px', 
-                              height: '80px', 
-                              imageRendering: 'pixelated' 
-                            }} 
-                          /></div>
+                      <div className="enemy-sprite">👤</div>
                       <div className="enemy-name">{enemy.name}</div>
                       <div className="hp-bar-container">
                         <div 
@@ -4035,8 +3789,59 @@ setPlayers(prev => ({
         )}
       </div>
       )}
+
+
+<div className="global-weather" style={{ 
+    position: 'fixed', 
+    inset: 0, 
+    zIndex: 1000000, 
+    pointerEvents: 'none'
+}}>
+      {currentWeather === 'rainy' && (
+        <div className="weather-overlay rain-overlay">
+          {Array.from({ length: 100 }).map((_, i) => (
+            <div key={i} className="rain-drop" style={{
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 2}s`,
+              animationDuration: `${0.5 + Math.random() * 0.5}s`
+            }}></div>
+          ))}
+        </div>
+      )}
+      
+      {currentWeather === 'snowy' && (
+        <div className="weather-overlay snow-overlay">
+          {Array.from({ length: 50 }).map((_, i) => (
+            <div key={i} className="snowflake" style={{
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 5}s`,
+              animationDuration: `${3 + Math.random() * 4}s`,
+              fontSize: `${10 + Math.random() * 10}px`
+            }}>❄</div>
+          ))}
+        </div>
+      )}
+      
+      {currentWeather === 'thunderstorm' && (
+        <>
+          <div className="weather-overlay rain-overlay thunderstorm-rain">
+            {Array.from({ length: 150 }).map((_, i) => (
+              <div key={i} className="rain-drop heavy" style={{
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 1}s`,
+                animationDuration: `${0.3 + Math.random() * 0.3}s`
+              }}></div>
+            ))}
+          </div>
+          <div className="lightning-overlay"></div>
+        </>
+      )}
+      </div>
+
+
     </>
   );
 }
+
 
 export default App;
