@@ -8,8 +8,8 @@ import CharacterCreator from './components/CharacterCreator';
 import Park from './components/Park';
 
 const SOCKET_URL = window.location.hostname === "localhost" 
-  ? "https://plant-game.onrender.com" 
-  : "http://localhost:5000";
+  ? "http://localhost:5000"           // Local development
+  : "https://plant-game.onrender.com"; // Production server
 
 const socket = io(SOCKET_URL);
 
@@ -3738,7 +3738,7 @@ setPlayers(prev => ({
                               imageRendering: 'pixelated' 
                             }} 
                           /></div>
-                          
+
                       <div className="enemy-name">{enemy.name}</div>
                       <div className="hp-bar-container">
                         <div 
