@@ -10,7 +10,7 @@ import { playSFX, preloadRoomSounds, preloadParkSounds, toggleMute } from './cor
 
 const SOCKET_URL = window.location.hostname === "localhost" 
   ? "http://localhost:5000"           // Local development
-  : "https://rootlify.onrender.com/"; // Production server
+  : "https://plant-game.onrender.com"; // Production server
 
 const socket = io(SOCKET_URL);
 
@@ -777,7 +777,7 @@ socket.on("update_players", (serverPlayers) => {
     const syncGame = async () => {
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       const savedUserString = localStorage.getItem('user') || sessionStorage.getItem('user');
-      const apiUrl = import.meta.env.VITE_API_URL || 'https://rootlify.onrender.com/';
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://plant-game.onrender.com';
 
       if (token && savedUserString) {
         try {
@@ -868,7 +868,7 @@ socket.on("update_players", (serverPlayers) => {
 
       // 🟢 NO localStorage here! (Prevents Ghost Data)
       
-      const apiUrl = import.meta.env.VITE_API_URL || 'https://rootlify.onrender.com/';
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://plant-game.onrender.com';
       const token = localStorage.getItem('token');
       
       fetch(`${apiUrl}/api/save`, {
@@ -1932,7 +1932,7 @@ const saveToCloud = async () => {
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     
     // This sends the data to your Node.js server
-   const apiUrl = import.meta.env.VITE_API_URL || 'https://rootlify.onrender.com/';
+   const apiUrl = import.meta.env.VITE_API_URL || 'https://plant-game.onrender.com';
    await fetch(`${apiUrl}/api/save`, {
       method: 'POST',
       headers: {
@@ -1965,7 +1965,7 @@ if (newDay > 30) {
 
       // SERVER UPDATE - isVeteran
       const token = localStorage.getItem('token');
-      const apiUrl = import.meta.env.VITE_API_URL || 'https://rootlify.onrender.com/';
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://plant-game.onrender.com';
       
       fetch(`${apiUrl}/api/save`, {
         method: 'POST',
@@ -2425,7 +2425,7 @@ const restart = async (force = false) => {
     if (user?.email) {
       try {
         const token = localStorage.getItem('token');
-        const apiUrl = import.meta.env.VITE_API_URL || 'https://rootlify.onrender.com/';
+        const apiUrl = import.meta.env.VITE_API_URL || 'https://plant-game.onrender.com';
         
         // Trimitem noua stare (care are și hainele) la server
         await fetch(`${apiUrl}/api/save`, {
