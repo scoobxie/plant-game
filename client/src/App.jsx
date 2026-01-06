@@ -6,6 +6,7 @@ import Register from './components/Auth/Register';
 import PaperDoll from './components/PaperDoll';
 import CharacterCreator from './components/CharacterCreator';
 import Park from './components/Park';
+import { playSFX, preloadRoomSounds, preloadParkSounds, toggleMute } from './core/soundManager';
 
 const SOCKET_URL = window.location.hostname === "localhost" 
   ? "http://localhost:5000"           // Local development
@@ -106,6 +107,16 @@ useEffect(() => {
     });
 
     return () => socket.off("connect");
+}, []);
+
+useEffect(() => {
+  const handleGlobalClick = (e) => {
+    if (e.target.tagName === 'BUTTON' || e.target.closest('.clickable')) {
+      playSFX('click');
+    }
+  };
+  window.addEventListener('click', handleGlobalClick);
+  return () => window.removeEventListener('click', handleGlobalClick);
 }, []);
 
 useEffect(() => {
@@ -2560,6 +2571,7 @@ if (viewState === 'login') {
             });
 
             setViewState('game'); 
+            preloadRoomSounds();
           }} 
           onBack={() => setViewState('title')} 
         />
@@ -2888,6 +2900,7 @@ position: 'absolute',
 {/* 🚪 GARDEN DOOR */}
 <div 
   className="garden-door"
+  onMouseEnter={() => preloadParkSounds()}
   onClick={() => {
     setViewState('park');
 

@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react'; // 👈 Avem nevoie de useState și useEffect
+import React, { useState, useEffect } from 'react'; 
 import PaperDoll from './PaperDoll';
 import './Park.css';
+import { playSFX, startParkRadio, stopParkRadio } from '../core/soundManager';
 
 const Park = ({ players, socket, myId, onMove, user }) => { 
     
@@ -35,7 +36,19 @@ const Park = ({ players, socket, myId, onMove, user }) => {
         { id: 'p1', type: 'picnic', x: '72%', y: 200 },
     ];
 
+    // Radio
+    useEffect(() => {
+        startParkRadio(); // Starts the 5-song loop
+        return () => stopParkRadio(); // Stops music when the component unmounts
+    }, []);
 
+    // Play footstep sounds for YOUR player
+    useEffect(() => {
+        if (players[myId]?.isMoving && stepPhase === 0) {
+            playSFX('footstep'); 
+        }
+        
+}, [stepPhase, players[myId]?.isMoving]);
     
     return (
         <div className="park-container" onClick={handleMove}>
