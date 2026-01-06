@@ -49,8 +49,9 @@ io.on('connection', (socket) => {
             id: socket.id,
             x: data.x || 400,
             y: data.y || 400,
-            username: data.username || "Guest",
-            characterLook: data.characterLook || {} 
+            username: data.username || "Gardener",
+            characterLook: data.characterLook || {},
+            isVeteran: data.isVeteran || false
         };
         
         console.log(`👋 ${data.username} joined the park.`);
@@ -121,6 +122,7 @@ const UserSchema = new mongoose.Schema({
   gameSave: { type: Object, default: null },
   coins: { type: Number, default: 0 },
   isBanned: { type: Boolean, default: false }, 
+  isVeteran: { type: Boolean, default: false },
   characterLook: { type: Object, default: {} }
 });
 
@@ -161,7 +163,7 @@ app.post('/api/register', async (req, res) => {
     const existingUser = await User.findOne({ email });
     if (existingUser) return res.status(400).json({ message: "User already exists!" });
 
-    // 2. Check if username exists
+    // Check if username exists
     const userWithName = await User.findOne({ username });
     if (userWithName) {
         return res.status(400).json({ message: "Username already taken!" });
