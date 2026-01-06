@@ -15,7 +15,10 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 
-// --- CONFIGURARE SOCKET.IO (MMO MAGIC) 🎀 ---
+
+// ──── ୨୧ ──── MMO ──── ୨୧ ────
+
+// SOCKET.IO (MMO MAGIC)
 const server = http.createServer(app); // Creăm serverul HTTP explicit
 const io = new Server(server, {
     cors: {
@@ -24,15 +27,12 @@ const io = new Server(server, {
     }
 });
 
-// =========================================
-// 🧠 SERVER MEMORY (Keeps track of players)
-// =========================================
+// SERVER MEMORY (Keeps track of players)
 let onlinePlayers = {}; 
 
 io.on('connection', (socket) => {
     console.log(`✨ New player connected! ID: ${socket.id}`);
 
-    // 1. When entering the park (JOIN)
 // 1. When entering the park (JOIN)
     socket.on('join-park', (data) => {
         
@@ -44,7 +44,7 @@ io.on('connection', (socket) => {
             }
         }
 
-        // Salvează jucătorul nou
+        // Save new player
         onlinePlayers[socket.id] = {
             id: socket.id,
             x: data.x || 400,
@@ -57,28 +57,27 @@ io.on('connection', (socket) => {
         
         io.emit('update_players', onlinePlayers);
         
-        // Notificarea o trimitem doar celorlalți
+        // Global notification
         socket.broadcast.emit('global_notification', {
             text: `✿ ${data.username || 'A friend'} joined the garden! ✿`
         });
     });
 
-    // 2. When moving (MOVE) - THIS IS THE CRITICAL FIX
+    // When moving (MOVE)
     socket.on('move', (data) => {
         if (onlinePlayers[socket.id]) {
-            // Update ONLY coordinates, but COPY old data (name, clothes)
+            // Update ONLY coordinates, but COPY old data
             onlinePlayers[socket.id] = {
                 ...onlinePlayers[socket.id], 
                 x: data.x,
                 y: data.y
             };
-
             // Send updated list to everyone
             io.emit('update_players', onlinePlayers);
         }
     });
 
-    // 👇 3. CHAT SYSTEM 
+    // CHAT SYSTEM 
     socket.on('chat_message', (msg) => {
         if (onlinePlayers[socket.id]) {
             try {
@@ -97,23 +96,22 @@ io.on('connection', (socket) => {
         }
     });
 
-    // 3. When leaving (DISCONNECT)
+    // When leaving (DISCONNECT)
     socket.on('disconnect', () => {
         console.log(`❌ Player disconnected: ${socket.id}`);
-        delete onlinePlayers[socket.id]; // Remove from memory
+        delete onlinePlayers[socket.id];
         io.emit('update_players', onlinePlayers);
     });
 });
 
-app.use(cors());
+// ──── ୨୧ ──── SERVER  CONFIG ──── ୨୧ ────
 
+app.use(cors());
 app.get('/', (req, res) => {
   res.send('The server is up! 🌱');
 });
 
-// ==========================================
-// 1. DATABASE MODELS
-// ==========================================
+// ──── ୨୧ ──── DATABASE SCHEMA ──── ୨୧ ────
 
 const UserSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
@@ -122,26 +120,21 @@ const UserSchema = new mongoose.Schema({
   character: { type: String, enum: ['girl', 'boy'], default: 'girl' },
   gameSave: { type: Object, default: null },
   coins: { type: Number, default: 0 },
-  isBanned: { type: Boolean, default: false }, // Pentru moderare
-  characterLook: { type: Object, default: {} } // Salvăm hainele permanent
+  isBanned: { type: Boolean, default: false }, 
+  characterLook: { type: Object, default: {} }
 });
 
 const User = mongoose.model('User', UserSchema);
 
-// ==========================================
-// 2. HELPER VARIABLES
-// ==========================================
+// ──── ୨୧ ──── HELPER VARIABLES ──── ୨୧ ────
 
 // Temporary memory for reset codes
 const resetCodes = {}; 
-
-// 🕒 Memory for Cooldowns (Spam Protection)
-// Stores: { "alex@gmail.com": 1702819200000 }
+// Memory for Cooldowns (Spam Protection)
 const emailCooldowns = {}; 
 
-// ==========================================
-// MIDDLEWARE (SECURITY)
-// ==========================================
+// ──── ୨୧ ──── MIDDLEWARE ──── ୨୧ ────
+
 const verifyToken = (req, res, next) => {
   const tokenHeader = req.headers['authorization'];
   
@@ -157,18 +150,22 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-// ==========================================
-// 3. API ROUTES
-// ==========================================
+// ──── ୨୧ ──── API ROUTES ──── ୨୧ ────
 
-// --- REGISTER ---
+// ★ REGISTER ★
 app.post('/api/register', async (req, res) => {
   try {
     const { username, email, password, character } = req.body;
     
-    // Check if user exists
+    // Check if email exists
     const existingUser = await User.findOne({ email });
     if (existingUser) return res.status(400).json({ message: "User already exists!" });
+
+    // 2. Check if username exists
+    const userWithName = await User.findOne({ username });
+    if (userWithName) {
+        return res.status(400).json({ message: "Username already taken!" });
+    }
 
     // Hash password
     const salt = await bcrypt.genSalt(10);
@@ -189,7 +186,7 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
-// --- LOGIN ---
+// ★ LOGIN ★
 app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -208,7 +205,7 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// --- SAVE GAME ---
+// ★ SAVE GAME ★
 app.post('/api/save', verifyToken, async (req, res) => {
   try {
     const { email, gameState } = req.body;
@@ -219,7 +216,7 @@ app.post('/api/save', verifyToken, async (req, res) => {
   }
 });
 
-// --- LOAD GAME ---
+// ★ LOAD GAME ★
 app.get('/api/load/:email', async (req, res) => {
   try {
     const user = await User.findOne({ email: req.params.email });
@@ -229,11 +226,9 @@ app.get('/api/load/:email', async (req, res) => {
   }
 });
 
-// ==========================================
-// 🟢 PASSWORD RESET FLOW (3 STEPS)
-// ==========================================
+//  ──── ୨୧ ──── PASSWORD RESET ──── ୨୧ ────
 
-// STEP 1: SEND EMAIL (Debug Version)
+// 💌 SEND EMAIL
 app.post('/api/forgot-password', async (req, res) => {
   const { email } = req.body;
   console.log(`🔎 1. Received request for: ${email}`);
@@ -245,18 +240,13 @@ app.post('/api/forgot-password', async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // 🛑 COOLDOWN DISABLED FOR TESTING
-    // const lastSentTime = emailCooldowns[email];
-    // const now = Date.now();
-    // if (lastSentTime && (now - lastSentTime) < 60000) { ... }
-
     // Generate Code
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     resetCodes[email] = code; 
     console.log(`🔎 2. Generated Code: ${code}`);
 
-    // Setup Gmail Sender (WITH DEBUGGING)
-const transporter = nodemailer.createTransport({
+    // Setup Gmail Sender 
+    const transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',
       port: 465,       
       secure: true,       
@@ -269,7 +259,7 @@ const transporter = nodemailer.createTransport({
     });
 
     const mailOptions = {
-      from: `"Plant Game" <${process.env.EMAIL_USER}>`, // Added Name for professional look
+      from: `"Plant Game" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: '🌱 Plant Game - Reset Code',
       text: `Hello Gardener!\n\nYour Password Reset Code is: ${code}\n\nGood luck!`
@@ -289,7 +279,7 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-// STEP 2: VERIFY CODE ONLY
+// 💌 VERIFY CODE
 app.post('/api/verify-code', (req, res) => {
   const { email, code } = req.body;
 
@@ -300,7 +290,7 @@ app.post('/api/verify-code', (req, res) => {
   }
 });
 
-// STEP 3: RESET PASSWORD (CHANGE IT)
+// 💌 RESET PASSWORD (CHANGE IT)
 app.post('/api/reset-password', async (req, res) => {
   const { email, code, newPassword } = req.body;
 
@@ -328,22 +318,7 @@ app.post('/api/reset-password', async (req, res) => {
   }
 });
 
-// ==========================================
-// 4. START SERVER
-// ==========================================
-const PORT = process.env.PORT || 5000;
-
-mongoose.connect(process.env.MONGO_URL)
-  .then(() => {
-    console.log("✅ MongoDB connected");
-    server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-  })
-  .catch((err) => {
-    console.log("❌ Error connecting to MongoDB");
-    console.error(err);
-  });
-
-  // FORCE PASSWORD RESET (Frontend already verified the code)
+  // 💌 FORCE PASSWORD RESET (Frontend already verified the code)
 app.post('/api/reset-password-force', async (req, res) => {
   const { email, newPassword } = req.body;
   
@@ -361,3 +336,17 @@ app.post('/api/reset-password-force', async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
+// ──── ୨୧ ──── START SERVER ──── ୨୧ ────
+
+const PORT = process.env.PORT || 5000;
+
+mongoose.connect(process.env.MONGO_URL)
+  .then(() => {
+    console.log("✅ MongoDB connected");
+    server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+  })
+  .catch((err) => {
+    console.log("❌ Error connecting to MongoDB");
+    console.error(err);
+  });

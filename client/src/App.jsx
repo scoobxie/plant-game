@@ -2343,9 +2343,10 @@ const restart = async (force = false) => {
       if (!confirmed) return;
     }
 
-    // 1. ✅ SALVĂM DATELE VIZUALE CURENTE (ca să nu le pierdem la reset)
+    // 1. Save current outfit
     const currentOutfit = characterLook; 
-    const currentPlantTypeKey = localStorage.getItem('currentPlantType');
+    const plantKeys = Object.keys(plantTypes); 
+    const randomType = plantKeys[Math.floor(Math.random() * plantKeys.length)];
 
     // 2. --- Fresh Day 1 Reset Logic ---
     const freshState = {
@@ -2358,9 +2359,9 @@ const restart = async (force = false) => {
       plantConsumptionRate: 1, 
       difficultyLevel: 1,
       
-      // ✅ 3. ADĂUGĂM HAINELE ȘI PLANTA ÎN NOUL SAVE
-      characterLook: currentOutfit,       // <--- Asta păstrează hainele!
-      plantTypeKey: currentPlantTypeKey   // <--- Asta păstrează specia plantei!
+      // Add the saved outfit
+      characterLook: currentOutfit,  
+      plantTypeKey: randomType
     };
 
     if (user?.email) {
@@ -3842,6 +3843,4 @@ setPlayers(prev => ({
     </>
   );
 }
-
-
 export default App;
