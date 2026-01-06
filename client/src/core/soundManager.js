@@ -8,7 +8,7 @@ const radioTracks = [
 
 const sfx = {
   pop: new Audio('/assets/audio/pop.mp3'),
-  reward: new Audio('/assets/audio/reward.wav'),
+  reward: new Audio('/assets/audio/reward.mp3'),
   footstep: new Audio('/assets/audio/grass-footstep.mp3'),
   waterPlant: new Audio('/assets/audio/water-drip.mp3'),
   fertilizePlant: new Audio('/assets/audio/feed-plant.mp3'),
