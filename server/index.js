@@ -84,6 +84,9 @@ io.on('connection', (socket) => {
             try {
                 // CLEAN BAD WORDS
                 const cleanMessage = filter.clean(msg);
+
+                //save to memory
+                onlinePlayers[socket.id].chatMessage = cleanMessage;
                 
                 // SEND CLEAN MSG
                 io.emit('player_chat', {
@@ -91,9 +94,17 @@ io.on('connection', (socket) => {
                     text: cleanMessage
                 });
             } catch (e) {
+              //save to memory
+              onlinePlayers[socket.id].chatMessage = msg;
                 // OR THE ORIGINAL
                 io.emit('player_chat', { id: socket.id, text: msg });
             }
+              // clear memory after 5 seconds
+              setTimeout(() => {
+                  if (onlinePlayers[socket.id]) {
+                      delete onlinePlayers[socket.id].chatMessage;
+                  }
+              }, 5000);
         }
     });
 
