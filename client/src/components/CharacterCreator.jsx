@@ -22,7 +22,11 @@ const GIRL_HAIRSTYLES = [
 
 const GIRL_OUTFITS = [
   "/assets/character/outfits/girl-default-outfit.png",
-  "/assets/character/outfits/girl-cozy-outfit.png"
+  "/assets/character/outfits/girl-cozy-outfit.png",
+  "/assets/character/outfits/girl-outfit-pumpkin.png",
+  "/assets/character/outfits/girl-outfit-preppy.png",
+  "/assets/character/outfits/girl-outfit-protagonist.png",
+  "/assets/character/outfits/girl-outfit-cinderella.png",
 ];
 
 
@@ -42,7 +46,11 @@ const BOY_HAIRSTYLES = [
 
 const BOY_OUTFITS = [
     "/assets/character/outfits/boy-default-outfit.png",
-    "/assets/character/outfits/boy-basic-outfit.png"
+    "/assets/character/outfits/boy-basic-outfit.png",
+    "/assets/character/outfits/boy-outfit-brown-jacket.png",
+    "/assets/character/outfits/boy-outfit-black-jacket.png",
+    "/assets/character/outfits/boy-outfit-shorts.png",
+    "/assets/character/outfits/boy-outfit-vacay.png"
 ];
 
 
